@@ -1,0 +1,795 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- AUTHENTICATION & USERS ---
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  isActive      Boolean   @default(true)
+  bio           String?   @db.Text
+  locale        String    @default("es")
+  timezone      String    @default("UTC")
+
+  showWalkthrough     Boolean   @default(true)
+  walkthroughStep     Int       @default(0)
+  walkthroughDoneAt   DateTime?
+  securityPin         String?
+  webauthnCredential  String?   @db.Text
+
+  brandId       String?
+  brand         Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  accounts      Account[]
+  sessions      Session[]
+  roles         UserRole[]
+  loginHistory  LoginHistory[]
+  notifications Notification[]
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  studentProfile StudentProfile?
+  parentProfile  ParentProfile?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+// --- NEXTAUTH MODELS ---
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// --- ROLE-BASED ACCESS CONTROL (RBAC) ---
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  roles       RolePermission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("users_roles")
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("roles_permissions")
+}
+
+// --- AUDIT & SECURITY ---
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  ip        String?
+  userAgent String?  @db.Text
+  device    String?
+  browser   String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("login_history")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  points    Int      @default(0)
+  expireAt  DateTime @map("expire_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("rate_limits")
+}
+
+// --- MULTITENANCY / BRAND ---
+
+model Brand {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  slug                String?  @unique
+  isSlugLocked        Boolean  @default(false) @map("is_slug_locked")
+  description         String?  @db.Text
+  logoUrl             String?  @db.Text
+  defaultLocale       String   @default("es")
+  timezone            String   @default("UTC")
+  currency            String   @default("MXN")
+
+  apiKey              String?  @unique
+  billingWebhookUrl   String?  @db.Text
+  generalWebhookUrl   String?  @db.Text
+  isWebhookEnabled    Boolean  @default(true)
+
+  users               User[]
+  subscriptions       Subscription[]
+  payments            Payment[]
+  webhookLogs         WebhookLog[]
+  paymentConfigs      BrandPaymentConfig[]
+  paymentTransactions PaymentTransaction[]
+  brandPlans          BrandPlanConfig[]
+  customerPayments    BrandCustomerPayment[]
+
+  disciplines         Discipline[]
+  studentProfiles     StudentProfile[]
+  physicalChallenges  PhysicalChallenge[]
+  gradeExams          GradeExam[]
+  tournaments         Tournament[]
+  diplomaConfig       DiplomaConfig?
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("brands")
+}
+
+// --- BRAND MEMBERSHIP PLANS & CUSTOMER PAYMENTS ---
+
+model BrandPlanConfig {
+  id               String                 @id @default(cuid())
+  brandId          String                 @map("brand_id")
+  brand            Brand                  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  name             String
+  description      String?                @db.Text
+  priceMonthly     Float                  @default(0)
+  priceYearly      Float                  @default(0)
+  currency         String                 @default("MXN")
+  isActive         Boolean                @default(true) @map("is_active")
+
+  customerPayments BrandCustomerPayment[]
+
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@map("brand_plan_configs")
+}
+
+model BrandCustomerPayment {
+  id              String           @id @default(cuid())
+  brandId         String           @map("brand_id")
+  brand           Brand            @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandPlanId     String?          @map("brand_plan_id")
+  brandPlan       BrandPlanConfig? @relation(fields: [brandPlanId], references: [id], onDelete: SetNull)
+
+  customerName    String?          @map("customer_name")
+  customerEmail   String?          @map("customer_email")
+  concept         String
+  amount          Float
+  currency        String           @default("MXN")
+  status          String           @default("PENDING")
+
+  gatewayProvider String           @map("gateway_provider")
+  transactionRef  String?          @map("transaction_ref")
+  checkoutUrl     String?          @map("checkout_url") @db.Text
+  notes           String?          @db.Text
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("brand_customer_payments")
+}
+
+// --- SAAS SUBSCRIPTIONS & BILLING ---
+
+model Subscription {
+  id            String   @id @default(cuid())
+
+  brandId       String
+  brand         Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  planName      String   @default("Free")
+  status        String   @default("ACTIVE")
+  billingCycle  String   @default("MONTHLY")
+
+  startDate     DateTime @default(now())
+  endDate       DateTime
+
+  price         Float
+  discount      Float    @default(0)
+  finalPrice    Float
+
+  scheduledPlanName String?  @map("scheduled_plan_name")
+  cancelAtPeriodEnd Boolean  @default(false) @map("cancel_at_period_end")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([userId])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id                 String   @id @default(cuid())
+
+  brandId            String
+  brand              Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  userId             String?
+  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  amount             Float
+  discountApplied    Float    @default(0)
+  paymentDate        DateTime @default(now())
+  status             String   @default("SUCCESS")
+
+  gatewayProvider    String?  @default("MOCK") @map("gateway_provider")
+  trackingId         String?  @map("tracking_id")
+  rawGatewayStatus   String?  @default("APPROVED") @map("raw_gateway_status")
+
+  billingPeriodStart DateTime
+  billingPeriodEnd   DateTime
+  notes              String?  @db.Text
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([userId])
+  @@map("payments")
+}
+
+model PlanConfig {
+  id                      String   @id @default(cuid())
+  planName                String   @unique
+  priceMonthly            Float    @default(0)
+  priceYearly             Float    @default(0)
+  currency                String   @default("USD")
+
+  maxProjects             Int      @default(3)
+  allowCSVImportExport    Boolean  @default(false)
+  hasLiveSupport          Boolean  @default(false)
+  hasAiAgent              Boolean  @default(false)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("plan_configs")
+}
+
+// --- NOTIFICATIONS ---
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  desc      String
+  type      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+// --- WEBHOOK LOGS & AUDITING ---
+
+model WebhookLog {
+  id            String    @id @default(cuid())
+  brandId       String?   @map("brand_id")
+  brand         Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  event         String
+  url           String
+  status        Int?
+  success       Boolean   @default(false)
+  payload       String    @db.Text
+  response      String?   @db.Text
+  errorMessage  String?   @map("error_message") @db.Text
+  durationMs    Int?      @map("duration_ms")
+  attempts      Int       @default(1)
+  nextAttemptAt DateTime? @map("next_attempt_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@index([brandId])
+  @@index([createdAt])
+  @@index([nextAttemptAt])
+  @@map("webhook_logs")
+}
+
+// --- CURRENCIES & EXCHANGE RATES ---
+
+model ExchangeRate {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  symbol          String   @default("$")
+  rateAgainstUsd  Float    @default(1.0)
+  isDefault       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("exchange_rates")
+}
+
+// --- PAYMENT ENGINE & BRAND GATEWAYS ---
+
+enum PaymentGatewayType {
+  CLIP
+  STRIPE
+  MERCADOPAGO
+  PSE
+  MOCK
+}
+
+model BrandPaymentConfig {
+  id                 String             @id @default(cuid())
+  brandId            String             @map("brand_id")
+  brand              Brand              @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  gatewayType        PaymentGatewayType @default(CLIP) @map("gateway_type")
+  publicKey          String             @map("public_key")
+  encryptedSecretKey String             @map("encrypted_secret_key") @db.Text
+  webhookSecret      String?            @map("webhook_secret")
+  isActive           Boolean            @default(true) @map("is_active")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  @@unique([brandId, gatewayType])
+  @@index([brandId])
+  @@map("brand_payment_configs")
+}
+
+model PaymentTransaction {
+  id             String             @id @default(cuid())
+  ownerType      String             @default("BRAND") @map("owner_type")
+  ownerId        String             @map("owner_id")
+  brandId        String?            @map("brand_id")
+  brand          Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  gatewayType    PaymentGatewayType @map("gateway_type")
+  externalId     String             @map("external_id")
+  checkoutUrl    String?            @map("checkout_url") @db.Text
+  amount         Float
+  currency       String             @default("MXN")
+  status         String             @default("PENDING")
+  metadata       String?            @db.Text
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  @@index([ownerType, ownerId])
+  @@index([externalId])
+  @@index([brandId])
+  @@map("payment_transactions")
+}
+
+// --- MENLU DOMAIN MODELS: DISCIPLINES, BELTS & ENROLLMENTS ---
+
+model Discipline {
+  id                 String              @id @default(cuid())
+  brandId            String              @map("brand_id")
+  brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name               String
+  code               String?
+  description        String?             @db.Text
+  isActive           Boolean             @default(true) @map("is_active")
+
+  belts              Belt[]
+  enrollments        StudentEnrollment[]
+  physicalChallenges PhysicalChallenge[]
+  gradeExams         GradeExam[]
+  tournaments        Tournament[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@map("disciplines")
+}
+
+model Belt {
+  id                 String              @id @default(cuid())
+  disciplineId       String              @map("discipline_id")
+  discipline         Discipline          @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  name               String
+  colorHex           String              @default("#FFFFFF") @map("color_hex")
+  orderIndex         Int                 @default(1) @map("order_index")
+  minClasses         Int                 @default(24) @map("min_classes")
+  minMonths          Int                 @default(3) @map("min_months")
+
+  students           StudentProfile[]
+  physicalChallenges PhysicalChallenge[]
+  examEvaluations    ExamEvaluation[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([disciplineId])
+  @@map("belts")
+}
+
+// --- MENLU PROFILES: TUTORS & STUDENTS ---
+
+model ParentProfile {
+  id                 String              @id @default(cuid())
+  userId             String              @unique @map("user_id")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber        String?             @map("phone_number")
+  emergencyContact   String?             @map("emergency_contact")
+
+  students           StudentProfile[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@map("parent_profiles")
+}
+
+model StudentProfile {
+  id                 String              @id @default(cuid())
+  userId             String              @unique @map("user_id")
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandId            String              @map("brand_id")
+  brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  parentId           String?             @map("parent_id")
+  parent             ParentProfile?      @relation(fields: [parentId], references: [id], onDelete: SetNull)
+
+  birthDate          DateTime?           @map("birth_date")
+  emergencyContact   String?             @map("emergency_contact")
+
+  // Identificación, Nacionalidad & Ficha Médica
+  idNumber                     String?             @map("id_number")
+  nationality                  String?             @map("nationality")
+  healthInsuranceProvider     String?             @map("health_insurance_provider")
+  healthInsurancePolicyNumber String?             @map("health_insurance_policy_number")
+  medicalConditions            String?             @map("medical_conditions")
+  medications                  String?             @map("medications")
+
+  // Gamificación "El Camino del Esfuerzo"
+  effortPoints       Int                 @default(0) @map("effort_points")
+  currentStreak      Int                 @default(0) @map("current_streak")
+  lastAttendance     DateTime?           @map("last_attendance")
+  shieldsAvailable   Int                 @default(1) @map("shields_available")
+
+  currentBeltId      String?             @map("current_belt_id")
+  currentBelt        Belt?               @relation(fields: [currentBeltId], references: [id], onDelete: SetNull)
+
+  enrollments        StudentEnrollment[]
+  challengeProgress  StudentChallengeProgress[]
+  examEvaluations    ExamEvaluation[]
+
+  matchesAsRed       TournamentMatch[]   @relation("RedCompetitor")
+  matchesAsBlue      TournamentMatch[]   @relation("BlueCompetitor")
+  matchesWon         TournamentMatch[]   @relation("Winner")
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@index([parentId])
+  @@index([currentBeltId])
+  @@map("student_profiles")
+}
+
+model StudentEnrollment {
+  id                 String              @id @default(cuid())
+  studentId          String              @map("student_id")
+  student            StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  disciplineId       String              @map("discipline_id")
+  discipline         Discipline          @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  status             String              @default("ACTIVE")
+  startDate          DateTime            @default(now()) @map("start_date")
+  endDate            DateTime?           @map("end_date")
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@unique([studentId, disciplineId])
+  @@index([studentId])
+  @@index([disciplineId])
+  @@map("student_enrollments")
+}
+
+// --- GAMIFICATION: PHYSICAL CHALLENGES ---
+
+model PhysicalChallenge {
+  id                    String                   @id @default(cuid())
+  brandId               String                   @map("brand_id")
+  brand                 Brand                    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  disciplineId          String?                  @map("discipline_id")
+  discipline            Discipline?              @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+
+  title                 String
+  description           String?                  @db.Text
+  minAge                Int?                     @default(4) @map("min_age")
+  maxAge                Int?                     @default(99) @map("max_age")
+  targetBeltId          String?                  @map("target_belt_id")
+  targetBelt            Belt?                    @relation(fields: [targetBeltId], references: [id], onDelete: SetNull)
+
+  targetReps            Int                      @default(10) @map("target_reps")
+  metricType            String                   @default("REPETITIONS") @map("metric_type")
+  xpReward              Int                      @default(40) @map("xp_reward")
+  requiresValidation    Boolean                  @default(true) @map("requires_validation")
+
+  progress              StudentChallengeProgress[]
+
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@index([disciplineId])
+  @@map("physical_challenges")
+}
+
+model StudentChallengeProgress {
+  id                 String              @id @default(cuid())
+  studentId          String              @map("student_id")
+  student            StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  challengeId        String              @map("challenge_id")
+  challenge          PhysicalChallenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  status             String              @default("PENDING")
+  xpEarned           Int                 @default(0) @map("xp_earned")
+  evidenceUrl        String?             @map("evidence_url") @db.Text
+
+  completedAt        DateTime            @default(now()) @map("completed_at")
+  verifiedAt         DateTime?           @map("verified_at")
+  verifiedByUserId   String?             @map("verified_by_user_id")
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([studentId])
+  @@index([challengeId])
+  @@map("student_challenge_progress")
+}
+
+// --- EXAMS & CERTIFICATIONS ---
+
+model GradeExam {
+  id                 String              @id @default(cuid())
+  brandId            String              @map("brand_id")
+  brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  disciplineId       String              @map("discipline_id")
+  discipline         Discipline          @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  title              String
+  examDate           DateTime            @map("exam_date")
+  location           String?
+  feeAmount          Float               @default(0) @map("fee_amount")
+  currency           String              @default("MXN")
+  status             String              @default("PLANNED")
+
+  evaluations        ExamEvaluation[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@index([disciplineId])
+  @@map("grade_exams")
+}
+
+model ExamEvaluation {
+  id                 String              @id @default(cuid())
+  examId             String              @map("exam_id")
+  exam               GradeExam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId          String              @map("student_id")
+  student            StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  targetBeltId       String              @map("target_belt_id")
+  targetBelt         Belt                @relation(fields: [targetBeltId], references: [id], onDelete: Cascade)
+
+  status             String              @default("REGISTERED")
+  score              Float?
+  feedback           String?             @db.Text
+  isFeePaid          Boolean             @default(false) @map("is_fee_paid")
+  certifiedAt        DateTime?           @map("certified_at")
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([examId])
+  @@index([studentId])
+  @@map("exam_evaluations")
+}
+
+// --- INTERNAL TOURNAMENTS & BRACKETS ---
+
+model Tournament {
+  id                 String              @id @default(cuid())
+  brandId            String              @map("brand_id")
+  brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  disciplineId       String?             @map("discipline_id")
+  discipline         Discipline?         @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+
+  title              String
+  description        String?             @db.Text
+  location           String?
+  tournamentDate     DateTime            @map("tournament_date")
+  status             String              @default("DRAFT")
+
+  categories         TournamentCategory[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@map("tournaments")
+}
+
+model TournamentCategory {
+  id                 String              @id @default(cuid())
+  tournamentId       String              @map("tournament_id")
+  tournament         Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  name               String
+  minAge             Int?                @default(4) @map("min_age")
+  maxAge             Int?                @default(99) @map("max_age")
+  gender             String?             @default("MIXED")
+  minWeight          Float?              @map("min_weight")
+  maxWeight          Float?              @map("max_weight")
+
+  matches            TournamentMatch[]
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([tournamentId])
+  @@map("tournament_categories")
+}
+
+model TournamentMatch {
+  id                 String              @id @default(cuid())
+  categoryId         String              @map("category_id")
+  category           TournamentCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  roundIndex         Int                 @default(1) @map("round_index")
+  matchIndex         Int                 @default(1) @map("match_index")
+
+  redStudentId       String?             @map("red_student_id")
+  redStudent         StudentProfile?     @relation("RedCompetitor", fields: [redStudentId], references: [id], onDelete: SetNull)
+
+  blueStudentId      String?             @map("blue_student_id")
+  blueStudent        StudentProfile?     @relation("BlueCompetitor", fields: [blueStudentId], references: [id], onDelete: SetNull)
+
+  winnerStudentId    String?             @map("winner_student_id")
+  winnerStudent      StudentProfile?     @relation("Winner", fields: [winnerStudentId], references: [id], onDelete: SetNull)
+
+  redScore           Int                 @default(0) @map("red_score")
+  blueScore          Int                 @default(0) @map("blue_score")
+  status             String              @default("PENDING")
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([categoryId])
+  @@index([redStudentId])
+  @@index([blueStudentId])
+  @@index([winnerStudentId])
+  @@map("tournament_matches")
+}
+
+// --- DIPLOMA CONFIGURATION ---
+
+model DiplomaConfig {
+  id                    String   @id @default(cuid())
+  brandId               String   @unique @map("brand_id")
+  brand                 Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  template              String   @default("classic")
+  layout                String   @default("1perpage")
+  isBlankMode           Boolean  @default(false) @map("is_blank_mode")
+  backgroundUrl         String?  @map("background_url") @db.Text
+
+  institutionName       String?  @default("Menlu 门路 • Academia de Artes Marciales") @map("institution_name")
+  reasonText            String?  @default("Por su sobresaliente constancia, disciplina y destacado avance en El Camino del Esfuerzo.") @map("reason_text")
+  dateText              String?  @map("date_text")
+  schoolLogoSubtext     String?  @default("Academia de Artes Marciales") @map("school_logo_subtext")
+
+  sig1Name              String?  @default("Sensei Principal / Director") @map("sig1_name")
+  sig1Role              String?  @default("Director General del Dojo") @map("sig1_role")
+  sig2Name              String?  @default("Comité de Grados") @map("sig2_name")
+  sig2Role              String?  @default("Certificación Oficial") @map("sig2_role")
+  sig3Name              String?  @map("sig3_name")
+  sig3Role              String?  @map("sig3_role")
+  sig4Name              String?  @map("sig4_name")
+  sig4Role              String?  @map("sig4_role")
+
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("diploma_configs")
+}
+
+
+
+

@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 158 64% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 158 64% 42%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 158 64% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 158 64% 42%;
+  }
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* ==========================================================================
+   MULTI-THEME AESTHETIC STYLES (Dojo Dorado / Gold, Modern / Purple, Professional / Emerald)
+   ========================================================================== */
+
+/* Gold Theme Style Variant (Menlu Dojo Dorado Aesthetic - Amber/Gold Accent) */
+html[data-theme-style="gold"] {
+  --radius: 1rem;
+}
+
+/* Background Ambient Radial Glow for Gold Theme */
+html[data-theme-style="gold"] body {
+  background-image: radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(217, 119, 6, 0.08) 0px, transparent 50%) !important;
+}
+
+/* Accent Cards & Badges in Gold Theme */
+html[data-theme-style="gold"] div[class*="bg-emerald-500/10"],
+html[data-theme-style="gold"] span[class*="bg-emerald-500/10"],
+html[data-theme-style="gold"] div[class*="bg-emerald-50"] {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Accent Icons & Text Colors in Gold Theme */
+html[data-theme-style="gold"] [class*="text-emerald-600"],
+html[data-theme-style="gold"] [class*="text-emerald-500"],
+html[data-theme-style="gold"] [class*="text-emerald-400"] {
+  color: #f59e0b !important;
+}
+
+/* Accent Primary Buttons in Gold Theme (Targeting only full primary solid buttons) */
+html[data-theme-style="gold"] button.bg-emerald-600,
+html[data-theme-style="gold"] button.bg-emerald-500 {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #09090b !important;
+  font-weight: 800 !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Accent Borders in Gold Theme */
+html[data-theme-style="gold"] [class*="border-emerald-500"] {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+/* Card Borders & Golden Glow in Dark Gold Theme */
+html[data-theme-style="gold"].dark [class*="border-zinc-800"],
+html[data-theme-style="gold"] [class*="border-zinc-800"] {
+  border-color: rgba(245, 158, 11, 0.22) !important;
+  box-shadow: 0 4px 20px -2px rgba(245, 158, 11, 0.12) !important;
+}
+
+/* Modern Theme Style Variant (Vibrant Violet SaaS Aesthetic) */
+html[data-theme-style="modern"] {
+  --radius: 1.25rem;
+}
+
+/* Background Ambient Radial Glow for Modern Theme */
+html[data-theme-style="modern"] body {
+  background-image: radial-gradient(at 0% 0%, rgba(147, 51, 234, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.08) 0px, transparent 50%) !important;
+}
+
+/* Modern Card Radii */
+html[data-theme-style="modern"] .rounded-xl,
+html[data-theme-style="modern"] .rounded-2xl {
+  border-radius: 1.25rem !important;
+}
+
+/* Accent Cards & Badges in Modern Theme */
+html[data-theme-style="modern"] [class*="bg-emerald-500/10"],
+html[data-theme-style="modern"] [class*="bg-emerald-50"] {
+  background-color: rgba(147, 51, 234, 0.14) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Accent Icons & Text Colors in Modern Theme (Emerald -> Vibrant Violet/Purple) */
+html[data-theme-style="modern"] [class*="text-emerald-600"],
+html[data-theme-style="modern"] [class*="text-emerald-500"],
+html[data-theme-style="modern"] [class*="text-emerald-400"] {
+  color: #a855f7 !important;
+}
+
+/* Accent Borders in Modern Theme */
+html[data-theme-style="modern"] [class*="border-emerald-500"] {
+  border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+/* Card Borders in Modern Dark Theme */
+html[data-theme-style="modern"].dark [class*="border-zinc-800"],
+html[data-theme-style="modern"] [class*="border-zinc-800"] {
+  border-color: rgba(147, 51, 234, 0.25) !important;
+  box-shadow: 0 4px 20px -2px rgba(147, 51, 234, 0.15) !important;
+}
+
+/* Vibrant High-Contrast Buttons in Modern Theme (Deep Violet-Indigo Gradient) */
+html[data-theme-style="modern"] button[class*="bg-emerald-600"],
+html[data-theme-style="modern"] button[class*="bg-emerald-500"],
+html[data-theme-style="modern"] .bg-emerald-600,
+html[data-theme-style="modern"] .bg-emerald-500 {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.45) !important;
+  border: none !important;
+}
+
+html[data-theme-style="modern"] button[class*="bg-emerald-600"]:hover,
+html[data-theme-style="modern"] button[class*="bg-emerald-500"]:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #4338ca 100%) !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
+}
+
+/* ==========================================================================
+   PRINT STYLES FOR OFFICIAL STUDENT CREDENTIAL CARDS (ISO/IEC 7810 CR80)
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .credential-print-area,
+  .credential-print-area * {
+    visibility: visible !important;
+  }
+  .credential-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 8mm !important;
+    background: #ffffff !important;
+  }
+  .credential-card-print-item {
+    width: 85.6mm !important;
+    height: 54mm !important;
+    min-width: 85.6mm !important;
+    max-width: 85.6mm !important;
+    min-height: 54mm !important;
+    max-height: 54mm !important;
+    box-sizing: border-box !important;
+    margin: 3mm auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .credential-print-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 85.6mm) !important;
+    gap: 6mm !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+}
+
+/* ==========================================================================
+   SONNER TOASTER & CLOSE BUTTON FIX (HIGH Z-INDEX & POINTER EVENTS)
+   ========================================================================== */
+[data-sonner-toaster] {
+  z-index: 999999 !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 999999 !important;
+  opacity: 0.85 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: opacity 0.15s ease, background-color 0.15s ease !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.12) !important;
+}
+
