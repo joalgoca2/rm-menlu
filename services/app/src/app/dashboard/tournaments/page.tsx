@@ -63,7 +63,7 @@ function TournamentsContent() {
 
   const [search, setSearch] = useState(searchFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, _setTotalPages] = useState(1);
 
   // View Mode: "list" | "execution"
   const [viewMode, setViewMode] = useState<"list" | "execution">("list");

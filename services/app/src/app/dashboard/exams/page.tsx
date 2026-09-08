@@ -71,6 +71,7 @@ import type {
   Brand,
   ExamEvaluationWithDetails,
   CandidateEligibility,
+  StudentWithDetails,
 } from "@/types";
 
 interface ExtendedGradeExam extends GradeExam {
@@ -442,21 +443,26 @@ export default function ExamsPage() {
           (ev) => ev.status === "PASSED" || (ev.score && ev.score >= 7.0) || dataList.length > 0
         );
 
-        const mappedStudents: unknown[] = passedEvals.map((ev) => ({
+        const mappedStudents: StudentWithDetails[] = passedEvals.map((ev) => ({
           id: ev.studentId,
           brandId: ex.brandId,
           userId: ev.studentId,
           currentBeltId: ev.targetBeltId,
           effortPoints: 100,
+          currentStreak: 0,
+          shieldsAvailable: 0,
           notes: null,
           createdAt: new Date(),
           updatedAt: new Date(),
           user: {
             id: ev.studentId,
             name: ev.student?.user?.name || "Alumno Participante",
-            email: ev.student?.user?.email || null,
+            email: ev.student?.user?.email || "",
             role: "STUDENT",
             status: "ACTIVE",
+            isActive: true,
+            locale: "es",
+            timezone: "UTC",
             avatarUrl: null,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -481,7 +487,16 @@ export default function ExamsPage() {
               disciplineId: ex.disciplineId,
               startDate: new Date(),
               status: "ACTIVE",
-              discipline: ex.discipline || null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              discipline: ex.discipline || {
+                id: ex.disciplineId,
+                brandId: ex.brandId,
+                name: "Artes Marciales",
+                description: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
             },
           ],
         }));

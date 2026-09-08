@@ -70,7 +70,7 @@ export default function DisciplinesPage() {
   const [newBeltName, setNewBeltName] = useState("");
   const [newBeltColor, setNewBeltColor] = useState("#F59E0B");
   const [newBeltClasses, setNewBeltClasses] = useState(24);
-  const [newBeltMonths, setNewBeltMonths] = useState(3);
+  const [newBeltMonths, _setNewBeltMonths] = useState(3);
   const [isCreatingBelt, setIsCreatingBelt] = useState(false);
 
   // Edit / Delete states (Modals)
