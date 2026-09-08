@@ -32,8 +32,8 @@ export function TournamentFormDialog({
   useEffect(() => {
     if (tournamentToEdit) {
       setTitle(tournamentToEdit.title);
-      const dateStr = typeof tournamentToEdit.tournamentDate === "string"
-        ? tournamentToEdit.tournamentDate.split("T")[0]
+      const dateStr = typeof (tournamentToEdit.tournamentDate as unknown) === "string"
+        ? String(tournamentToEdit.tournamentDate).split("T")[0]
         : new Date(tournamentToEdit.tournamentDate).toISOString().split("T")[0];
       setTournamentDate(dateStr);
       setLocation(tournamentToEdit.location || "Dojo Central - Tatami Principal");

@@ -33,6 +33,7 @@ interface BrandPaymentConfigDialogProps {
   brands?: BrandItem[];
   brandId?: string;
   initialBrandId?: string;
+  initialGatewayType?: PaymentGatewayType;
   isSuperAdmin?: boolean;
 }
 
@@ -43,6 +44,7 @@ export function BrandPaymentConfigDialog({
   brands = [],
   brandId: directBrandId,
   initialBrandId,
+  initialGatewayType,
   isSuperAdmin = false,
 }: BrandPaymentConfigDialogProps) {
   const { t } = useTranslation();
@@ -51,7 +53,9 @@ export function BrandPaymentConfigDialog({
 
   const targetBrandId = directBrandId || initialBrandId || tenantBrands[0]?.id || "";
   const [brandId, setBrandId] = useState<string>(targetBrandId);
-  const [gatewayType, setGatewayType] = useState<PaymentGatewayType>("CLIP");
+  const [gatewayType, setGatewayType] = useState<PaymentGatewayType>(
+    initialGatewayType || "CLIP"
+  );
   const [publicKey, setPublicKey] = useState<string>("");
   const [secretKey, setSecretKey] = useState<string>("");
   const [webhookSecret, setWebhookSecret] = useState<string>("");
@@ -60,6 +64,10 @@ export function BrandPaymentConfigDialog({
 
   useEffect(() => {
     if (!isOpen) return;
+
+    if (initialGatewayType) {
+      setGatewayType(initialGatewayType);
+    }
 
     const currentBrandId = directBrandId || initialBrandId || brandId || tenantBrands[0]?.id;
     if (currentBrandId) {

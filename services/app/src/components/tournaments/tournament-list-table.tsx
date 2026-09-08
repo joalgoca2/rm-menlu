@@ -94,8 +94,8 @@ export function TournamentListTable({
                 </tr>
               ) : (
                 tournaments.map((tournament) => {
-                  const dateStr = typeof tournament.tournamentDate === "string"
-                    ? tournament.tournamentDate.split("T")[0]
+                  const dateStr = typeof (tournament.tournamentDate as unknown) === "string"
+                    ? String(tournament.tournamentDate).split("T")[0]
                     : new Date(tournament.tournamentDate).toISOString().split("T")[0];
 
                   return (

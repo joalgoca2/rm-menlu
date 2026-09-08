@@ -810,8 +810,7 @@ export async function bulkToggleUserStatusAction(
 
     const eligibleUsers = await prisma.user.findMany({
       where: {
-        id: { in: userIds },
-        id: { not: session.user.id },
+        id: { in: userIds, not: session.user.id },
         email: { not: "admin@remotemonkeys.ai" },
         ...(isSuperAdmin ? {} : { brandId: session.user.brandId }),
         roles: {
@@ -868,8 +867,7 @@ export async function bulkDeleteUsersAction(
 
     const eligibleUsers = await prisma.user.findMany({
       where: {
-        id: { in: userIds },
-        id: { not: session.user.id },
+        id: { in: userIds, not: session.user.id },
         email: { not: "admin@remotemonkeys.ai" },
         ...(isSuperAdmin ? {} : { brandId: session.user.brandId }),
         roles: {

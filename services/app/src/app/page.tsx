@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Swords, Flame, Trophy, Award, CreditCard, Shield, Users, ArrowRight } from "lucide-react";
-import { useTranslation } from "@/components/providers/i18n-provider";
+import { Swords, Flame, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
-  const { t } = useTranslation();
-
   return (
     <main className="min-h-screen bg-zinc-950 text-white selection:bg-amber-500 selection:text-zinc-950">
       {/* Hero Section */}
@@ -17,23 +14,34 @@ export default function HomePage() {
           Plataforma B2B SaaS para Escuelas de Artes Marciales en Latinoamérica
         </div>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight max-w-5xl bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent leading-tight">
+        <h1
+          className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight max-w-5xl bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent leading-tight"
+        >
           Menlu 门路 <br />
           <span className="text-amber-500">Gestión Inteligente & Gamificación</span> para tu Dojo
         </h1>
 
         <p className="text-zinc-400 max-w-2xl text-base sm:text-lg leading-relaxed">
-          Administra múltiples disciplinas (Tai Chi, Sanda, Wing Chun, Taekwondo, Karate, BJJ), automatiza los cobros en efectivo o pasarelas locales, y motiva a tus alumnos con la app gamificada **"El Camino del Esfuerzo"**.
+          Administra múltiples disciplinas (Tai Chi, Sanda, Wing Chun, Taekwondo, Karate,
+          BJJ), automatiza los cobros en efectivo o pasarelas locales, y motiva a tus
+          alumnos con la app gamificada **"El Camino del Esfuerzo"**.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 pt-2">
           <Link href="/dashboard">
-            <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-2xl px-8 shadow-lg shadow-amber-500/20 text-base">
+            <Button
+              size="lg"
+              className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-2xl px-8 shadow-lg shadow-amber-500/20 text-base"
+            >
               Ir al Dashboard del Dojo <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           </Link>
           <Link href="/student/effort-path">
-            <Button size="lg" variant="outline" className="border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-white rounded-2xl px-8 text-base">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-white rounded-2xl px-8 text-base"
+            >
               🎮 Ver Portal Gamificado (Alumno)
             </Button>
           </Link>
@@ -48,7 +56,8 @@ export default function HomePage() {
           </div>
           <h3 className="text-lg font-bold text-white">Multi-Disciplina Nativa</h3>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Administra cursos de Tai Chi, Sanda, Wing Chun o Karate de forma independiente, con sus propias escalas de cinturones y requisitos.
+            Administra cursos de Tai Chi, Sanda, Wing Chun o Karate de forma independiente,
+            con sus propias escalas de cinturones y requisitos.
           </p>
         </div>
 
@@ -58,7 +67,8 @@ export default function HomePage() {
           </div>
           <h3 className="text-lg font-bold text-white">El Camino del Esfuerzo</h3>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Gamificación estilo Duolingo con rachas de asistencia, retos físicos por edad (flexiones, sentadillas) y canje de premios en la Tienda del Dojo.
+            Gamificación estilo Duolingo con rachas de asistencia, retos físicos por edad
+            (flexiones, sentadillas) y canje de premios en la Tienda del Dojo.
           </p>
         </div>
 
@@ -68,7 +78,8 @@ export default function HomePage() {
           </div>
           <h3 className="text-lg font-bold text-white">Torneos Internos & Brackets</h3>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Generación automática de gráficas de eliminación directa (brackets) por peso, edad y cinturón con premiación directa en XP.
+            Generación automática de gráficas de eliminación directa (brackets) por peso,
+            edad y cinturón con premiación directa en XP.
           </p>
         </div>
       </div>
@@ -77,7 +88,9 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-6 py-16 space-y-12">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-black text-white">Planes Flexibles para tu Escuela</h2>
-          <p className="text-xs text-zinc-400">Precios ajustados a la capacidad de pago del mercado latinoamericano.</p>
+          <p className="text-xs text-zinc-400">
+            Precios ajustados a la capacidad de pago del mercado latinoamericano.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -99,12 +112,16 @@ export default function HomePage() {
               </ul>
             </div>
             <Link href="/dashboard">
-              <Button variant="outline" className="w-full rounded-xl border-zinc-800">Comenzar Prueba</Button>
+              <Button variant="outline" className="w-full rounded-xl border-zinc-800">
+                Comenzar Prueba
+              </Button>
             </Link>
           </div>
 
           {/* Plan Pro */}
-          <div className="p-6 rounded-3xl border-2 border-amber-500 bg-gradient-to-b from-amber-500/10 to-zinc-900/80 space-y-6 flex flex-col justify-between shadow-xl shadow-amber-500/10">
+          <div
+            className="p-6 rounded-3xl border-2 border-amber-500 bg-gradient-to-b from-amber-500/10 to-zinc-900/80 space-y-6 flex flex-col justify-between shadow-xl shadow-amber-500/10"
+          >
             <div className="space-y-4">
               <div className="inline-block px-3 py-0.5 rounded-full bg-amber-500 text-zinc-950 font-extrabold text-[10px] uppercase">
                 Más Popular
@@ -125,7 +142,9 @@ export default function HomePage() {
               </ul>
             </div>
             <Link href="/dashboard">
-              <Button className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl">Elegir Plan Pro</Button>
+              <Button className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl">
+                Elegir Plan Pro
+              </Button>
             </Link>
           </div>
 
@@ -147,7 +166,9 @@ export default function HomePage() {
               </ul>
             </div>
             <Link href="/dashboard">
-              <Button variant="outline" className="w-full rounded-xl border-zinc-800">Contactar Ventas</Button>
+              <Button variant="outline" className="w-full rounded-xl border-zinc-800">
+                Contactar Ventas
+              </Button>
             </Link>
           </div>
         </div>

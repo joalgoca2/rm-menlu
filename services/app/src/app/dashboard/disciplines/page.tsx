@@ -8,14 +8,11 @@ import {
   Layers,
   Edit2,
   Trash2,
-  X,
   AlertTriangle,
   Flame,
   Search,
-  CheckCircle2,
   Clock,
   Sparkles,
-  ChevronRight,
   ChevronUp,
   ChevronDown,
   ShieldCheck,
@@ -73,7 +70,7 @@ export default function DisciplinesPage() {
   const [newBeltName, setNewBeltName] = useState("");
   const [newBeltColor, setNewBeltColor] = useState("#F59E0B");
   const [newBeltClasses, setNewBeltClasses] = useState(24);
-  const [newBeltMonths, setNewBeltMonths] = useState(3);
+  const [_newBeltMonths, _setNewBeltMonths] = useState(3);
   const [isCreatingBelt, setIsCreatingBelt] = useState(false);
 
   // Edit / Delete states (Modals)
@@ -798,7 +795,10 @@ export default function DisciplinesPage() {
       </div>
 
       {/* MODAL: EDIT DISCIPLINE */}
-      <Dialog open={Boolean(editingDiscipline)} onOpenChange={(open) => !open && setEditingDiscipline(null)}>
+      <Dialog
+        open={Boolean(editingDiscipline)}
+        onOpenChange={(open) => !open && setEditingDiscipline(null)}
+      >
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
@@ -817,7 +817,9 @@ export default function DisciplinesPage() {
                 </Label>
                 <Input
                   value={editingDiscipline.name}
-                  onChange={(e) => setEditingDiscipline({ ...editingDiscipline, name: e.target.value })}
+                  onChange={(e) =>
+                    setEditingDiscipline({ ...editingDiscipline, name: e.target.value })
+                  }
                   className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                 />
               </div>
@@ -828,7 +830,9 @@ export default function DisciplinesPage() {
                 </Label>
                 <Input
                   value={editingDiscipline.code || ""}
-                  onChange={(e) => setEditingDiscipline({ ...editingDiscipline, code: e.target.value })}
+                  onChange={(e) =>
+                    setEditingDiscipline({ ...editingDiscipline, code: e.target.value })
+                  }
                   className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white font-mono uppercase"
                 />
               </div>
@@ -856,7 +860,10 @@ export default function DisciplinesPage() {
       </Dialog>
 
       {/* MODAL: CONFIRM DELETE DISCIPLINE */}
-      <Dialog open={Boolean(deletingDiscipline)} onOpenChange={(open) => !open && setDeletingDiscipline(null)}>
+      <Dialog
+        open={Boolean(deletingDiscipline)}
+        onOpenChange={(open) => !open && setDeletingDiscipline(null)}
+      >
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">
@@ -941,7 +948,9 @@ export default function DisciplinesPage() {
                   <Input
                     type="number"
                     value={editingBelt.minClasses}
-                    onChange={(e) => setEditingBelt({ ...editingBelt, minClasses: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingBelt({ ...editingBelt, minClasses: Number(e.target.value) })
+                    }
                     className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                   />
                 </div>
@@ -953,7 +962,9 @@ export default function DisciplinesPage() {
                   <Input
                     type="number"
                     value={editingBelt.minMonths}
-                    onChange={(e) => setEditingBelt({ ...editingBelt, minMonths: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingBelt({ ...editingBelt, minMonths: Number(e.target.value) })
+                    }
                     className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                   />
                 </div>

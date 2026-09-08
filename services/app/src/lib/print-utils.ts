@@ -80,7 +80,8 @@ function generateQRSVGString(value: string, size: number = 48): string {
 }
 
 /**
- * Print batch or single student credentials in a clean print window with CR80 exact dimensions (85.6mm x 54mm)
+ * Print batch or single student credentials in a clean print window with CR80 exact dimensions
+ * (85.6mm x 54mm)
  */
 export function printStudentCredentials(students: StudentWithDetails[]) {
   if (!students || students.length === 0) return;

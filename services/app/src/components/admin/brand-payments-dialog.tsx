@@ -43,6 +43,7 @@ interface BrandSubscriptionItem {
 interface BrandPaymentHistoryItem {
   id: string;
   amount: number;
+  currency?: string;
   discountApplied: number;
   paymentDate: string;
   status: string;
@@ -55,6 +56,7 @@ interface BrandPaymentHistoryItem {
 interface BrandItem {
   id: string;
   name: string;
+  currency?: string;
   subscription?: BrandSubscriptionItem | null;
 }
 

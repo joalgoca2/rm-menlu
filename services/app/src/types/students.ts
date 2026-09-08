@@ -1,4 +1,11 @@
-import type { StudentProfile, User, Belt, StudentEnrollment, Discipline, ParentProfile } from "./dojo";
+import type { User } from "./auth";
+import type { StudentProfile, Belt, StudentEnrollment, Discipline, ParentProfile } from "./dojo";
+
+export interface StudentProfileWithUser extends StudentProfile {
+  user: User;
+  currentBelt?: Belt | null;
+  enrollments?: (StudentEnrollment & { discipline: Discipline })[];
+}
 
 export interface StudentWithDetails extends StudentProfile {
   user: User;

@@ -88,7 +88,8 @@ export function DiplomaBuilderModal({
   students,
   activeFilterDisciplineName,
 }: DiplomaBuilderModalProps) {
-  const { brand } = useBrand();
+  const { selectedBrandId, brands } = useBrand();
+  const activeBrand = brands.find((b) => b.id === selectedBrandId) || brands[0];
 
   // Config state
   const [template, setTemplate] = useState<"classic" | "modern">("classic");
@@ -100,7 +101,7 @@ export function DiplomaBuilderModal({
 
   // Custom text fields
   const [institutionName, setInstitutionName] = useState(
-    brand?.name || "Menlu 门路 • Academia de Artes Marciales"
+    activeBrand?.name || "Menlu 门路 • Academia de Artes Marciales"
   );
   const [reasonText, setReasonText] = useState(
     "Por su sobresaliente constancia, disciplina y destacado avance en El Camino del Esfuerzo."
@@ -183,7 +184,8 @@ export function DiplomaBuilderModal({
     });
   };
 
-  // Handle custom JPG background image upload with strict size & resolution validations for print quality
+  // Handle custom JPG background image upload with strict size & resolution validations
+  // for high print quality
   const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -300,7 +302,7 @@ export function DiplomaBuilderModal({
     setLayout("1perpage");
     setIsBlankMode(false);
     setShowDiscipline(true);
-    setInstitutionName(brand?.name || "Menlu 门路 • Academia de Artes Marciales");
+    setInstitutionName(activeBrand?.name || "Menlu 门路 • Academia de Artes Marciales");
     setReasonText(
       "Por su sobresaliente constancia, disciplina y destacado avance en El Camino del Esfuerzo."
     );
@@ -1178,7 +1180,7 @@ export function DiplomaBuilderModal({
   );
 }
 
-// ─── DIPLOMA CARD COMPONENT (SUPPORTING MINIMALIST MODERN TEMPLATE & OPTIMIZED SIGNATURE DISTRIBUTION) ───
+// ─── DIPLOMA CARD COMPONENT (SUPPORTING MINIMALIST MODERN TEMPLATE & OPTIMIZED SIGNATURE) ───
 
 interface DiplomaCardProps {
   student: StudentWithDetails;

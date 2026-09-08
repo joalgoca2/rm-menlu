@@ -26,7 +26,11 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, onOpenAutoFocus, onPointerDownOutside, onInteractOutside, ...props }, ref) => (
+>(
+  (
+    { className, children, onOpenAutoFocus, onPointerDownOutside, onInteractOutside, ...props },
+    ref
+  ) => (
   <DialogPortal>
     <DialogOverlay />
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto pointer-events-none">

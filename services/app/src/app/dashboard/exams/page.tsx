@@ -22,7 +22,6 @@ import {
   Play,
   Check,
   UserCheck,
-  Zap,
   Printer,
   ThumbsUp,
   ThumbsDown,
@@ -138,13 +137,16 @@ export default function ExamsPage() {
   const [deletingExam, setDeletingExam] = useState<ExtendedGradeExam | null>(null);
   const [evaluatingExam, setEvaluatingExam] = useState<ExtendedGradeExam | null>(null);
 
-  // Candidate selection modal states
-  const [managingCandidatesExam, setManagingCandidatesExam] = useState<ExtendedGradeExam | null>(null);
+  const [managingCandidatesExam, setManagingCandidatesExam] =
+    useState<ExtendedGradeExam | null>(null);
   const [candidatesList, setCandidatesList] = useState<CandidateEligibility[]>([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
   const [isSavingCandidates, setIsSavingCandidates] = useState(false);
-  const [candidateFilterTab, setCandidateFilterTab] = useState<"ALL" | "ELIGIBLE" | "NEAR" | "INELIGIBLE">("ALL");
-  const [confirmDeselectCandidatesModal, setConfirmDeselectCandidatesModal] = useState<any[] | null>(null);
+  const [candidateFilterTab, setCandidateFilterTab] =
+    useState<"ALL" | "ELIGIBLE" | "NEAR" | "INELIGIBLE">("ALL");
+  const [confirmDeselectCandidatesModal, setConfirmDeselectCandidatesModal] = useState<
+    CandidateEligibility[] | null
+  >(null);
 
   const [isCreatingExam, setIsCreatingExam] = useState(false);
   const [isUpdatingExam, setIsUpdatingExam] = useState(false);
@@ -163,7 +165,7 @@ export default function ExamsPage() {
 
   // Diploma Builder Modal state
   const [isDiplomaModalOpen, setIsDiplomaModalOpen] = useState(false);
-  const [diplomaStudentsList, setDiplomaStudentsList] = useState<any[]>([]);
+  const [diplomaStudentsList, setDiplomaStudentsList] = useState<unknown[]>([]);
   const [diplomaDisciplineName, setDiplomaDisciplineName] = useState<string>("");
 
   // Helper to sync URL searchParams
@@ -435,11 +437,12 @@ export default function ExamsPage() {
     try {
       const res = await getExamEvaluationsAction(ex.id);
       if (res.success && res.data) {
-        const passedEvals = res.data.filter(
-          (ev) => ev.status === "PASSED" || (ev.score && ev.score >= 7.0) || res.data.length > 0
+        const dataList = res.data;
+        const passedEvals = dataList.filter(
+          (ev) => ev.status === "PASSED" || (ev.score && ev.score >= 7.0) || dataList.length > 0
         );
 
-        const mappedStudents: any[] = passedEvals.map((ev) => ({
+        const mappedStudents: unknown[] = passedEvals.map((ev) => ({
           id: ev.studentId,
           brandId: ex.brandId,
           userId: ev.studentId,
@@ -809,8 +812,8 @@ export default function ExamsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {exams.map((ex) => {
             const dateStr =
-              typeof ex.examDate === "string"
-                ? ex.examDate.split("T")[0]
+              typeof (ex.examDate as unknown) === "string"
+                ? String(ex.examDate).split("T")[0]
                 : new Date(ex.examDate).toISOString().split("T")[0];
 
             const candidatesCount = ex.evaluations?.length || 0;
@@ -962,8 +965,8 @@ export default function ExamsPage() {
               <TableBody>
                 {exams.map((ex) => {
                   const dateStr =
-                    typeof ex.examDate === "string"
-                      ? ex.examDate.split("T")[0]
+                    typeof (ex.examDate as unknown) === "string"
+                      ? String(ex.examDate).split("T")[0]
                       : new Date(ex.examDate).toISOString().split("T")[0];
 
                   const candidatesCount = ex.evaluations?.length || 0;
@@ -1066,7 +1069,10 @@ export default function ExamsPage() {
       </div>
 
       {/* MODAL: SELECCIÓN DE CANDIDATOS CON SEMÁFORO DE ELEGIBILIDAD */}
-      <Dialog open={Boolean(managingCandidatesExam)} onOpenChange={(open) => !open && setManagingCandidatesExam(null)}>
+      <Dialog
+        open={Boolean(managingCandidatesExam)}
+        onOpenChange={(open) => !open && setManagingCandidatesExam(null)}
+      >
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl relative">
           {/* OVERLAY DE CONFIRMACION PARA DESCONVOCAR ALUMNOS */}
           {confirmDeselectCandidatesModal && (
@@ -1091,7 +1097,8 @@ export default function ExamsPage() {
                     ))}
                   </ul>
                   <p className="text-rose-500 font-bold pt-1">
-                    ⚠️ Si continúas, sus registros y calificaciones registradas se eliminarán permanentemente de la convocatoria.
+                    ⚠️ Si continúas, sus registros y calificaciones registradas se eliminarán
+                    permanentemente de la convocatoria.
                   </p>
                 </div>
 
@@ -1306,7 +1313,7 @@ export default function ExamsPage() {
               <Button
                 type="button"
                 disabled={isSavingCandidates}
-                onClick={handleSaveCandidatesSelection}
+                onClick={() => handleSaveCandidatesSelection()}
                 className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs"
               >
                 {isSavingCandidates ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Candidatos Convocados"}
@@ -1475,11 +1482,13 @@ export default function ExamsPage() {
                 </select>
                 {Boolean(editingExam.evaluations && editingExam.evaluations.length > 0) ? (
                   <p className="text-[10px] text-zinc-400 mt-0.5">
-                    La disciplina no se puede modificar porque la convocatoria ya tiene estudiantes convocados.
+                    La disciplina no se puede modificar porque la convocatoria ya tiene
+                    estudiantes convocados.
                   </p>
                 ) : (
                   <p className="text-[10px] text-zinc-400 mt-0.5">
-                    Puedes modificar la disciplina libremente mientras la convocatoria no tenga alumnos convocados.
+                    Puedes modificar la disciplina libremente mientras la convocatoria no
+                    tenga alumnos convocados.
                   </p>
                 )}
               </div>
@@ -1492,12 +1501,15 @@ export default function ExamsPage() {
                   <Input
                     type="date"
                     value={
-                      typeof editingExam.examDate === "string"
-                        ? editingExam.examDate.split("T")[0]
+                      typeof (editingExam.examDate as unknown) === "string"
+                        ? String(editingExam.examDate).split("T")[0]
                         : new Date(editingExam.examDate).toISOString().split("T")[0]
                     }
                     onChange={(e) =>
-                      setEditingExam({ ...editingExam, examDate: e.target.value as unknown as Date })
+                      setEditingExam({
+                        ...editingExam,
+                        examDate: e.target.value as unknown as Date,
+                      })
                     }
                     className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                   />
@@ -1510,7 +1522,9 @@ export default function ExamsPage() {
                   <Input
                     type="number"
                     value={editingExam.feeAmount || 0}
-                    onChange={(e) => setEditingExam({ ...editingExam, feeAmount: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingExam({ ...editingExam, feeAmount: Number(e.target.value) })
+                    }
                     className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                   />
                 </div>
@@ -1586,7 +1600,10 @@ export default function ExamsPage() {
 
 
       {/* MODAL: RÚBRICA DE EVALUACIÓN TATAMI REAL (CONECTADA A BASE DE DATOS) */}
-      <Dialog open={Boolean(evaluatingExam)} onOpenChange={(open) => !open && setEvaluatingExam(null)}>
+      <Dialog
+        open={Boolean(evaluatingExam)}
+        onOpenChange={(open) => !open && setEvaluatingExam(null)}
+      >
         <DialogContent className="max-w-2xl rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">

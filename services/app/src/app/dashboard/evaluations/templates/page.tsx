@@ -12,7 +12,6 @@ import {
   Sparkles,
   Swords,
   Loader2,
-  Layers,
   Star,
   PlusCircle,
 } from "lucide-react";

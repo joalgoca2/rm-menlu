@@ -57,7 +57,7 @@ PROD_IMAGE_FULL = $(PROD_IMAGE_NAME):$(PROD_IMAGE_TAG)
 REMOTE_USER ?= root
 REMOTE_HOST ?= 5.161.111.221
 REMOTE_PORT ?= 22
-REMOTE_APP_DIR ?= /srv/stackprojects
+REMOTE_APP_DIR ?= /srv/menlu
 IMAGE_TAR_FILE = $(PROJECT_NAME)-$(PROD_IMAGE_TAG).tar
 
 # Llave SSH (tomada de .env o ruta por defecto)

@@ -13,8 +13,8 @@ interface NodeItem {
 
 export default function EffortPathStudentPage() {
   const [effortPoints, setEffortPoints] = useState(340);
-  const [currentStreak, setCurrentStreak] = useState(4);
-  const [shieldsAvailable, setShieldsAvailable] = useState(1);
+  const [currentStreak, _setCurrentStreak] = useState(4);
+  const [shieldsAvailable, _setShieldsAvailable] = useState(1);
 
   const [nodes, setNodes] = useState<NodeItem[]>([
     { id: 1, title: "Pase de Lista - Clase 1", type: "ATTENDANCE", status: "COMPLETED", xpReward: 20 },

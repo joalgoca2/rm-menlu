@@ -972,6 +972,7 @@ function CreateUserModal({
     setValue,
     watch,
     reset,
+    setError,
     formState: { errors },
   } = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
@@ -1235,6 +1236,7 @@ export function EditUserModal({
     setValue,
     watch,
     reset,
+    setError,
     formState: { errors },
   } = useForm<UpdateUserInput>({
     resolver: zodResolver(updateUserSchema),
@@ -1339,12 +1341,16 @@ const activeBrandName =
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-3 pr-5 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 overflow-y-auto p-6 space-y-3 pr-5 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-300 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full"
+        >
           {isEditingSuperAdmin && (
             <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-2 text-xs text-amber-900 dark:text-amber-200">
               <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>
-                <strong>Usuario SuperAdmin Protegido:</strong> Su rol y estado activo están fijos y no pueden modificarse.
+                <strong>Usuario SuperAdmin Protegido:</strong> Su rol y estado
+                activo están fijos y no pueden modificarse.
               </span>
             </div>
           )}

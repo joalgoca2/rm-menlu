@@ -122,7 +122,7 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
           </TableHeader>
           <TableBody>
             {data.items.length > 0 ? (
-              data.items.map((payment) => (
+              data.items.map((payment: BrandCustomerPayment) => (
                 <TableRow key={payment.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">

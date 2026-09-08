@@ -1,5 +1,5 @@
 import React from "react";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicBrandPortalAction } from "@/actions/brand-portal";
 import { BrandPortalClient } from "@/components/brand-portal/brand-portal-client";
@@ -10,7 +10,7 @@ interface BrandPortalPageProps {
 
 export async function generateMetadata({
   params,
-}: BrandPortalPageProps): Metadata {
+}: BrandPortalPageProps): Promise<Metadata> {
   const { slug } = await params;
   const res = await getPublicBrandPortalAction(slug);
 

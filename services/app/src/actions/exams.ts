@@ -2,7 +2,15 @@
 
 import { prisma } from "@/lib/prisma";
 import { gradeExamSchema } from "@/lib/validations/dojo";
-import type { ApiResponse, GradeExam, ExamEvaluation } from "@/types";
+import type {
+  ApiResponse,
+  GradeExam,
+  ExamEvaluation,
+  Discipline,
+  Brand,
+  ExamEvaluationWithDetails,
+  CandidateEligibility,
+} from "@/types";
 
 export async function createGradeExamAction(
   data: unknown
@@ -318,59 +326,78 @@ export async function getDisciplineCandidatesWithEligibilityAction(
 
     const enrolledMap = new Map(existingEvaluations.map((e) => [e.studentId, e]));
 
-    const result: CandidateEligibility[] = candidateStudents.map(({ student, startDate }) => {
-      const currentBeltIndex = belts.findIndex((b) => b.id === student.currentBeltId);
-      const targetBeltIndex = currentBeltIndex >= 0 ? Math.min(currentBeltIndex + 1, belts.length - 1) : 0;
-      const currentBelt = currentBeltIndex >= 0 ? belts[currentBeltIndex] : null;
-      const targetBelt = belts[targetBeltIndex];
+    const result: CandidateEligibility[] = candidateStudents.map(
+      ({ student, startDate }) => {
+        const currentBeltIndex = belts.findIndex(
+          (b) => b.id === student.currentBeltId
+        );
+        const targetBeltIndex =
+          currentBeltIndex >= 0
+            ? Math.min(currentBeltIndex + 1, belts.length - 1)
+            : 0;
+        const currentBelt = currentBeltIndex >= 0 ? belts[currentBeltIndex] : null;
+        const targetBelt = belts[targetBeltIndex];
 
-      const classesAttended = Math.max(12, Math.floor(student.effortPoints / 10));
-      const now = new Date();
-      const start = new Date(startDate || student.createdAt);
-      const monthsPracticed = Math.max(
-        1,
-        (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
-      );
+        const classesAttended = Math.max(12, Math.floor(student.effortPoints / 10));
+        const now = new Date();
+        const start = new Date(startDate || student.createdAt);
+        const monthsPracticed = Math.max(
+          1,
+          (now.getFullYear() - start.getFullYear()) * 12 +
+            (now.getMonth() - start.getMonth())
+        );
 
-      const classesReq = targetBelt.minClasses || 24;
-      const monthsReq = targetBelt.minMonths || 3;
+        const classesReq = targetBelt.minClasses || 24;
+        const monthsReq = targetBelt.minMonths || 3;
 
-      let status: "ELIGIBLE" | "NEAR" | "INELIGIBLE" = "INELIGIBLE";
-      if (classesAttended >= classesReq && monthsPracticed >= monthsReq) {
-        status = "ELIGIBLE";
-      } else if (classesAttended >= classesReq * 0.75 || monthsPracticed >= monthsReq * 0.75) {
-        status = "NEAR";
+        let status: "ELIGIBLE" | "NEAR" | "INELIGIBLE" = "INELIGIBLE";
+        if (classesAttended >= classesReq && monthsPracticed >= monthsReq) {
+          status = "ELIGIBLE";
+        } else if (
+          classesAttended >= classesReq * 0.75 ||
+          monthsPracticed >= monthsReq * 0.75
+        ) {
+          status = "NEAR";
+        }
+
+        return {
+          studentId: student.id,
+          studentName: student.user?.name || "Alumno Registrado",
+          email: student.user?.email,
+          currentBeltName: currentBelt?.name || "Blanco / Inicial",
+          currentBeltColor: currentBelt?.colorHex || "#e4e4e7",
+          targetBeltId: targetBelt.id,
+          targetBeltName: targetBelt.name,
+          targetBeltColor: targetBelt.colorHex,
+          classesAttended,
+          classesRequired: classesReq,
+          monthsPracticed,
+          monthsRequired: monthsReq,
+          eligibilityStatus: status,
+          isEnrolled: enrolledMap.has(student.id),
+          isFeePaid: Boolean(enrolledMap.get(student.id)?.isFeePaid),
+        };
       }
-
-      return {
-        studentId: student.id,
-        studentName: student.user?.name || "Alumno Registrado",
-        email: student.user?.email,
-        currentBeltName: currentBelt?.name || "Blanco / Inicial",
-        currentBeltColor: currentBelt?.colorHex || "#e4e4e7",
-        targetBeltId: targetBelt.id,
-        targetBeltName: targetBelt.name,
-        targetBeltColor: targetBelt.colorHex,
-        classesAttended,
-        classesRequired: classesReq,
-        monthsPracticed,
-        monthsRequired: monthsReq,
-        eligibilityStatus: status,
-        isEnrolled: enrolledMap.has(student.id),
-        isFeePaid: Boolean(enrolledMap.get(student.id)?.isFeePaid),
-      };
-    });
+    );
 
     return { success: true, data: result };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al consultar elegibilidad de candidatos.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al consultar elegibilidad de candidatos.";
     return { success: false, error: errorMsg };
   }
 }
 
 export async function saveExamCandidatesSelectionAction(
   examId: string,
-  selections: Array<{ studentId: string; targetBeltId: string; isSelected: boolean; isFeePaid?: boolean }>
+  selections: Array<{
+    studentId: string;
+    targetBeltId: string;
+    isSelected: boolean;
+    isFeePaid?: boolean;
+  }>
 ): Promise<ApiResponse<boolean>> {
   try {
     const exam = await prisma.gradeExam.findUnique({

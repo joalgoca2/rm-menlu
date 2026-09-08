@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Dumbbell, Plus, CheckCircle2, XCircle, Gift, Flame, Shield, Award, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { Dumbbell, Plus, CheckCircle2, XCircle, Gift, Pencil, Trash2, X, AlertTriangle } from "lucide-react";
 import { useBrand } from "@/context/brand-context";
-import { useTranslation } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { createPhysicalChallengeAction } from "@/actions/gamification";
 
@@ -26,7 +25,6 @@ interface EvidenceItem {
 
 export default function GamificationAdminPage() {
   const { selectedBrandId } = useBrand();
-  const { t } = useTranslation();
 
   const [activeTab, setActiveTab] = useState<"challenges" | "verifications" | "rewards">("challenges");
 
@@ -130,7 +128,8 @@ export default function GamificationAdminPage() {
             Gestor de Gamificación & Retos Físicos
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Administra los retos por edad, la bandeja de verificación del coach y la Tienda de Recompensas.
+            Administra los retos por edad, la bandeja de verificación del coach y la Tienda de
+            Recompensas.
           </p>
         </div>
       </div>
@@ -247,7 +246,8 @@ export default function GamificationAdminPage() {
                   <div>
                     <h3 className="font-semibold text-zinc-900 dark:text-white">{ch.title}</h3>
                     <p className="text-xs text-zinc-500">
-                      Rango de Edad: {ch.minAge} - {ch.maxAge} años | Meta: {ch.targetReps} repeticiones
+                      Rango de Edad: {ch.minAge} - {ch.maxAge} años | Meta:{" "}
+                      {ch.targetReps} repeticiones
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -354,7 +354,9 @@ export default function GamificationAdminPage() {
                 <input
                   type="text"
                   value={editingChallenge.title}
-                  onChange={(e) => setEditingChallenge({ ...editingChallenge, title: e.target.value })}
+                  onChange={(e) =>
+                    setEditingChallenge({ ...editingChallenge, title: e.target.value })
+                  }
                   className="w-full mt-1 px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
                 />
               </div>
@@ -364,7 +366,12 @@ export default function GamificationAdminPage() {
                   <input
                     type="number"
                     value={editingChallenge.minAge}
-                    onChange={(e) => setEditingChallenge({ ...editingChallenge, minAge: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingChallenge({
+                        ...editingChallenge,
+                        minAge: Number(e.target.value),
+                      })
+                    }
                     className="w-full mt-1 px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
                   />
                 </div>
@@ -373,7 +380,12 @@ export default function GamificationAdminPage() {
                   <input
                     type="number"
                     value={editingChallenge.maxAge}
-                    onChange={(e) => setEditingChallenge({ ...editingChallenge, maxAge: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingChallenge({
+                        ...editingChallenge,
+                        maxAge: Number(e.target.value),
+                      })
+                    }
                     className="w-full mt-1 px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
                   />
                 </div>
@@ -384,7 +396,12 @@ export default function GamificationAdminPage() {
                   <input
                     type="number"
                     value={editingChallenge.targetReps}
-                    onChange={(e) => setEditingChallenge({ ...editingChallenge, targetReps: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingChallenge({
+                        ...editingChallenge,
+                        targetReps: Number(e.target.value),
+                      })
+                    }
                     className="w-full mt-1 px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
                   />
                 </div>
@@ -393,7 +410,12 @@ export default function GamificationAdminPage() {
                   <input
                     type="number"
                     value={editingChallenge.xpReward}
-                    onChange={(e) => setEditingChallenge({ ...editingChallenge, xpReward: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingChallenge({
+                        ...editingChallenge,
+                        xpReward: Number(e.target.value),
+                      })
+                    }
                     className="w-full mt-1 px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white"
                   />
                 </div>

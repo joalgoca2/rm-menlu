@@ -19,7 +19,6 @@ import {
   Lock,
   Receipt,
   Swords,
-  Flame,
   Trophy,
   Award,
   Dumbbell,

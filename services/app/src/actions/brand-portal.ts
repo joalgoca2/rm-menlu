@@ -231,20 +231,16 @@ export async function executeCustomerCheckoutAction(
     });
 
     // Trigger async outbound brand webhook to n8n / CRM / external brand endpoint
-    triggerOutboundWebhook({
-      brandId,
-      event: "payment.customer_paid",
-      payload: {
-        paymentId: createdPayment.id,
-        customerName,
-        customerEmail,
-        concept,
-        amount,
-        currency,
-        gatewayProvider,
-        transactionRef,
-        paidAt: createdPayment.createdAt.toISOString(),
-      },
+    triggerOutboundWebhook(brandId, "payment.customer_paid", {
+      paymentId: createdPayment.id,
+      customerName,
+      customerEmail,
+      concept,
+      amount,
+      currency,
+      gatewayProvider,
+      transactionRef,
+      paidAt: createdPayment.createdAt.toISOString(),
     }).catch(() => {});
 
     return {

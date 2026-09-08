@@ -289,7 +289,14 @@ export async function updateStudentAction(
     }
 
     // Update User Name/Email/Image
-    const userDataToUpdate: { name: string; email: string; image?: string | null } = { name, email };
+    const userDataToUpdate: {
+      name: string;
+      email: string;
+      image?: string | null;
+    } = {
+      name,
+      email,
+    };
     if (image !== undefined) {
       userDataToUpdate.image = image || null;
     }
@@ -345,9 +352,12 @@ export async function updateStudentAction(
         medications: medications || null,
         currentBeltId: beltId || null,
         parentId: parentIdToSet,
-        effortPoints: effortPoints !== undefined ? effortPoints : student.effortPoints,
-        currentStreak: currentStreak !== undefined ? currentStreak : student.currentStreak,
-        shieldsAvailable: shieldsAvailable !== undefined ? shieldsAvailable : student.shieldsAvailable,
+        effortPoints:
+          effortPoints !== undefined ? effortPoints : student.effortPoints,
+        currentStreak:
+          currentStreak !== undefined ? currentStreak : student.currentStreak,
+        shieldsAvailable:
+          shieldsAvailable !== undefined ? shieldsAvailable : student.shieldsAvailable,
       },
     });
 

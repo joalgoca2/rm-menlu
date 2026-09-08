@@ -424,7 +424,9 @@ export function BrandPlanManager({ brand }: BrandPlanManagerProps) {
               <span>¿Eliminar Membresía?</span>
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-zinc-600 dark:text-zinc-400">
-              Esta acción eliminará el paquete del catálogo de tu marca. Los pagos históricos realizados por tus clientes conservarán su concepto y monto intactos.
+              Esta acción eliminará el paquete del catálogo de tu marca. Los pagos
+              históricos realizados por tus clientes conservarán su concepto y monto
+              intactos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">

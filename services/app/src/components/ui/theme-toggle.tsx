@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Palette, Sparkles, Check } from "lucide-react";
-import { useThemeStyle, type ThemeStyle } from "@/components/theme-style-provider";
+import { useThemeStyle } from "@/components/theme-style-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

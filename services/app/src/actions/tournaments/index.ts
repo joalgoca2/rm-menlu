@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { tournamentSchema } from "@/lib/validations/dojo";
-import type { ApiResponse, Tournament, TournamentCategory, TournamentMatch } from "@/types";
+import type { ApiResponse, Tournament, TournamentCategory } from "@/types";
 
 // --- TOURNAMENT CRUD ACTIONS ---
 

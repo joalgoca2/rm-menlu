@@ -13,10 +13,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  Filter,
   Flame,
   Award,
   Zap,
@@ -26,8 +22,6 @@ import {
   UserX,
   AlertTriangle,
   Camera,
-  Upload,
-  Check,
   User,
   Baby,
   FileText,
@@ -35,7 +29,6 @@ import {
   CreditCard,
   Printer,
   Swords,
-  QrCode,
 } from "lucide-react";
 import { QRCode } from "@/components/ui/qr-code";
 import { printStudentCredentials } from "@/lib/print-utils";
@@ -76,13 +69,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
+
 import {
   Dialog,
   DialogContent,
@@ -159,7 +146,7 @@ function StudentsTableContent() {
 
   // Expediente 360° Drawer State
   const [expedienteStudent, setExpedienteStudent] = useState<StudentExpediente | null>(null);
-  const [isLoadingExpediente, setIsLoadingExpediente] = useState(false);
+  const [_isLoadingExpediente, _setIsLoadingExpediente] = useState(false);
 
   // Filter states
   const [searchInput, setSearchInput] = useState(currentSearch);
@@ -288,7 +275,7 @@ function StudentsTableContent() {
     updateUrlParams({ search: searchInput, disciplineId: disciplineInput, page: 1 });
   };
 
-  const handleDisciplineFilter = (value: string) => {
+  const _handleDisciplineFilter = (value: string) => {
     updateUrlParams({ disciplineId: value, page: 1 });
   };
 
@@ -421,7 +408,7 @@ function StudentsTableContent() {
     setSelectedEditDisciplineIds(activeDiscIds);
 
     setValueEdit("studentId", student.id);
-    setValueEdit("name", student.user.name);
+    setValueEdit("name", student.user.name || "");
     setValueEdit("email", student.user.email);
     setValueEdit("birthDate", dateStr);
     setValueEdit("emergencyContact", student.emergencyContact || "");
@@ -681,14 +668,15 @@ function StudentsTableContent() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           {student.user.image ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
                             <img
                               src={student.user.image}
-                              alt={student.user.name}
+                              alt={student.user.name || "Alumno"}
                               className="w-9 h-9 rounded-full object-cover border border-amber-500/40 shrink-0 shadow-xs"
                             />
                           ) : (
                             <div className="w-9 h-9 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 font-black text-xs flex items-center justify-center border border-amber-500/30 shrink-0">
-                              {student.user.name.slice(0, 2).toUpperCase()}
+                              {(student.user.name || "Alumno").slice(0, 2).toUpperCase()}
                             </div>
                           )}
                           <div>
@@ -902,7 +890,8 @@ function StudentsTableContent() {
           <DialogHeader className="p-6 pb-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
             <DialogTitle className="text-lg font-bold">Alta de Nuevo Alumno</DialogTitle>
             <DialogDescription className="text-xs">
-              Registra la cuenta del estudiante, identificación, seguro médico, alergias, disciplinas y tutor si es menor.
+              Registra la cuenta del estudiante, identificación, seguro médico, alergias,
+              disciplinas y tutor si es menor.
             </DialogDescription>
           </DialogHeader>
 
@@ -911,6 +900,7 @@ function StudentsTableContent() {
             <div className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700">
               <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500/40 bg-zinc-200 dark:bg-zinc-700 shrink-0 flex items-center justify-center">
                 {createPhotoPreview ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={createPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
                   <Camera className="h-6 w-6 text-zinc-400" />
@@ -1069,6 +1059,7 @@ function StudentsTableContent() {
                           </span>
                           <select
                             value={
+                              currentSelectedBeltId &&
                               disciplineBelts.some((b) => b.id === currentSelectedBeltId)
                                 ? currentSelectedBeltId
                                 : ""
@@ -1117,7 +1108,11 @@ function StudentsTableContent() {
             ) : (
               <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-900 dark:text-blue-200 text-xs flex items-center gap-2 font-semibold">
                 <User className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>El alumno es <strong>Mayor de Edad ({createAge} años)</strong>. No requiere datos de tutor.</span>
+                <span>
+                  El alumno es{" "}
+                  <strong>Mayor de Edad ({createAge} años)</strong>. No requiere
+                  datos de tutor.
+                </span>
               </div>
             )}
 
@@ -1143,7 +1138,8 @@ function StudentsTableContent() {
                 Editar Expediente Completo de Alumno: {studentToEdit.user.name}
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Modifica datos personales, ficha médica, seguro, identificación, grados, gamificación y tutor.
+                Modifica datos personales, ficha médica, seguro, identificación, grados,
+                gamificación y tutor.
               </DialogDescription>
             </DialogHeader>
 
@@ -1152,7 +1148,8 @@ function StudentsTableContent() {
               <div className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700">
                 <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500/40 bg-zinc-200 shrink-0">
                   {studentToEdit.user.image ? (
-                    <img src={studentToEdit.user.image} alt={studentToEdit.user.name} className="w-full h-full object-cover" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={studentToEdit.user.image} alt={studentToEdit.user.name || "Alumno"} className="w-full h-full object-cover" />
                   ) : (
                     <Camera className="w-6 h-6 text-zinc-400 m-5" />
                   )}
@@ -1310,6 +1307,7 @@ function StudentsTableContent() {
                             </span>
                             <select
                               value={
+                                currentSelectedBeltId &&
                                 disciplineBelts.some((b) => b.id === currentSelectedBeltId)
                                   ? currentSelectedBeltId
                                   : ""
@@ -1379,7 +1377,11 @@ function StudentsTableContent() {
               ) : (
                 <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-900 dark:text-blue-200 text-xs flex items-center gap-2 font-semibold">
                   <User className="h-4 w-4 text-blue-500 shrink-0" />
-                  <span>El alumno es <strong>Mayor de Edad ({editAge} años)</strong>. Los datos de tutor no son requeridos.</span>
+                  <span>
+                    El alumno es{" "}
+                    <strong>Mayor de Edad ({editAge} años)</strong>. Los datos de
+                    tutor no son requeridos.
+                  </span>
                 </div>
               )}
 
@@ -1428,7 +1430,8 @@ function StudentsTableContent() {
                 <Eye className="h-5 w-5 text-indigo-500" /> Expediente Completo 360°: {expedienteStudent.user.name}
               </DialogTitle>
               <DialogDescription className="text-xs">
-                Resumen de cuenta, datos personales, ficha médica, seguro, identificación y avance en El Camino del Esfuerzo.
+                Resumen de cuenta, datos personales, ficha médica, seguro, identificación y
+                avance en El Camino del Esfuerzo.
               </DialogDescription>
             </DialogHeader>
 
@@ -1437,10 +1440,11 @@ function StudentsTableContent() {
               <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-amber-500 shrink-0 shadow-md">
                   {expedienteStudent.user.image ? (
-                    <img src={expedienteStudent.user.image} alt={expedienteStudent.user.name} className="w-full h-full object-cover" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={expedienteStudent.user.image} alt={expedienteStudent.user.name || "Alumno"} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-amber-500/20 text-amber-600 font-black text-xl flex items-center justify-center">
-                      {expedienteStudent.user.name.slice(0, 2).toUpperCase()}
+                      {(expedienteStudent.user.name || "Alumno").slice(0, 2).toUpperCase()}
                     </div>
                   )}
                 </div>
@@ -1490,12 +1494,13 @@ function StudentsTableContent() {
                   <span className="text-zinc-400 font-bold block">Nacionalidad:</span>
                   <span>{expedienteStudent.nationality || "Sin registrar"}</span>
                 </div>
-                {calculateAge(expedienteStudent.birthDate) !== null && (calculateAge(expedienteStudent.birthDate) ?? 0) < 18 && (
-                  <div>
-                    <span className="text-zinc-400 font-bold block">Tutor Responsable:</span>
-                    <span>{expedienteStudent.parent?.user?.name || "Sin tutor registrado"}</span>
-                  </div>
-                )}
+                {calculateAge(expedienteStudent.birthDate) !== null &&
+                  (calculateAge(expedienteStudent.birthDate) ?? 0) < 18 && (
+                    <div>
+                      <span className="text-zinc-400 font-bold block">Tutor Responsable:</span>
+                      <span>{expedienteStudent.parent?.user?.name || "Sin tutor registrado"}</span>
+                    </div>
+                  )}
               </div>
 
               {/* Sección Médica Destacada */}
@@ -1640,9 +1645,10 @@ function StudentsTableContent() {
                     <div className="col-span-3 flex justify-center">
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-amber-400 shadow-md bg-zinc-800 flex items-center justify-center shrink-0">
                         {studentForCredential.user.image ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={studentForCredential.user.image}
-                            alt={studentForCredential.user.name}
+                            alt={studentForCredential.user.name || "Alumno"}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1653,7 +1659,7 @@ function StudentsTableContent() {
 
                     {/* Datos Principales */}
                     <div className="col-span-5 space-y-0.5 min-w-0">
-                      <h4 className="text-[11px] font-black text-white leading-tight truncate" title={studentForCredential.user.name}>
+                      <h4 className="text-[11px] font-black text-white leading-tight truncate" title={studentForCredential.user.name || "Alumno"}>
                         {studentForCredential.user.name}
                       </h4>
                       <p className="text-[9px] font-mono font-bold text-amber-400 leading-none">
@@ -1662,7 +1668,8 @@ function StudentsTableContent() {
 
                       {/* Insignia de Disciplinas */}
                       <div className="pt-0.5 flex flex-wrap gap-0.5 max-h-7 overflow-hidden">
-                        {studentForCredential.enrollments && studentForCredential.enrollments.length > 0 ? (
+                        {studentForCredential.enrollments &&
+                        studentForCredential.enrollments.length > 0 ? (
                           studentForCredential.enrollments.slice(0, 2).map((enr) => (
                             <span
                               key={enr.id}

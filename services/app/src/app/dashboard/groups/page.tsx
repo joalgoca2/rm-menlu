@@ -6,7 +6,6 @@ import {
   UsersRound,
   Users,
   Swords,
-  Award,
   Plus,
   Search,
   Edit2,
@@ -19,9 +18,6 @@ import {
   Loader2,
   LayoutGrid,
   List,
-  UserCheck,
-  Check,
-  X,
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -83,7 +79,7 @@ function GroupsPageContent() {
   const effectiveBrandId =
     selectedBrandId === "ALL" ? (brands[0]?.id || "seed-brand-general") : selectedBrandId;
   const activeBrand = brands.find((b) => b.id === effectiveBrandId) || brands[0];
-  const brandCurrency = activeBrand?.currency || "USD";
+  const _brandCurrency = activeBrand?.currency || "USD";
 
   // URL Params State
   const pageParam = parseInt(searchParams.get("page") || "1", 10);
@@ -1013,7 +1009,10 @@ function GroupsPageContent() {
       </Dialog>
 
       {/* Delete Confirmation AlertDialog */}
-      <AlertDialog open={Boolean(deletingGroup)} onOpenChange={(open) => !open && setDeletingGroup(null)}>
+      <AlertDialog
+        open={Boolean(deletingGroup)}
+        onOpenChange={(open) => !open && setDeletingGroup(null)}
+      >
         <AlertDialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">

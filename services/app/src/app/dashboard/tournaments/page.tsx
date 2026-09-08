@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Trophy, Plus, MapPin, Calendar, ArrowLeft, ChevronRight, Crown, AlertTriangle, Layers, X } from "lucide-react";
+import {
+  Trophy,
+  Plus,
+  MapPin,
+  ArrowLeft,
+  ChevronRight,
+  Crown,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import { useBrand } from "@/context/brand-context";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
@@ -54,7 +63,7 @@ function TournamentsContent() {
 
   const [search, setSearch] = useState(searchFromUrl);
   const [currentPage, setCurrentPage] = useState(pageFromUrl);
-  const [totalPages, setTotalPages] = useState(1);
+  const [_totalPages, _setTotalPages] = useState(1);
 
   // View Mode: "list" | "execution"
   const [viewMode, setViewMode] = useState<"list" | "execution">("list");
@@ -68,7 +77,8 @@ function TournamentsContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   const [deletingTournament, setDeletingTournament] = useState<Tournament | null>(null);
-  const [managingCategoriesTournament, setManagingCategoriesTournament] = useState<Tournament | null>(null);
+  const [managingCategoriesTournament, setManagingCategoriesTournament] =
+    useState<Tournament | null>(null);
 
   // Categories State inside Modal
   const [categories, setCategories] = useState<TournamentCategory[]>([]);
@@ -209,7 +219,11 @@ function TournamentsContent() {
   };
 
   const toggleCheckin = (studentId: string) => {
-    setStudents(students.map((s) => (s.id === studentId ? { ...s, isCheckedIn: !s.isCheckedIn } : s)));
+    setStudents(
+      students.map((s) =>
+        s.id === studentId ? { ...s, isCheckedIn: !s.isCheckedIn } : s
+      )
+    );
   };
 
   const generateBrackets = () => {
@@ -319,7 +333,8 @@ function TournamentsContent() {
                 {t("dojo.tournamentsTitle", "Gestión de Torneos Internos")}
               </h1>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Administra el catálogo de torneos, asigna categorías de combate y ejecuta las llaves.
+                Administra el catálogo de torneos, asigna categorías de combate y
+                ejecuta las llaves.
               </p>
             </div>
             <Button
@@ -435,8 +450,12 @@ function TournamentsContent() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {matches.map((match) => {
-                  const isRedWinner = match.winnerStudentId === match.redStudentId && match.winnerStudentId !== null;
-                  const isBlueWinner = match.winnerStudentId === match.blueStudentId && match.winnerStudentId !== null;
+                  const isRedWinner =
+                    match.winnerStudentId === match.redStudentId &&
+                    match.winnerStudentId !== null;
+                  const isBlueWinner =
+                    match.winnerStudentId === match.blueStudentId &&
+                    match.winnerStudentId !== null;
 
                   return (
                     <div key={match.id} className="border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-3 bg-zinc-50/50 dark:bg-zinc-800/40">
