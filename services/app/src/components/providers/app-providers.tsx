@@ -6,6 +6,7 @@ import { ThemeProvider } from "./theme-provider";
 import { ThemeStyleProvider } from "@/components/theme-style-provider";
 import { I18nProvider } from "./i18n-provider";
 import { PwaProvider } from "./pwa-provider";
+import { GuidedTourProvider } from "./guided-tour-provider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -13,22 +14,24 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <I18nProvider>
         <ThemeProvider>
           <ThemeStyleProvider>
-            <PwaProvider>
-              {children}
-              <Toaster
-                position="top-right"
-                richColors
-                closeButton
-                expand={true}
-                visibleToasts={6}
-                duration={4000}
-                toastOptions={{
-                  style: {
-                    zIndex: 999999,
-                  },
-                }}
-              />
-            </PwaProvider>
+            <GuidedTourProvider>
+              <PwaProvider>
+                {children}
+                <Toaster
+                  position="top-right"
+                  richColors
+                  closeButton
+                  expand={true}
+                  visibleToasts={6}
+                  duration={4000}
+                  toastOptions={{
+                    style: {
+                      zIndex: 999999,
+                    },
+                  }}
+                />
+              </PwaProvider>
+            </GuidedTourProvider>
           </ThemeStyleProvider>
         </ThemeProvider>
       </I18nProvider>

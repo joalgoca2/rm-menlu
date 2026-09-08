@@ -28,6 +28,7 @@ import {
 import { getPlanConfigs } from "@/actions/billing";
 import type { PlanConfig } from "@/types";
 import { toast } from "sonner";
+import { useTranslation } from "@/components/providers/i18n-provider";
 
 interface BrandFormDialogProps {
   open: boolean;
@@ -42,6 +43,7 @@ export function BrandFormDialog({
   brandToEdit,
   onSuccess,
 }: BrandFormDialogProps) {
+  const { t } = useTranslation();
   const isEditing = !!brandToEdit;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [planConfigs, setPlanConfigs] = useState<PlanConfig[]>([]);
@@ -318,44 +320,53 @@ export function BrandFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  Precio Base ($USD)
-                </Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={price}
-                  onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
-                  className="rounded-xl font-bold"
-                />
-              </div>
+            {(() => {
+              const currencySymbol = currency === "EUR" ? "€" : currency === "BRL" ? "R$" : "$";
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                      {t("brandFormDialog.basePrice", "Precio Base ({currency})", {
+                        currency: `${currencySymbol}${currency}`,
+                      })}
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={price}
+                      onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
+                      className="rounded-xl font-bold"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  Descuento (%)
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={discount}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                  className="rounded-xl font-bold"
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                      Descuento (%)
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={discount}
+                      onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                      className="rounded-xl font-bold"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                  Precio Final ($USD)
-                </Label>
-                <div className="h-10 px-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
-                  ${finalPrice.toFixed(2)} USD
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                      {t("brandFormDialog.finalPrice", "Precio Final ({currency})", {
+                        currency: `${currencySymbol}${currency}`,
+                      })}
+                    </Label>
+                    <div className="h-10 px-3 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center font-mono font-black text-sm text-emerald-600 dark:text-emerald-400">
+                      {currencySymbol}{finalPrice.toFixed(2)} {currency}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">

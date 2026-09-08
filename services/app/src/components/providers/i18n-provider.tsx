@@ -12,7 +12,7 @@ type DictionaryMap = typeof es;
 interface I18nContextType {
   locale: string;
   setLocale: (locale: string) => Promise<void>;
-  t: (path: string, fallback?: string) => string;
+  t: (path: string, fallback?: string, params?: Record<string, string | number>) => string;
 }
 
 const dictionaries: Record<string, DictionaryMap> = {
@@ -24,7 +24,8 @@ const dictionaries: Record<string, DictionaryMap> = {
 const I18nContext = createContext<I18nContextType>({
   locale: "es",
   setLocale: async () => {},
-  t: (_path: string, fallback?: string) => fallback ?? _path,
+  t: (_path: string, fallback?: string, _params?: Record<string, string | number>) =>
+    fallback ?? _path,
 });
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
@@ -71,7 +72,11 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const t = (path: string, fallback?: string): string => {
+  const t = (
+    path: string,
+    fallback?: string,
+    params?: Record<string, string | number>
+  ): string => {
     const activeDict = dictionaries[locale] ?? dictionaries.es;
     const parts = path.split(".");
     let current: unknown = activeDict;
@@ -80,11 +85,18 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       if (current && typeof current === "object" && part in (current as Record<string, unknown>)) {
         current = (current as Record<string, unknown>)[part];
       } else {
-        return fallback ?? path;
+        current = fallback ?? path;
+        break;
       }
     }
 
-    return typeof current === "string" ? current : fallback ?? path;
+    let result = typeof current === "string" ? current : fallback ?? path;
+    if (params) {
+      Object.entries(params).forEach(([key, val]) => {
+        result = result.replace(new RegExp(`\\{${key}\\}`, "g"), String(val));
+      });
+    }
+    return result;
   };
 
   return (

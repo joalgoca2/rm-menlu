@@ -529,6 +529,157 @@ async function main() {
     },
   });
 
+  // 12. Seed Default Student Groups (Multi-discipline)
+  console.log("  -> Seeding Default Student Groups...");
+  const groupBeginners = await prisma.studentGroup.upsert({
+    where: { id: "seed-group-adults-beginners" },
+    update: {
+      name: "Mayores Principiantes",
+      minAge: 15,
+      maxAge: 99,
+      description: "Grupo de adultos nivel inicial en artes marciales.",
+    },
+    create: {
+      id: "seed-group-adults-beginners",
+      brandId: generalBrand.id,
+      name: "Mayores Principiantes",
+      code: "MAY-PRIN",
+      description: "Grupo de adultos nivel inicial en artes marciales.",
+      minAge: 15,
+      maxAge: 99,
+      isActive: true,
+    },
+  });
+
+  await prisma.groupDiscipline.upsert({
+    where: {
+      groupId_disciplineId: {
+        groupId: groupBeginners.id,
+        disciplineId: taichiDiscipline.id,
+      },
+    },
+    update: { scheduleText: "Mar y Jue 18:00 - 19:30" },
+    create: {
+      groupId: groupBeginners.id,
+      disciplineId: taichiDiscipline.id,
+      scheduleText: "Mar y Jue 18:00 - 19:30",
+    },
+  });
+
+  await prisma.groupDiscipline.upsert({
+    where: {
+      groupId_disciplineId: {
+        groupId: groupBeginners.id,
+        disciplineId: sandaDiscipline.id,
+      },
+    },
+    update: { scheduleText: "Lun y Mié 19:00 - 20:30" },
+    create: {
+      groupId: groupBeginners.id,
+      disciplineId: sandaDiscipline.id,
+      scheduleText: "Lun y Mié 19:00 - 20:30",
+    },
+  });
+
+  const groupAdvanced = await prisma.studentGroup.upsert({
+    where: { id: "seed-group-adults-advanced" },
+    update: {
+      name: "Mayores Avanzados",
+      minAge: 15,
+      maxAge: 99,
+      description: "Grupo de adultos nivel avanzado en combate y formas.",
+    },
+    create: {
+      id: "seed-group-adults-advanced",
+      brandId: generalBrand.id,
+      name: "Mayores Avanzados",
+      code: "MAY-AVAN",
+      description: "Grupo de adultos nivel avanzado en combate y formas.",
+      minAge: 15,
+      maxAge: 99,
+      isActive: true,
+    },
+  });
+
+  await prisma.groupDiscipline.upsert({
+    where: {
+      groupId_disciplineId: {
+        groupId: groupAdvanced.id,
+        disciplineId: sandaDiscipline.id,
+      },
+    },
+    update: { scheduleText: "Lun, Mié y Vie 20:00 - 21:30" },
+    create: {
+      groupId: groupAdvanced.id,
+      disciplineId: sandaDiscipline.id,
+      scheduleText: "Lun, Mié y Vie 20:00 - 21:30",
+    },
+  });
+
+  // 13. Seed Default 3-Tier Evaluation Rubric Template
+  console.log("  -> Seeding Default Evaluation Rubric Template...");
+  const defaultRubric = await prisma.evaluationTemplate.upsert({
+    where: { id: "seed-template-kungfu-standard" },
+    update: {
+      title: "Rúbrica Estándar de Examen de Grado",
+      isDefault: true,
+    },
+    create: {
+      id: "seed-template-kungfu-standard",
+      brandId: generalBrand.id,
+      disciplineId: sandaDiscipline.id,
+      title: "Rúbrica Estándar de Examen de Grado",
+      description: "Plantilla visual semafórica (🟩 100%, 🟡 75%, 🔴 0%) para exámenes.",
+      isDefault: true,
+    },
+  });
+
+  const criteriaData = [
+    {
+      id: "seed-crit-1",
+      name: "Posturas y Formas (Tao Lu / Kata)",
+      category: "TECNICA",
+      orderIndex: 1,
+      description: "Estabilidad de Ma Bu, corrección lineal y ritmo.",
+    },
+    {
+      id: "seed-crit-2",
+      name: "Técnicas de Golpe y Patadas",
+      category: "TECNICA",
+      orderIndex: 2,
+      description: "Precisión, extensión y potencia técnica.",
+    },
+    {
+      id: "seed-crit-3",
+      name: "Espíritu, Kiai y Actitud",
+      category: "ACTITUD",
+      orderIndex: 3,
+      description: "Enfoque mental, respeto y marcialidad.",
+    },
+    {
+      id: "seed-crit-4",
+      name: "Resistencia y Condición Física",
+      category: "FISICO",
+      orderIndex: 4,
+      description: "Desempeño bajo exigencia y recuperación.",
+    },
+  ];
+
+  for (const crit of criteriaData) {
+    await prisma.evaluationCriterion.upsert({
+      where: { id: crit.id },
+      update: { name: crit.name, description: crit.description, orderIndex: crit.orderIndex },
+      create: {
+        id: crit.id,
+        templateId: defaultRubric.id,
+        name: crit.name,
+        category: crit.category,
+        description: crit.description,
+        orderIndex: crit.orderIndex,
+      },
+    });
+  }
+
   console.log("✅ Database seeding finished cleanly with 100% Upserts.");
 }
 
@@ -540,3 +691,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

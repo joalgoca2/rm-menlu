@@ -24,6 +24,8 @@ import {
   UserCheck,
   Zap,
   Printer,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBrand } from "@/context/brand-context";
@@ -100,8 +102,10 @@ export default function ExamsPage() {
   const pathname = usePathname();
   const [_isPending, startTransition] = useTransition();
 
-  const activeBrand = brands.find((b) => b.id === selectedBrandId);
-  const brandCurrency = activeBrand?.currency || "MXN";
+  const effectiveBrandId =
+    selectedBrandId === "ALL" ? (brands[0]?.id || "seed-brand-general") : selectedBrandId;
+  const activeBrand = brands.find((b) => b.id === effectiveBrandId) || brands[0];
+  const brandCurrency = activeBrand?.currency || "USD";
 
   const [exams, setExams] = useState<ExtendedGradeExam[]>([]);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -644,14 +648,14 @@ export default function ExamsPage() {
             {t("dojo.examsTitle", "Exámenes de Grado & Certificación")}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Convoca a los alumnos elegibles de la disciplina con semáforo de criterios, evalúa en tatami y promueve de cinturón automáticamente.
+            {t("dojo.examsSub", "Convoca a los alumnos elegibles de la disciplina con semáforo de criterios, evalúa en tatami y promueve de cinturón automáticamente.")}
           </p>
         </div>
         <Button
           onClick={() => setIsCreateModalOpen(true)}
           className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl shadow-xs cursor-pointer text-xs"
         >
-          <Plus className="h-4 w-4 mr-1.5" /> Nueva Convocatoria
+          <Plus className="h-4 w-4 mr-1.5" /> {t("dojo.createExam", "Nueva Convocatoria")}
         </Button>
       </div>
 
@@ -661,13 +665,13 @@ export default function ExamsPage() {
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
-                Convocatorias Anuales
+                {t("dojo.kpiAnnualExams", "Convocatorias Anuales")}
               </span>
               <div className="text-2xl font-extrabold text-zinc-900 dark:text-white font-serif">
                 {totalExamsCount}
               </div>
               <span className="text-[11px] text-amber-600 dark:text-amber-400 font-bold flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5" /> Convocatorias registradas
+                <Sparkles className="h-3.5 w-3.5" /> {t("dojo.kpiAnnualExamsSub", "Convocatorias registradas")}
               </span>
             </div>
             <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20">
@@ -680,13 +684,13 @@ export default function ExamsPage() {
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
-                Alumnos Evaluados
+                {t("dojo.kpiEvaluatedStudents", "Alumnos Evaluados")}
               </span>
               <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 font-serif">
                 {totalCandidatesCount}
               </div>
               <span className="text-[11px] text-zinc-400 font-medium flex items-center gap-1">
-                <Users className="h-3.5 w-3.5 text-indigo-400" /> Candidatos inscritos
+                <Users className="h-3.5 w-3.5 text-indigo-400" /> {t("dojo.kpiEvaluatedStudentsSub", "Candidatos inscritos")}
               </span>
             </div>
             <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl border border-indigo-500/20">
@@ -699,13 +703,13 @@ export default function ExamsPage() {
           <CardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
-                Tasa de Aprobación
+                {t("dojo.kpiPassRate", "Tasa de Aprobación")}
               </span>
               <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-serif">
                 {passRatePercentage}%
               </div>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Promoción de cinturón
+                <CheckCircle2 className="h-3.5 w-3.5" /> {t("dojo.kpiPassRateSub", "Promoción de cinturón")}
               </span>
             </div>
             <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl border border-emerald-500/20">
@@ -724,7 +728,7 @@ export default function ExamsPage() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Buscar convocatoria por nombre o lugar..."
+                placeholder={t("dojo.searchExamPlaceholder", "Buscar convocatoria por nombre o lugar...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 box-border"
@@ -736,7 +740,7 @@ export default function ExamsPage() {
               onChange={(e) => setDisciplineInput(e.target.value)}
               className="h-10 px-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer box-border flex items-center"
             >
-              <option value="ALL">Todas las Disciplinas</option>
+              <option value="ALL">{t("dojo.allDisciplines", "Todas las Disciplinas")}</option>
               {disciplines.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name} {d.code ? `(${d.code})` : ""}
@@ -748,7 +752,7 @@ export default function ExamsPage() {
               type="submit"
               className="h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-4 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
             >
-              <Search className="h-3.5 w-3.5 mr-1" /> Buscar
+              <Search className="h-3.5 w-3.5 mr-1" /> {t("dojo.searchBtn", "Buscar")}
             </Button>
           </div>
 
@@ -762,9 +766,9 @@ export default function ExamsPage() {
                   ? "bg-amber-500 text-zinc-950 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
               }`}
-              title="Vista de Tarjetas"
+              title={t("dojo.viewCards", "Tarjetas")}
             >
-              <LayoutGrid className="h-3.5 w-3.5" /> Tarjetas
+              <LayoutGrid className="h-3.5 w-3.5" /> {t("dojo.viewCards", "Tarjetas")}
             </button>
             <button
               type="button"
@@ -774,9 +778,9 @@ export default function ExamsPage() {
                   ? "bg-amber-500 text-zinc-950 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
               }`}
-              title="Vista de Tabla / Lista"
+              title={t("dojo.viewList", "Lista")}
             >
-              <List className="h-3.5 w-3.5" /> Lista
+              <List className="h-3.5 w-3.5" /> {t("dojo.viewList", "Lista")}
             </button>
           </div>
         </form>
@@ -872,13 +876,13 @@ export default function ExamsPage() {
                     <Calendar className="h-4 w-4 text-amber-500 shrink-0" />
                     <span className="font-medium text-zinc-900 dark:text-white">{dateStr}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 font-medium">
                     <MapPin className="h-4 w-4 text-indigo-500 shrink-0" />
-                    <span className="truncate">{ex.location || "Dojo Principal"}</span>
+                    <span className="truncate">{ex.location || t("dojo.defaultLocation", "Dojo Principal")}</span>
                   </div>
                   <div className="flex items-center gap-2 col-span-2 pt-1 border-t border-zinc-200 dark:border-zinc-800">
                     <DollarSign className="h-4 w-4 text-emerald-500 shrink-0" />
-                    <span>Derecho de Examen: <strong className="text-zinc-900 dark:text-white">${ex.feeAmount || 0} {ex.brand?.currency || brandCurrency}</strong></span>
+                    <span>{t("dojo.examFeeLabel", "Derecho de Examen:")} <strong className="text-zinc-900 dark:text-white">${ex.feeAmount || 0} {ex.brand?.currency || brandCurrency}</strong></span>
                   </div>
                 </div>
 
@@ -886,7 +890,7 @@ export default function ExamsPage() {
                 <div className="pt-2 space-y-2 border-t border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-zinc-600 dark:text-zinc-400 font-semibold flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5 text-amber-500" /> {candidatesCount} Alumnos Convocados
+                      <Users className="h-3.5 w-3.5 text-amber-500" /> {candidatesCount} {t("dojo.candidatesEnrolled", "Alumnos Convocados")}
                     </span>
                     <Button
                       size="sm"
@@ -894,7 +898,7 @@ export default function ExamsPage() {
                       onClick={() => handleOpenCandidatesManager(ex)}
                       className="rounded-xl text-xs font-bold border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer h-7"
                     >
-                      <UserCheck className="h-3.5 w-3.5 mr-1" /> Candidatos (Semáforo 🚦)
+                      <UserCheck className="h-3.5 w-3.5 mr-1" /> {t("dojo.candidatesBtn", "Candidatos (Semáforo 🚦)")}
                     </Button>
                   </div>
 
@@ -904,7 +908,7 @@ export default function ExamsPage() {
                         onClick={() => handleStartExam(ex)}
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer shadow-xs h-8"
                       >
-                        <Play className="h-3.5 w-3.5 mr-1" /> Iniciar Examen en Tatami
+                        <Play className="h-3.5 w-3.5 mr-1" /> {t("dojo.startExamBtn", "Iniciar Examen en Tatami")}
                       </Button>
                     )}
 
@@ -914,13 +918,13 @@ export default function ExamsPage() {
                           onClick={() => handleOpenEvaluation(ex)}
                           className="flex-1 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs h-8"
                         >
-                          <CheckCircle className="h-3.5 w-3.5 mr-1" /> Rúbrica Tatami
+                          <CheckCircle className="h-3.5 w-3.5 mr-1" /> {t("dojo.tatamiRubricBtn", "Rúbrica Tatami")}
                         </Button>
                         <Button
                           onClick={() => handleFinalizeExam(ex)}
                           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs cursor-pointer shadow-xs h-8"
                         >
-                          <Check className="h-3.5 w-3.5 mr-1" /> Finalizar Examen
+                          <Check className="h-3.5 w-3.5 mr-1" /> {t("dojo.finalizeExamActionBtn", "Finalizar Examen")}
                         </Button>
                       </>
                     )}
@@ -930,7 +934,7 @@ export default function ExamsPage() {
                         onClick={() => handleOpenEvaluation(ex)}
                         className="w-full bg-zinc-900 dark:bg-zinc-800 text-white font-bold rounded-xl text-xs cursor-pointer shadow-xs h-8"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" /> Ver Resultados & Certificados
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1 text-emerald-400" /> {t("dojo.viewResultsBtn", "Ver Resultados & Certificados")}
                       </Button>
                     )}
                   </div>
@@ -946,13 +950,13 @@ export default function ExamsPage() {
             <Table>
               <TableHeader className="bg-zinc-50 dark:bg-zinc-800/50">
                 <TableRow>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Convocatoria</TableHead>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Estado</TableHead>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Disciplina</TableHead>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Fecha</TableHead>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Derecho Examen</TableHead>
-                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Convocados</TableHead>
-                  <TableHead className="text-right font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">Acciones</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.examTitleCol", "Convocatoria")}</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.statusCol", "Estado")}</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.disciplineCol", "Disciplina")}</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.dateCol", "Fecha")}</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.feeCol", "Derecho Examen")}</TableHead>
+                  <TableHead className="font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.enrolledCol", "Convocados")}</TableHead>
+                  <TableHead className="text-right font-bold text-xs uppercase text-zinc-700 dark:text-zinc-300">{t("dojo.actionsCol", "Acciones")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1243,8 +1247,8 @@ export default function ExamsPage() {
 
                     <div className="flex items-center gap-4 text-right">
                       <div className="text-[11px] text-zinc-500 space-y-0.5">
-                        <div>Clases: <strong className="text-zinc-900 dark:text-white">{cand.classesAttended} / {cand.classesRequired}</strong></div>
-                        <div>Meses: <strong className="text-zinc-900 dark:text-white">{cand.monthsPracticed} / {cand.monthsRequired}</strong></div>
+                        <div>{t("dojo.classesLabel", "Clases:")} <strong className="text-zinc-900 dark:text-white">{cand.classesAttended} / {cand.classesRequired}</strong></div>
+                        <div>{t("dojo.monthsLabel", "Meses:")} <strong className="text-zinc-900 dark:text-white">{cand.monthsPracticed} / {cand.monthsRequired}</strong></div>
                       </div>
 
                       {cand.isEnrolled && (
@@ -1259,25 +1263,25 @@ export default function ExamsPage() {
                               ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
                               : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/25"
                           }`}
-                          title="Haz clic para cambiar el estado de pago del derecho a examen"
+                          title={t("dojo.feePaidHint", "Haz clic para cambiar el estado de pago del derecho a examen")}
                         >
-                          {cand.isFeePaid ? "💳 Examen Pagado" : "⏳ Pago Pendiente"}
+                          {cand.isFeePaid ? `💳 ${t("dojo.feePaid", "Examen Pagado")}` : `⏳ ${t("dojo.feePending", "Pago Pendiente")}`}
                         </button>
                       )}
 
                       {cand.eligibilityStatus === "ELIGIBLE" && (
                         <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
-                          🟢 Cumple
+                          {t("dojo.eligibleBadge", "🟢 Cumple")}
                         </Badge>
                       )}
                       {cand.eligibilityStatus === "NEAR" && (
                         <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-bold">
-                          🟡 Cerca de cumplir
+                          {t("dojo.nearBadge", "🟡 Cerca de cumplir")}
                         </Badge>
                       )}
                       {cand.eligibilityStatus === "INELIGIBLE" && (
                         <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-bold">
-                          🔴 No cumple
+                          {t("dojo.ineligibleBadge", "🔴 No cumple")}
                         </Badge>
                       )}
                     </div>
@@ -1369,7 +1373,7 @@ export default function ExamsPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Costo Derecho (${brandCurrency})
+                  {t("dojo.feeAmountLabel", "Costo Derecho ({currency})", { currency: brandCurrency })}
                 </Label>
                 <Input
                   type="number"
@@ -1501,7 +1505,7 @@ export default function ExamsPage() {
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Costo Derecho (${brandCurrency})
+                    {t("dojo.feeAmountLabel", "Costo Derecho ({currency})", { currency: brandCurrency })}
                   </Label>
                   <Input
                     type="number"
@@ -1652,8 +1656,55 @@ export default function ExamsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
+                      {/* Semáforo Rápido de 3 Niveles Visuales */}
+                      {!isExamFinished && (
+                        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                          <button
+                            type="button"
+                            onClick={() => handleScoreChange(ev.id, 10.0)}
+                            className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                              currentScore >= 9.0
+                                ? "bg-emerald-500 text-slate-950 shadow-xs"
+                                : "text-emerald-500 hover:bg-emerald-500/10"
+                            }`}
+                            title="🟩 100% - Dominado / Apto (✓)"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            <span className="text-[10px]">10</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleScoreChange(ev.id, 7.5)}
+                            className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                              currentScore >= 7.0 && currentScore < 9.0
+                                ? "bg-amber-500 text-slate-950 shadow-xs"
+                                : "text-amber-500 hover:bg-amber-500/10"
+                            }`}
+                            title="🟡 75% - En Proceso / Aceptable (👍)"
+                          >
+                            <ThumbsUp className="w-3.5 h-3.5" />
+                            <span className="text-[10px]">7.5</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleScoreChange(ev.id, 5.0)}
+                            className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                              currentScore < 7.0
+                                ? "bg-rose-500 text-white shadow-xs"
+                                : "text-rose-500 hover:bg-rose-500/10"
+                            }`}
+                            title="🔴 0% - No Apto / Práctica (👎)"
+                          >
+                            <ThumbsDown className="w-3.5 h-3.5" />
+                            <span className="text-[10px]">5</span>
+                          </button>
+                        </div>
+                      )}
+
                       <div className="text-right">
-                        <label className="text-[10px] text-zinc-400 block font-medium">Calificación (1 - 10)</label>
+                        <label className="text-[10px] text-zinc-400 block font-medium">Calificación</label>
                         <input
                           type="number"
                           step="0.5"

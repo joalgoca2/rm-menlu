@@ -315,7 +315,9 @@ export function BrandPaymentsDialog({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    {t("brandPaymentsDialog.amountLabel", "Monto Neto Recibido ($USD)")}
+                    {t("brandPaymentsDialog.amountLabel", "Monto Neto Recibido ({currency})", {
+                      currency: `$${brand?.currency || "USD"}`,
+                    })}
                   </Label>
                   <Input
                     type="number"
@@ -330,7 +332,9 @@ export function BrandPaymentsDialog({
 
                 <div className="space-y-1.5">
                   <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    {t("brandPaymentsDialog.discountLabel", "Descuento Aplicado ($USD)")}
+                    {t("brandPaymentsDialog.discountLabel", "Descuento Aplicado ({currency})", {
+                      currency: `$${brand?.currency || "USD"}`,
+                    })}
                   </Label>
                   <Input
                     type="number"
@@ -485,7 +489,7 @@ export function BrandPaymentsDialog({
                           {new Date(p.paymentDate).toLocaleDateString("es-ES")}
                         </TableCell>
                         <TableCell className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          ${p.amount} USD
+                          ${p.amount} {p.currency || brand?.currency || "USD"}
                         </TableCell>
                         <TableCell>
                           {getMethodBadge(p.gatewayProvider)}

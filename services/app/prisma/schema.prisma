@@ -204,6 +204,8 @@ model Brand {
   gradeExams          GradeExam[]
   tournaments         Tournament[]
   diplomaConfig       DiplomaConfig?
+  studentGroups       StudentGroup[]
+  evaluationTemplates EvaluationTemplate[]
 
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
@@ -343,6 +345,129 @@ model PlanConfig {
   @@map("plan_configs")
 }
 
+// --- MULTI-DISCIPLINE STUDENT GROUPS & SCHEDULES ---
+
+model StudentGroup {
+  id                 String            @id @default(cuid())
+  brandId            String            @map("brand_id")
+  brand              Brand             @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  name               String
+  code               String?
+  description        String?           @db.Text
+  minAge             Int?              @default(4) @map("min_age")
+  maxAge             Int?              @default(99) @map("max_age")
+  isActive           Boolean           @default(true) @map("is_active")
+
+  disciplines        GroupDiscipline[]
+  students           GroupStudent[]
+
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@map("student_groups")
+}
+
+model GroupDiscipline {
+  id                 String         @id @default(cuid())
+  groupId            String         @map("group_id")
+  group              StudentGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  disciplineId       String         @map("discipline_id")
+  discipline         Discipline     @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  scheduleText       String?        @map("schedule_text")
+
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  @@unique([groupId, disciplineId])
+  @@index([groupId])
+  @@index([disciplineId])
+  @@map("group_disciplines")
+}
+
+model GroupStudent {
+  id                 String         @id @default(cuid())
+  groupId            String         @map("group_id")
+  group              StudentGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  studentId          String         @map("student_id")
+  student            StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  joinedAt           DateTime       @default(now()) @map("joined_at")
+
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  @@unique([groupId, studentId])
+  @@index([groupId])
+  @@index([studentId])
+  @@map("group_students")
+}
+
+// --- 3-TIER VISUAL EVALUATION RUBRICS & TEMPLATES ---
+
+model EvaluationTemplate {
+  id                 String                @id @default(cuid())
+  brandId            String                @map("brand_id")
+  brand              Brand                 @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  disciplineId       String?               @map("discipline_id")
+  discipline         Discipline?           @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+
+  title              String
+  description        String?               @db.Text
+  isDefault          Boolean               @default(false) @map("is_default")
+
+  criteria           EvaluationCriterion[]
+
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  @@index([brandId])
+  @@index([disciplineId])
+  @@map("evaluation_templates")
+}
+
+model EvaluationCriterion {
+  id                 String                @id @default(cuid())
+  templateId         String                @map("template_id")
+  template           EvaluationTemplate    @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  name               String
+  category           String?               @default("GENERAL")
+  description        String?               @db.Text
+  orderIndex         Int                   @default(1) @map("order_index")
+
+  scores             ExamCriterionScore[]
+
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  @@index([templateId])
+  @@map("evaluation_criteria")
+}
+
+model ExamCriterionScore {
+  id                 String              @id @default(cuid())
+  examEvaluationId   String              @map("exam_evaluation_id")
+  examEvaluation     ExamEvaluation      @relation(fields: [examEvaluationId], references: [id], onDelete: Cascade)
+  criterionId        String              @map("criterion_id")
+  criterion          EvaluationCriterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+
+  // EXCELLENT (100% 🟩 ✓), GOOD (75% 🟡 👍), NEEDS_WORK (0-50% 🔴 👎)
+  rating             String              @default("EXCELLENT")
+  numericScore       Float               @default(10) @map("numeric_score")
+  comments           String?             @db.Text
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@unique([examEvaluationId, criterionId])
+  @@index([examEvaluationId])
+  @@index([criterionId])
+  @@map("exam_criterion_scores")
+}
+
 // --- NOTIFICATIONS ---
 
 model Notification {
@@ -465,6 +590,8 @@ model Discipline {
   physicalChallenges PhysicalChallenge[]
   gradeExams         GradeExam[]
   tournaments        Tournament[]
+  groupDisciplines   GroupDiscipline[]
+  evaluationTemplates EvaluationTemplate[]
 
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
@@ -545,6 +672,7 @@ model StudentProfile {
   enrollments        StudentEnrollment[]
   challengeProgress  StudentChallengeProgress[]
   examEvaluations    ExamEvaluation[]
+  groupMemberships   GroupStudent[]
 
   matchesAsRed       TournamentMatch[]   @relation("RedCompetitor")
   matchesAsBlue      TournamentMatch[]   @relation("BlueCompetitor")
@@ -673,6 +801,8 @@ model ExamEvaluation {
   feedback           String?             @db.Text
   isFeePaid          Boolean             @default(false) @map("is_fee_paid")
   certifiedAt        DateTime?           @map("certified_at")
+
+  criterionScores    ExamCriterionScore[]
 
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")

@@ -195,3 +195,88 @@ export interface TournamentMatch {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface StudentGroup {
+  id: string;
+  brandId: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  minAge?: number | null;
+  maxAge?: number | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupDiscipline {
+  id: string;
+  groupId: string;
+  disciplineId: string;
+  scheduleText?: string | null;
+  discipline?: Discipline;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupStudent {
+  id: string;
+  groupId: string;
+  studentId: string;
+  joinedAt: Date;
+  student?: StudentProfile;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudentGroupWithDetails extends StudentGroup {
+  disciplines: (GroupDiscipline & { discipline: Discipline })[];
+  students: (GroupStudent & {
+    student: StudentProfile & {
+      user: {
+        name: string | null;
+        email: string | null;
+      };
+      currentBelt?: Belt | null;
+    };
+  })[];
+}
+
+export type CriterionRatingType = "EXCELLENT" | "GOOD" | "NEEDS_WORK";
+
+export interface EvaluationCriterion {
+  id: string;
+  templateId: string;
+  name: string;
+  category?: string | null;
+  description?: string | null;
+  orderIndex: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface EvaluationTemplate {
+  id: string;
+  brandId: string;
+  disciplineId?: string | null;
+  title: string;
+  description?: string | null;
+  isDefault: boolean;
+  criteria?: EvaluationCriterion[];
+  discipline?: Discipline | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ExamCriterionScore {
+  id: string;
+  examEvaluationId: string;
+  criterionId: string;
+  rating: CriterionRatingType;
+  numericScore: number;
+  comments?: string | null;
+  criterion?: EvaluationCriterion;
+  createdAt: Date;
+  updatedAt: Date;
+}
+

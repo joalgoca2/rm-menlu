@@ -514,14 +514,14 @@ function StudentsTableContent() {
             {t("dojo.studentsTitle", "Gestión de Alumnos & Expedientes")}
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Administra expedientes completos de estudiantes, ficha médica, seguro, identificación, grados y gamificación.
+            {t("dojo.studentsSub", "Administra expedientes completos de estudiantes, ficha médica, seguro, identificación, grados y gamificación.")}
           </p>
         </div>
         <Button
           onClick={() => setIsCreateOpen(true)}
           className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-sm font-bold text-xs"
         >
-          <Plus className="h-4 w-4 mr-2" /> Alta de Alumno
+          <Plus className="h-4 w-4 mr-2" /> {t("dojo.createStudent", "Alta de Alumno")}
         </Button>
       </div>
 
@@ -530,20 +530,20 @@ function StudentsTableContent() {
         <Card className="border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/60 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-              Alumnos Registrados
+              {t("dojo.kpiRegisteredStudents", "Alumnos Registrados")}
             </CardTitle>
             <Users className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-black text-zinc-900 dark:text-white font-mono">{total}</div>
-            <p className="text-[11px] text-zinc-500 mt-1">Expedientes activos en el dojo</p>
+            <p className="text-[11px] text-zinc-500 mt-1">{t("dojo.kpiRegisteredStudentsSub", "Expedientes activos en el dojo")}</p>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/60 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-              Alumnos Activos
+              {t("dojo.kpiActiveStudents", "Alumnos Activos")}
             </CardTitle>
             <UserCheck className="h-4 w-4 text-emerald-500" />
           </CardHeader>
@@ -551,14 +551,14 @@ function StudentsTableContent() {
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
               {activeCount}
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1">Con membresía y cuenta al día</p>
+            <p className="text-[11px] text-zinc-500 mt-1">{t("dojo.kpiActiveStudentsSub", "Con membresía y cuenta al día")}</p>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/60 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-              Puntos XP Acumulados
+              {t("dojo.kpiXpPoints", "Puntos XP Acumulados")}
             </CardTitle>
             <Zap className="h-4 w-4 text-amber-500" />
           </CardHeader>
@@ -566,14 +566,14 @@ function StudentsTableContent() {
             <div className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
               ⚡ {totalXpPoints} XP
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1">El Camino del Esfuerzo</p>
+            <p className="text-[11px] text-zinc-500 mt-1">{t("dojo.kpiXpPointsSub", "El Camino del Esfuerzo")}</p>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/60 backdrop-blur">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500">
-              Disciplinas Activas
+              {t("dojo.kpiActiveDisciplines", "Disciplinas Activas")}
             </CardTitle>
             <Award className="h-4 w-4 text-indigo-500" />
           </CardHeader>
@@ -581,7 +581,7 @@ function StudentsTableContent() {
             <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono">
               {disciplines.length}
             </div>
-            <p className="text-[11px] text-zinc-500 mt-1">Cursos multi-disciplina</p>
+            <p className="text-[11px] text-zinc-500 mt-1">{t("dojo.kpiActiveDisciplinesSub", "Cursos multi-disciplina")}</p>
           </CardContent>
         </Card>
       </div>
@@ -594,7 +594,7 @@ function StudentsTableContent() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Buscar alumno por nombre, email, id o seguro..."
+                placeholder={t("dojo.searchStudentPlaceholder", "Buscar alumno por nombre, email, id o seguro...")}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 box-border"
@@ -606,7 +606,7 @@ function StudentsTableContent() {
               onChange={(e) => setDisciplineInput(e.target.value)}
               className="h-10 px-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer box-border flex items-center"
             >
-              <option value="ALL">Todas las Disciplinas</option>
+              <option value="ALL">{t("dojo.allDisciplines", "Todas las Disciplinas")}</option>
               {disciplines.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name} {d.code ? `(${d.code})` : ""}
@@ -618,7 +618,7 @@ function StudentsTableContent() {
               type="submit"
               className="h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-4 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
             >
-              <Search className="h-3.5 w-3.5 mr-1" /> Buscar
+              <Search className="h-3.5 w-3.5 mr-1" /> {t("dojo.searchBtn", "Buscar")}
             </Button>
           </div>
         </form>
@@ -638,11 +638,11 @@ function StudentsTableContent() {
                     className="h-4 w-4 accent-amber-500 rounded cursor-pointer"
                   />
                 </TableHead>
-                <TableHead className="font-bold text-xs">Alumno</TableHead>
-                <TableHead className="font-bold text-xs">Disciplinas & Grados</TableHead>
-                <TableHead className="font-bold text-xs">Racha</TableHead>
-                <TableHead className="font-bold text-xs">Esfuerzo XP</TableHead>
-                <TableHead className="font-bold text-xs text-right">Acciones</TableHead>
+                <TableHead className="font-bold text-xs">{t("dojo.studentCol", "Alumno")}</TableHead>
+                <TableHead className="font-bold text-xs">{t("dojo.disciplinesGradesCol", "Disciplinas & Grados")}</TableHead>
+                <TableHead className="font-bold text-xs">{t("dojo.streakCol", "Racha")}</TableHead>
+                <TableHead className="font-bold text-xs">{t("dojo.effortXpCol", "Esfuerzo XP")}</TableHead>
+                <TableHead className="font-bold text-xs text-right">{t("dojo.actionsCol", "Acciones")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -699,7 +699,7 @@ function StudentsTableContent() {
                               <span>{student.user.email}</span>
                               {age !== null && (
                                 <span className="text-amber-600/90 dark:text-amber-400/90 font-bold">
-                                  • {age} años
+                                  • {age} {t("dojo.yearsOld", "años")}
                                 </span>
                               )}
                             </div>
@@ -746,7 +746,7 @@ function StudentsTableContent() {
                       <TableCell>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs border border-orange-500/20">
                           <Flame className="h-3.5 w-3.5 fill-orange-500 text-orange-500" />
-                          {student.currentStreak} sem
+                          {student.currentStreak} {t("dojo.weeksAbbr", "sem")}
                         </span>
                       </TableCell>
                       <TableCell className="font-bold text-xs text-amber-600 dark:text-amber-400 font-mono">

@@ -400,7 +400,7 @@ export default function DisciplinesPage() {
                 {totalDisciplines}
               </div>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5" /> En oferta académica
+                <ShieldCheck className="h-3.5 w-3.5" /> {t("dojo.kpiInAcademicOffer", "En oferta académica")}
               </span>
             </div>
             <div className="p-3 bg-amber-500/10 text-amber-500 rounded-2xl border border-amber-500/20">
@@ -419,7 +419,7 @@ export default function DisciplinesPage() {
                 {totalBeltsCount}
               </div>
               <span className="text-[11px] text-zinc-400 font-medium flex items-center gap-1">
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" /> En disciplina activa
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" /> {t("dojo.kpiInActiveDiscipline", "En disciplina activa")}
               </span>
             </div>
             <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl border border-indigo-500/20">
@@ -435,10 +435,10 @@ export default function DisciplinesPage() {
                 {t("dojo.kpiAvgMinClasses", "Promedio Clases/Grado")}
               </span>
               <div className="text-2xl font-extrabold text-zinc-900 dark:text-white font-serif">
-                {avgMinClasses} <span className="text-sm text-zinc-400 font-sans font-normal">clases</span>
+                {avgMinClasses} <span className="text-sm text-zinc-400 font-sans font-normal">{t("dojo.classesWord", "clases")}</span>
               </div>
               <span className="text-[11px] text-purple-600 dark:text-purple-400 font-bold flex items-center gap-1">
-                <Flame className="h-3.5 w-3.5" /> Requisito de examen
+                <Flame className="h-3.5 w-3.5" /> {t("dojo.kpiExamRequirement", "Requisito de examen")}
               </span>
             </div>
             <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl border border-purple-500/20">
@@ -455,7 +455,7 @@ export default function DisciplinesPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
               <Layers className="h-5 w-5 text-indigo-500" />
-              Disciplinas de la Academia
+              {t("dojo.academyDisciplines", "Disciplinas de la Academia")}
             </h2>
           </div>
 
@@ -465,7 +465,7 @@ export default function DisciplinesPage() {
               <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Buscar disciplina..."
+                placeholder={t("dojo.searchDisciplinePlaceholder", "Buscar disciplina...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-10 pl-9 pr-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 box-border"
@@ -475,24 +475,24 @@ export default function DisciplinesPage() {
               type="button"
               className="h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-3.5 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
             >
-              <Search className="h-3.5 w-3.5 mr-1" /> Buscar
+              <Search className="h-3.5 w-3.5 mr-1" /> {t("dojo.searchBtn", "Buscar")}
             </Button>
           </div>
 
           {/* Form Create Discipline Card */}
           <form onSubmit={handleCreateDiscipline} className="p-3.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
             <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
-              + Registrar Nueva Disciplina
+              {t("dojo.registerNewDiscipline", "+ Registrar Nueva Disciplina")}
             </span>
             <Input
-              placeholder="Nombre (ej. Sanda, Wing Chun)"
+              placeholder={t("dojo.disciplineNamePlaceholder", "Nombre (ej. Sanda, Wing Chun)")}
               value={newDisciplineName}
               onChange={(e) => setNewDisciplineName(e.target.value)}
               className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
             />
             <div className="flex gap-2">
               <Input
-                placeholder="Código Abreviado (ej. SND)"
+                placeholder={t("dojo.disciplineCodePlaceholder", "Código Abreviado (ej. SND)")}
                 value={newDisciplineCode}
                 onChange={(e) => setNewDisciplineCode(e.target.value)}
                 className="w-1/2 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
@@ -506,7 +506,7 @@ export default function DisciplinesPage() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    <Plus className="h-4 w-4 mr-1" /> Crear
+                    <Plus className="h-4 w-4 mr-1" /> {t("dojo.createBtn", "Crear")}
                   </>
                 )}
               </Button>
@@ -517,11 +517,11 @@ export default function DisciplinesPage() {
           <div className="space-y-2 pt-1 max-h-[500px] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="p-6 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> Cargando disciplinas...
+                <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> {t("dojo.loadingDisciplines", "Cargando disciplinas...")}
               </div>
             ) : filteredDisciplines.length === 0 ? (
               <div className="p-6 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                No hay disciplinas registradas.
+                {t("dojo.noDisciplinesRegistered", "No hay disciplinas registradas.")}
               </div>
             ) : (
               filteredDisciplines.map((disc) => {
@@ -546,7 +546,7 @@ export default function DisciplinesPage() {
                         <span className="font-bold text-sm">{disc.name}</span>
                         {!isDiscActive && (
                           <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30 uppercase">
-                            Inactiva
+                            {t("dojo.inactiveBadge", "Inactiva")}
                           </span>
                         )}
                       </div>
@@ -630,13 +630,13 @@ export default function DisciplinesPage() {
               {/* Form Add Belt Card */}
               <form onSubmit={handleCreateBelt} className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
                 <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
-                  + Agregar Nuevo Grado / Cinturón
+                  {t("dojo.addNewBeltTitle", "+ Agregar Nuevo Grado / Cinturón")}
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">Nombre Grado</Label>
+                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.beltNameLabel", "Nombre Grado")}</Label>
                     <Input
-                      placeholder="ej. Cinturón Amarillo"
+                      placeholder={t("dojo.beltNamePlaceholder", "ej. Cinturón Amarillo")}
                       value={newBeltName}
                       onChange={(e) => setNewBeltName(e.target.value)}
                       className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
@@ -644,7 +644,7 @@ export default function DisciplinesPage() {
                   </div>
 
                   <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">Color Distintivo</Label>
+                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.beltColorLabel", "Color Distintivo")}</Label>
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
@@ -656,7 +656,7 @@ export default function DisciplinesPage() {
                   </div>
 
                   <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">Mín. Clases</Label>
+                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.minClassesLabel", "Mín. Clases")}</Label>
                     <Input
                       type="number"
                       value={newBeltClasses}
@@ -675,7 +675,7 @@ export default function DisciplinesPage() {
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <Plus className="h-4 w-4 mr-1" /> Añadir
+                          <Plus className="h-4 w-4 mr-1" /> {t("dojo.addBtn", "Añadir")}
                         </>
                       )}
                     </Button>
@@ -687,13 +687,13 @@ export default function DisciplinesPage() {
               <div className="space-y-3 pt-1">
                 {isLoadingBelts ? (
                   <div className="p-8 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> Cargando grados...
+                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> {t("dojo.loadingBelts", "Cargando grados...")}
                   </div>
                 ) : belts.length === 0 ? (
                   <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 space-y-2">
                     <Award className="h-8 w-8 mx-auto text-zinc-300 dark:text-zinc-600" />
-                    <p>No hay cinturones configurados para {selectedDiscipline.name}.</p>
-                    <p className="text-[11px] text-zinc-400">Añade el primer cinturón utilizando el formulario superior.</p>
+                    <p>{t("dojo.noBeltsConfigured", "No hay cinturones configurados")} para {selectedDiscipline.name}.</p>
+                    <p className="text-[11px] text-zinc-400">{t("dojo.addFirstBeltHint", "Añade el primer cinturón utilizando el formulario superior.")}</p>
                   </div>
                 ) : (
                   belts.map((belt, idx) => (
@@ -721,7 +721,7 @@ export default function DisciplinesPage() {
                             </span>
                             {idx === 0 && (
                               <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[9px] font-extrabold uppercase px-2 py-0">
-                                Grado Inicial
+                                {t("dojo.initialRankBadge", "Grado Inicial")}
                               </Badge>
                             )}
                           </div>
@@ -736,11 +736,11 @@ export default function DisciplinesPage() {
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs font-bold border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-0.5 gap-1">
                             <Flame className="h-3 w-3 text-amber-500" />
-                            {belt.minClasses} Clases
+                            {belt.minClasses} {t("dojo.classesWord", "Clases")}
                           </Badge>
                           <Badge variant="outline" className="text-xs font-bold border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 px-2.5 py-0.5 gap-1 hidden sm:flex">
                             <Clock className="h-3 w-3 text-indigo-500" />
-                            {belt.minMonths} Meses
+                            {belt.minMonths} {t("dojo.monthsLabel", "Meses")}
                           </Badge>
                         </div>
 
@@ -751,7 +751,7 @@ export default function DisciplinesPage() {
                               disabled={idx === 0}
                               onClick={() => handleMoveBelt(idx, "up")}
                               className="p-1 text-zinc-400 hover:text-amber-500 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                              title="Subir nivel jerárquico (Posición anterior)"
+                              title={t("dojo.moveBeltUp", "Subir nivel jerárquico")}
                             >
                               <ChevronUp className="h-3.5 w-3.5" />
                             </button>
@@ -760,7 +760,7 @@ export default function DisciplinesPage() {
                               disabled={idx === belts.length - 1}
                               onClick={() => handleMoveBelt(idx, "down")}
                               className="p-1 text-zinc-400 hover:text-amber-500 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                              title="Bajar nivel jerárquico (Posición siguiente)"
+                              title={t("dojo.moveBeltDown", "Bajar nivel jerárquico")}
                             >
                               <ChevronDown className="h-3.5 w-3.5" />
                             </button>
@@ -791,7 +791,7 @@ export default function DisciplinesPage() {
           ) : (
             <div className="p-12 text-center text-zinc-400 space-y-2">
               <Layers className="h-10 w-10 mx-auto text-zinc-300 dark:text-zinc-700" />
-              <p className="text-sm font-medium">Selecciona o crea una disciplina para administrar sus cinturones.</p>
+              <p className="text-sm font-medium">{t("dojo.selectDisciplineHint", "Selecciona o crea una disciplina para administrar sus cinturones.")}</p>
             </div>
           )}
         </div>

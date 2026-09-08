@@ -24,6 +24,11 @@ import {
   Award,
   Dumbbell,
   Gamepad2,
+  ChevronDown,
+  ChevronRight,
+  Settings,
+  ClipboardCheck,
+  UsersRound,
 } from "lucide-react";
 import { FEATURES } from "@/lib/config/features";
 import { useBrand } from "@/context/brand-context";
@@ -31,6 +36,7 @@ import { useTranslation } from "@/components/providers/i18n-provider";
 import { useSidebar } from "@/context/sidebar-context";
 import { hasRouteAccess } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
+import { GuidedTourToggle } from "@/components/ui/guided-tour-toggle";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -51,10 +57,10 @@ const mainNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    key: "nav.disciplines",
-    defaultTitle: "Disciplinas & Cursos",
-    href: "/dashboard/disciplines",
-    icon: Swords,
+    key: "nav.groups",
+    defaultTitle: "Grupos / Clases",
+    href: "/dashboard/groups",
+    icon: UsersRound,
     adminOnly: true,
   },
   {
@@ -62,13 +68,6 @@ const mainNavItems: NavItem[] = [
     defaultTitle: "Alumnos",
     href: "/dashboard/students",
     icon: Users,
-    adminOnly: true,
-  },
-  {
-    key: "nav.gamification",
-    defaultTitle: "Retos & Gamificación",
-    href: "/dashboard/gamification",
-    icon: Dumbbell,
     adminOnly: true,
   },
   {
@@ -97,6 +96,30 @@ const mainNavItems: NavItem[] = [
     href: "/dashboard/payments",
     icon: CreditCard,
     userOnly: true,
+  },
+];
+
+const dojoSettingsNavItems: NavItem[] = [
+  {
+    key: "nav.disciplines",
+    defaultTitle: "Disciplinas & Cintas",
+    href: "/dashboard/disciplines",
+    icon: Swords,
+    adminOnly: true,
+  },
+  {
+    key: "nav.gamification",
+    defaultTitle: "Retos & Gamificación",
+    href: "/dashboard/gamification",
+    icon: Dumbbell,
+    adminOnly: true,
+  },
+  {
+    key: "nav.rubrics",
+    defaultTitle: "Plantillas de Evaluación",
+    href: "/dashboard/evaluations/templates",
+    icon: ClipboardCheck,
+    adminOnly: true,
   },
 ];
 
@@ -151,6 +174,7 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
   const { isCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isDojoSettingsOpen, setIsDojoSettingsOpen] = useState(true);
   const isAdmin = userRoles?.includes("SUPER_ADMIN") || userRoles?.includes("ADMIN");
   const isSuperAdmin = userRoles?.includes("SUPER_ADMIN");
 
@@ -207,11 +231,16 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
         {/* Brand Header & Brand Switcher */}
         <div
           className={cn(
-            "p-4 border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300",
-            !isExpanded ? "flex justify-center" : ""
+            "p-4 border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col gap-3",
+            !isExpanded ? "items-center" : ""
           )}
         >
           <BrandSwitcherHeader isExpanded={isExpanded} isSuperAdmin={isSuperAdmin} />
+          {isExpanded && (
+            <div className="flex justify-center pt-1">
+              <GuidedTourToggle />
+            </div>
+          )}
         </div>
 
         {/* Navigation Body */}
@@ -241,9 +270,45 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
               ))}
           </div>
 
+          {/* Dojo Settings Submenu */}
+          {isAdmin && (
+            <div className="space-y-1 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
+              {isExpanded ? (
+                <button
+                  type="button"
+                  onClick={() => setIsDojoSettingsOpen(!isDojoSettingsOpen)}
+                  className={
+                    "w-full flex items-center justify-between px-3 py-2 text-xs " +
+                    "font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 " +
+                    "dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                  }
+                >
+                  <span className="flex items-center gap-2">
+                    <Settings size={14} className="text-amber-500" />
+                    {t("nav.dojoSettings", "Configuración Dojo")}
+                  </span>
+                  {isDojoSettingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                </button>
+              ) : (
+                <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-2" />
+              )}
+
+              {(isDojoSettingsOpen || !isExpanded) &&
+                dojoSettingsNavItems.map((item) => (
+                  <SidebarNavLink
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    isExpanded={isExpanded}
+                    onClick={handleLinkClick}
+                  />
+                ))}
+            </div>
+          )}
+
           {/* Admin Navigation */}
           {isAdmin && (
-            <div className="space-y-1">
+            <div className="space-y-1 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
               {isExpanded && (
                 <div
                   className={
@@ -251,7 +316,7 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                     "uppercase tracking-widest mb-3 px-3"
                   }
                 >
-                  {t("nav.adminSection", "Administración")}
+                  {t("nav.adminSection", "SaaS Admin")}
                 </div>
               )}
               {visibleAdminNavItems.map((item) => (
