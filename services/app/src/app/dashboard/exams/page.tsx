@@ -165,7 +165,7 @@ export default function ExamsPage() {
 
   // Diploma Builder Modal state
   const [isDiplomaModalOpen, setIsDiplomaModalOpen] = useState(false);
-  const [diplomaStudentsList, setDiplomaStudentsList] = useState<unknown[]>([]);
+  const [diplomaStudentsList, setDiplomaStudentsList] = useState<StudentWithDetails[]>([]);
   const [diplomaDisciplineName, setDiplomaDisciplineName] = useState<string>("");
 
   // Helper to sync URL searchParams

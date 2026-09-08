@@ -146,7 +146,7 @@ function StudentsTableContent() {
 
   // Expediente 360° Drawer State
   const [expedienteStudent, setExpedienteStudent] = useState<StudentExpediente | null>(null);
-  const [_isLoadingExpediente, _setIsLoadingExpediente] = useState(false);
+  const [isLoadingExpediente, setIsLoadingExpediente] = useState(false);
 
   // Filter states
   const [searchInput, setSearchInput] = useState(currentSearch);
