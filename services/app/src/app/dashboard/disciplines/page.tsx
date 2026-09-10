@@ -37,8 +37,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
+  DISCIPLINE_TEMPLATE_LIST,
+  getDisciplineTemplateById,
+} from "@/config/discipline-templates";
+import {
   getDisciplinesByBrandAction,
-  createDisciplineAction,
+  createDisciplineWithTemplateAction,
+  applyDisciplineTemplateAction,
   updateDisciplineAction,
   deleteDisciplineAction,
   toggleDisciplineActiveAction,
@@ -64,7 +69,20 @@ export default function DisciplinesPage() {
   // Form states for Create Discipline
   const [newDisciplineName, setNewDisciplineName] = useState("");
   const [newDisciplineCode, setNewDisciplineCode] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("CUSTOM");
+  const [includeBelts, setIncludeBelts] = useState(true);
+  const [includeChallenges, setIncludeChallenges] = useState(true);
+  const [includeRubrics, setIncludeRubrics] = useState(true);
   const [isCreatingDiscipline, setIsCreatingDiscipline] = useState(false);
+
+  // Apply Template Modal State
+  const [isApplyTemplateModalOpen, setIsApplyTemplateModalOpen] = useState(false);
+  const [applyTemplateId, setApplyTemplateId] = useState("TAEKWONDO");
+  const [applyIncludeBelts, setApplyIncludeBelts] = useState(true);
+  const [applyIncludeChallenges, setApplyIncludeChallenges] = useState(true);
+  const [applyIncludeRubrics, setApplyIncludeRubrics] = useState(true);
+  const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+
 
   // Form states for Create Belt
   const [newBeltName, setNewBeltName] = useState("");
@@ -130,7 +148,19 @@ export default function DisciplinesPage() {
     }
   }, [selectedDiscipline]);
 
-  // Create Discipline Handler
+  // Handle Template Dropdown Change
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (templateId !== "CUSTOM") {
+      const template = getDisciplineTemplateById(templateId);
+      if (template) {
+        setNewDisciplineName(template.name);
+        setNewDisciplineCode(template.code);
+      }
+    }
+  };
+
+  // Create Discipline Handler with Template
   const handleCreateDiscipline = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDisciplineName.trim()) {
@@ -141,16 +171,21 @@ export default function DisciplinesPage() {
     setIsCreatingDiscipline(true);
     try {
       const brandToUse = selectedBrandId === "ALL" ? "seed-brand-general" : selectedBrandId;
-      const res = await createDisciplineAction({
+      const res = await createDisciplineWithTemplateAction({
         brandId: brandToUse,
         name: newDisciplineName.trim(),
         code: newDisciplineCode.trim(),
+        templateId: selectedTemplateId !== "CUSTOM" ? selectedTemplateId : undefined,
+        includeBelts,
+        includeChallenges,
+        includeRubrics,
       });
 
       if (res.success && res.data) {
         toast.success(`Disciplina "${res.data.name}" creada correctamente.`);
         setNewDisciplineName("");
         setNewDisciplineCode("");
+        setSelectedTemplateId("CUSTOM");
         setSelectedDiscipline(res.data);
         fetchDisciplines();
       } else {
@@ -162,6 +197,38 @@ export default function DisciplinesPage() {
       setIsCreatingDiscipline(false);
     }
   };
+
+  // Apply Template to Existing Discipline Handler
+  const handleApplyTemplate = async () => {
+    if (!selectedDiscipline) return;
+    setIsApplyingTemplate(true);
+    try {
+      const brandToUse = selectedBrandId === "ALL" ? "seed-brand-general" : selectedBrandId;
+      const res = await applyDisciplineTemplateAction(
+        selectedDiscipline.id,
+        brandToUse,
+        applyTemplateId,
+        {
+          includeBelts: applyIncludeBelts,
+          includeChallenges: applyIncludeChallenges,
+          includeRubrics: applyIncludeRubrics,
+        }
+      );
+
+      if (res.success) {
+        toast.success("Plantilla preconfigurada aplicada exitosamente.");
+        setIsApplyTemplateModalOpen(false);
+        fetchBelts(selectedDiscipline.id);
+      } else {
+        toast.error(res.error || "Error al aplicar la plantilla.");
+      }
+    } catch {
+      toast.error("Error al aplicar plantilla preconfigurada.");
+    } finally {
+      setIsApplyingTemplate(false);
+    }
+  };
+
 
   // Move Belt Up or Down in Hierarchy
   const handleMoveBelt = async (index: number, direction: "up" | "down") => {
@@ -455,66 +522,139 @@ export default function DisciplinesPage() {
               {t("dojo.academyDisciplines", "Disciplinas de la Academia")}
             </h2>
           </div>
-
           {/* Quick Filter Search Bar */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 h-10 flex items-center">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
-              <input
-                type="text"
-                placeholder={t("dojo.searchDisciplinePlaceholder", "Buscar disciplina...")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-10 pl-9 pr-3 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 box-border"
-              />
-            </div>
-            <Button
-              type="button"
-              className="h-10 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-3.5 cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
-            >
-              <Search className="h-3.5 w-3.5 mr-1" /> {t("dojo.searchBtn", "Buscar")}
-            </Button>
+          <div className="relative h-10 flex items-center">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t("dojo.searchDisciplinePlaceholder", "Buscar disciplina...")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-10 pl-9 pr-8 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-base font-bold"
+              >
+                ×
+              </button>
+            )}
           </div>
 
           {/* Form Create Discipline Card */}
-          <form onSubmit={handleCreateDiscipline} className="p-3.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
-              {t("dojo.registerNewDiscipline", "+ Registrar Nueva Disciplina")}
-            </span>
+          <form
+            onSubmit={handleCreateDiscipline}
+            className="p-3.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
+                {t("dojo.registerNewDiscipline", "+ Registrar Nueva Disciplina")}
+              </span>
+            </div>
+
+            {/* Template Selector Dropdown */}
+            <div className="space-y-1">
+              <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
+                {t("dojo.templateLabel", "Plantilla Preconfigurada")}
+              </Label>
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => handleTemplateSelect(e.target.value)}
+                className="w-full h-9 text-xs font-semibold rounded-xl px-2.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer truncate"
+              >
+                <option value="CUSTOM">✏️ Personalizado (Formulario Vacío)</option>
+                {DISCIPLINE_TEMPLATE_LIST.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    🥋 {tpl.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Input
               placeholder={t("dojo.disciplineNamePlaceholder", "Nombre (ej. Sanda, Wing Chun)")}
               value={newDisciplineName}
               onChange={(e) => setNewDisciplineName(e.target.value)}
-              className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
+              className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
             />
-            <div className="flex gap-2">
-              <Input
-                placeholder={t("dojo.disciplineCodePlaceholder", "Código Abreviado (ej. SND)")}
-                value={newDisciplineCode}
-                onChange={(e) => setNewDisciplineCode(e.target.value)}
-                className="w-1/2 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
-              />
-              <Button
-                type="submit"
-                disabled={isCreatingDiscipline}
-                className="w-1/2 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs"
-              >
-                {isCreatingDiscipline ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-1" /> {t("dojo.createBtn", "Crear")}
-                  </>
-                )}
-              </Button>
-            </div>
+
+            <Input
+              placeholder={t("dojo.disciplineCodePlaceholder", "Código Abreviado (ej. SND)")}
+              value={newDisciplineCode}
+              onChange={(e) => setNewDisciplineCode(e.target.value)}
+              className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
+            />
+
+            {selectedTemplateId !== "CUSTOM" && (
+              <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1.5">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 block">
+                  Incluir Preconfiguraciones:
+                </span>
+                <div className="flex flex-col gap-1 text-[11px] text-zinc-700 dark:text-zinc-300 font-medium">
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeBelts}
+                      onChange={(e) => setIncludeBelts(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      🥋 Jerarquía de Cinturones (
+                      {getDisciplineTemplateById(selectedTemplateId)?.belts.length || 0})
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeChallenges}
+                      onChange={(e) => setIncludeChallenges(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      🔥 Retos de Gamificación (
+                      {getDisciplineTemplateById(selectedTemplateId)?.challenges.length || 0})
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeRubrics}
+                      onChange={(e) => setIncludeRubrics(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      📋 Rúbricas de Evaluación (
+                      {getDisciplineTemplateById(selectedTemplateId)?.rubrics.length || 0})
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={isCreatingDiscipline}
+              className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs h-9"
+            >
+              {isCreatingDiscipline ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-1" /> {t("dojo.createBtn", "Crear Disciplina")}
+                </>
+              )}
+            </Button>
           </form>
+
 
           {/* Discipline Cards List */}
           <div className="space-y-2 pt-1 max-h-[500px] overflow-y-auto pr-1">
             {isLoading ? (
               <div className="p-6 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> {t("dojo.loadingDisciplines", "Cargando disciplinas...")}
+                <Loader2 className="h-4 w-4 animate-spin text-amber-500" />{" "}
+                {t("dojo.loadingDisciplines", "Cargando disciplinas...")}
               </div>
             ) : filteredDisciplines.length === 0 ? (
               <div className="p-6 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
@@ -581,7 +721,7 @@ export default function DisciplinesPage() {
                           e.stopPropagation();
                           setEditingDiscipline(disc);
                         }}
-                        className="p-1.5 text-zinc-400 hover:text-amber-500 rounded-lg hover:bg-amber-500/10 transition-colors cursor-pointer"
+                        className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                         title="Editar disciplina"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
@@ -592,7 +732,7 @@ export default function DisciplinesPage() {
                           e.stopPropagation();
                           setDeletingDiscipline(disc);
                         }}
-                        className="p-1.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        className="p-1.5 text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
                         title="Eliminar disciplina"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -609,60 +749,85 @@ export default function DisciplinesPage() {
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
           {selectedDiscipline ? (
             <>
-              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4">
-                <div>
-                  <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                    <Award className="h-5 w-5 text-amber-500" />
-                    {t("dojo.beltHierarchyTitle", "Jerarquía y Progresión de Grados")}:{" "}
-                    <span className="text-amber-600 dark:text-amber-400 font-extrabold">
+              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Award className="h-5 w-5 text-amber-500 shrink-0" />
+                    <h2 className="text-base font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                      {t("dojo.beltHierarchyTitle", "Jerarquía y Progresión de Grados")}:
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-extrabold text-sm">
                       {selectedDiscipline.name}
                     </span>
-                  </h2>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  </div>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     {t("dojo.beltHierarchySub", "Requisitos mínimos de asistencia y permanencia por grado.")}
                   </p>
                 </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsApplyTemplateModalOpen(true)}
+                  className="h-9 text-xs font-bold gap-1.5 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded-xl shrink-0 shadow-xs"
+                >
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <span>{t("dojo.applyTemplateBtn", "Cargar Plantilla Preconfigurada")}</span>
+                </Button>
               </div>
 
               {/* Form Add Belt Card */}
-              <form onSubmit={handleCreateBelt} className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+              <form
+                onSubmit={handleCreateBelt}
+                className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3"
+              >
                 <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
                   {t("dojo.addNewBeltTitle", "+ Agregar Nuevo Grado / Cinturón")}
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.beltNameLabel", "Nombre Grado")}</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                  <div className="sm:col-span-4">
+                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 block">
+                      {t("dojo.beltNameLabel", "Nombre Grado")}
+                    </Label>
                     <Input
                       placeholder={t("dojo.beltNamePlaceholder", "ej. Cinturón Amarillo")}
                       value={newBeltName}
                       onChange={(e) => setNewBeltName(e.target.value)}
-                      className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
+                      className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
                     />
                   </div>
 
-                  <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.beltColorLabel", "Color Distintivo")}</Label>
-                    <div className="flex items-center gap-2">
+                  <div className="sm:col-span-3">
+                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 block">
+                      {t("dojo.beltColorLabel", "Color Distintivo")}
+                    </Label>
+                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-xl p-1 h-9">
                       <input
                         type="color"
                         value={newBeltColor}
                         onChange={(e) => setNewBeltColor(e.target.value)}
-                        className="h-9 w-full p-1 border border-zinc-300 dark:border-zinc-700 rounded-xl cursor-pointer bg-white dark:bg-zinc-900"
+                        className="h-7 w-10 border-0 rounded-lg cursor-pointer bg-transparent shrink-0"
                       />
+                      <span className="text-[11px] font-mono font-bold text-zinc-600 dark:text-zinc-300 uppercase truncate">
+                        {newBeltColor}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="sm:col-span-1">
-                    <Label className="text-[10px] text-zinc-400 mb-1 block">{t("dojo.minClassesLabel", "Mín. Clases")}</Label>
+                  <div className="sm:col-span-3">
+                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-1 block">
+                      {t("dojo.minClassesLabel", "Mín. Clases")}
+                    </Label>
                     <Input
                       type="number"
                       value={newBeltClasses}
                       onChange={(e) => setNewBeltClasses(Number(e.target.value))}
-                      className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
+                      className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
                     />
                   </div>
 
-                  <div className="sm:col-span-1 flex items-end">
+                  <div className="sm:col-span-2">
                     <Button
                       type="submit"
                       disabled={isCreatingBelt}
@@ -1024,6 +1189,111 @@ export default function DisciplinesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL: APPLY TEMPLATE TO EXISTING DISCIPLINE */}
+      <Dialog open={isApplyTemplateModalOpen} onOpenChange={setIsApplyTemplateModalOpen}>
+
+        <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              {t("dojo.applyTemplateModalTitle", "Cargar Plantilla Preconfigurada")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              {t("dojo.applyTemplateModalDesc", "Selecciona una plantilla para cargar sus cinturones, retos y rúbricas en ")}
+              <strong className="text-amber-600 dark:text-amber-400">{selectedDiscipline?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                {t("dojo.selectTemplateLabel", "Selecciona la Disciplina Estándar:")}
+              </Label>
+              <select
+                value={applyTemplateId}
+                onChange={(e) => setApplyTemplateId(e.target.value)}
+                className="w-full h-10 text-xs font-semibold rounded-xl px-3 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              >
+                {DISCIPLINE_TEMPLATE_LIST.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    🥋 {tpl.name} ({tpl.belts.length} Cintas, {tpl.challenges.length} Retos)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
+              <span className="text-xs font-bold text-amber-600 dark:text-amber-400 block">
+                Módulos a Cargar:
+              </span>
+              <div className="space-y-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-medium">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={applyIncludeBelts}
+                    onChange={(e) => setApplyIncludeBelts(e.target.checked)}
+                    className="rounded text-amber-500 focus:ring-amber-500"
+                  />
+                  <span>
+                    🥋 Jerarquía de Cinturones (
+                    {getDisciplineTemplateById(applyTemplateId)?.belts.length || 0})
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={applyIncludeChallenges}
+                    onChange={(e) => setApplyIncludeChallenges(e.target.checked)}
+                    className="rounded text-amber-500 focus:ring-amber-500"
+                  />
+                  <span>
+                    🔥 Retos Físicos (
+                    {getDisciplineTemplateById(applyTemplateId)?.challenges.length || 0})
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={applyIncludeRubrics}
+                    onChange={(e) => setApplyIncludeRubrics(e.target.checked)}
+                    className="rounded text-amber-500 focus:ring-amber-500"
+                  />
+                  <span>
+                    📋 Rúbricas de Evaluación (
+                    {getDisciplineTemplateById(applyTemplateId)?.rubrics.length || 0})
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setIsApplyTemplateModalOpen(false)}
+              className="rounded-xl text-xs h-9"
+            >
+              {t("common.cancel", "Cancelar")}
+            </Button>
+            <Button
+              onClick={handleApplyTemplate}
+              disabled={isApplyingTemplate}
+              className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs h-9 cursor-pointer"
+            >
+              {isApplyingTemplate ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-1" />
+                  {t("dojo.applyTemplateConfirmBtn", "Cargar en Disciplina")}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

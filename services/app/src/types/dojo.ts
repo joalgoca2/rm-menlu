@@ -280,3 +280,45 @@ export interface ExamCriterionScore {
   updatedAt: Date;
 }
 
+export interface DisciplineTemplateBelt {
+  name: string;
+  colorHex: string;
+  orderIndex: number;
+  minClasses: number;
+  minMonths: number;
+}
+
+export interface DisciplineTemplateChallenge {
+  title: string;
+  description?: string;
+  targetReps: number;
+  metricType: string;
+  xpReward: number;
+  minAge?: number;
+  maxAge?: number;
+}
+
+export interface DisciplineTemplateRubricCriterion {
+  name: string;
+  category?: string;
+  description?: string;
+  orderIndex: number;
+}
+
+export interface DisciplineTemplateRubric {
+  title: string;
+  description?: string;
+  criteria: DisciplineTemplateRubricCriterion[];
+}
+
+export interface DisciplineTemplateConfig {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  belts: DisciplineTemplateBelt[];
+  challenges: DisciplineTemplateChallenge[];
+  rubrics: DisciplineTemplateRubric[];
+}
+
+

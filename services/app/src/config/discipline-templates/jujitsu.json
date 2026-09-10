@@ -1,0 +1,62 @@
+{
+  "id": "JUJITSU",
+  "name": "Jujitsu / BJJ",
+  "code": "BJJ",
+  "description": "Arte marcial especializado en lucha en el suelo, agarres, derribos, palancas articulares y estrangulaciones.",
+  "belts": [
+    { "name": "Faixa Branca (Cinta Blanca)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 36, "minMonths": 4 },
+    { "name": "Faixa Azul (Cinta Azul)", "colorHex": "#3B82F6", "orderIndex": 2, "minClasses": 120, "minMonths": 12 },
+    { "name": "Faixa Roxa (Cinta Morada)", "colorHex": "#8B5CF6", "orderIndex": 3, "minClasses": 200, "minMonths": 18 },
+    { "name": "Faixa Marrom (Cinta Marrón)", "colorHex": "#78350F", "orderIndex": 4, "minClasses": 300, "minMonths": 24 },
+    { "name": "Faixa Preta (Cinta Negra)", "colorHex": "#18181B", "orderIndex": 5, "minClasses": 500, "minMonths": 36 }
+  ],
+  "challenges": [
+    {
+      "title": "30 Escapes de Montada (Upa / Bridge)",
+      "description": "30 puentes explosivos girando sobre el hombro para escapar de montada.",
+      "targetReps": 30,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "50 Entradas de Derribe (Double Leg Takedown)",
+      "description": "50 repeticiones de entrada de derribe penetrando con buena postura.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 60,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Fuga de Cadera Solo Drill (Shrimping 50m)",
+      "description": "Desplazamiento continuo en suelo usando fuga de cadera en mat.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 65,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "40 Dominadas en Barra (Pull-ups)",
+      "description": "Fortalecimiento de agarre (Grip) y espalda para retener la guardia.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 70,
+      "minAge": 6,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Oficial BJJ & Grappling (Pass / Submissions / Rolling)",
+      "description": "Rúbrica de 3 niveles para examinar pase de guardia, submisiones y sparring.",
+      "criteria": [
+        { "name": "Guard Passing & Control Posicional", "category": "GUARDIA", "description": "Pase de guardia, mantenimiento de montada y control lateral.", "orderIndex": 1 },
+        { "name": "Submisiones & Defensas (Finalizaciones)", "category": "SUBMISIONES", "description": "Técnica de armbars, chokes, escapes y defensas sólidas.", "orderIndex": 2 },
+        { "name": "Sparring / Rolling (Estrategia & Acondicionamiento)", "category": "ROLLING", "description": "Fluidez en combate, gestión de aire y soltura en tatami.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

@@ -18,7 +18,6 @@ import {
 import { toast } from "sonner";
 import { useBrand } from "@/context/brand-context";
 import { useTranslation } from "@/components/providers/i18n-provider";
-import { useGuidedTour } from "@/components/providers/guided-tour-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,9 +43,9 @@ import type { EvaluationTemplate, Discipline } from "@/types";
 export default function EvaluationTemplatesPage() {
   const { selectedBrandId } = useBrand();
   const { t } = useTranslation();
-  const { isGuidedTourEnabled } = useGuidedTour();
 
   const [templates, setTemplates] = useState<EvaluationTemplate[]>([]);
+
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -304,23 +303,6 @@ export default function EvaluationTemplatesPage() {
         </CardContent>
       </Card>
 
-      {/* Guided Tour Banner */}
-      {isGuidedTourEnabled && (
-        <Card className="bg-amber-500/10 border-amber-500/30 dark:bg-amber-500/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-              <strong className="font-semibold block mb-0.5">
-                {t("guidedTour.rubricsTitle", "💡 Guía Sensei: Evaluación sin teclear números")}
-              </strong>
-              {t(
-                "guidedTour.rubricsDesc",
-                "Estas plantillas le permiten calificar a sus alumnos durante el examen tocando solo 3 botones en su tableta o celular. El sistema calcula automáticamente el promedio y sugiere la aprobación."
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Templates List */}
       {isLoading ? (

@@ -4,6 +4,19 @@ import { prisma } from "@/lib/prisma";
 import { disciplineSchema, beltSchema } from "@/lib/validations/dojo";
 import type { ApiResponse, Discipline, Belt } from "@/types";
 
+import { getDisciplineTemplateById } from "@/config/discipline-templates";
+
+export interface CreateDisciplineWithTemplateInput {
+  brandId: string;
+  name: string;
+  code?: string;
+  description?: string;
+  templateId?: string;
+  includeBelts?: boolean;
+  includeChallenges?: boolean;
+  includeRubrics?: boolean;
+}
+
 export async function createDisciplineAction(
   data: unknown
 ): Promise<ApiResponse<Discipline>> {
@@ -29,6 +42,221 @@ export async function createDisciplineAction(
     return { success: false, error: errorMsg };
   }
 }
+
+export async function createDisciplineWithTemplateAction(
+  input: CreateDisciplineWithTemplateInput
+): Promise<ApiResponse<Discipline>> {
+  try {
+    if (!input.name || !input.name.trim()) {
+      return { success: false, error: "El nombre de la disciplina es obligatorio." };
+    }
+    if (!input.brandId) {
+      return { success: false, error: "El ID de la marca es obligatorio." };
+    }
+
+    const template = input.templateId ? getDisciplineTemplateById(input.templateId) : null;
+
+    const disciplineName = input.name.trim();
+    const disciplineCode = input.code?.trim() || template?.code || null;
+    const disciplineDesc = input.description?.trim() || template?.description || null;
+
+    const discipline = await prisma.discipline.create({
+      data: {
+        brandId: input.brandId,
+        name: disciplineName,
+        code: disciplineCode,
+        description: disciplineDesc,
+      },
+    });
+
+    if (template) {
+      // 1. Auto-create Belts
+      if (input.includeBelts !== false && template.belts && template.belts.length > 0) {
+        for (const b of template.belts) {
+          await prisma.belt.create({
+            data: {
+              disciplineId: discipline.id,
+              name: b.name,
+              colorHex: b.colorHex,
+              orderIndex: b.orderIndex,
+              minClasses: b.minClasses,
+              minMonths: b.minMonths,
+            },
+          });
+        }
+      }
+
+      // 2. Auto-create Physical Challenges
+      if (
+        input.includeChallenges !== false &&
+        template.challenges &&
+        template.challenges.length > 0
+      ) {
+        for (const c of template.challenges) {
+          await prisma.physicalChallenge.create({
+            data: {
+              brandId: input.brandId,
+              disciplineId: discipline.id,
+              title: c.title,
+              description: c.description || null,
+              targetReps: c.targetReps,
+              metricType: c.metricType || "REPETITIONS",
+              xpReward: c.xpReward,
+              minAge: c.minAge || 4,
+              maxAge: c.maxAge || 99,
+              requiresValidation: true,
+            },
+          });
+        }
+      }
+
+      // 3. Auto-create Evaluation Templates & Criteria
+      if (input.includeRubrics !== false && template.rubrics && template.rubrics.length > 0) {
+        for (const r of template.rubrics) {
+          const evalTemplate = await prisma.evaluationTemplate.create({
+            data: {
+              brandId: input.brandId,
+              disciplineId: discipline.id,
+              title: r.title,
+              description: r.description || null,
+              isDefault: true,
+            },
+          });
+
+          if (r.criteria && r.criteria.length > 0) {
+            for (const crit of r.criteria) {
+              await prisma.evaluationCriterion.create({
+                data: {
+                  templateId: evalTemplate.id,
+                  name: crit.name,
+                  category: crit.category || "GENERAL",
+                  description: crit.description || null,
+                  orderIndex: crit.orderIndex,
+                },
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return { success: true, data: discipline };
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al crear disciplina con plantilla.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function applyDisciplineTemplateAction(
+  disciplineId: string,
+  brandId: string,
+  templateId: string,
+  options?: {
+    includeBelts?: boolean;
+    includeChallenges?: boolean;
+    includeRubrics?: boolean;
+  }
+): Promise<ApiResponse<boolean>> {
+  try {
+    const template = getDisciplineTemplateById(templateId);
+    if (!template) {
+      return { success: false, error: "Plantilla de disciplina no encontrada." };
+    }
+
+    const discipline = await prisma.discipline.findUnique({
+      where: { id: disciplineId },
+    });
+    if (!discipline) {
+      return { success: false, error: "Disciplina no encontrada." };
+    }
+
+    // 1. Create Belts if requested
+    if (options?.includeBelts !== false && template.belts && template.belts.length > 0) {
+      const existingBeltsCount = await prisma.belt.count({
+        where: { disciplineId },
+      });
+
+      for (let i = 0; i < template.belts.length; i++) {
+        const b = template.belts[i];
+        await prisma.belt.create({
+          data: {
+            disciplineId,
+            name: b.name,
+            colorHex: b.colorHex,
+            orderIndex: existingBeltsCount + i + 1,
+            minClasses: b.minClasses,
+            minMonths: b.minMonths,
+          },
+        });
+      }
+    }
+
+    // 2. Create Challenges if requested
+    if (
+      options?.includeChallenges !== false &&
+      template.challenges &&
+      template.challenges.length > 0
+    ) {
+      for (const c of template.challenges) {
+        await prisma.physicalChallenge.create({
+          data: {
+            brandId,
+            disciplineId,
+            title: c.title,
+            description: c.description || null,
+            targetReps: c.targetReps,
+            metricType: c.metricType || "REPETITIONS",
+            xpReward: c.xpReward,
+            minAge: c.minAge || 4,
+            maxAge: c.maxAge || 99,
+            requiresValidation: true,
+          },
+        });
+      }
+    }
+
+    // 3. Create Rubrics if requested
+    if (
+      options?.includeRubrics !== false &&
+      template.rubrics &&
+      template.rubrics.length > 0
+    ) {
+      for (const r of template.rubrics) {
+        const evalTemplate = await prisma.evaluationTemplate.create({
+          data: {
+            brandId,
+            disciplineId,
+            title: r.title,
+            description: r.description || null,
+            isDefault: true,
+          },
+        });
+
+        if (r.criteria && r.criteria.length > 0) {
+          for (const crit of r.criteria) {
+            await prisma.evaluationCriterion.create({
+              data: {
+                templateId: evalTemplate.id,
+                name: crit.name,
+                category: crit.category || "GENERAL",
+                description: crit.description || null,
+                orderIndex: crit.orderIndex,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    return { success: true, data: true };
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al aplicar plantilla a la disciplina.";
+    return { success: false, error: errorMsg };
+  }
+}
+
 
 export async function getDisciplinesByBrandAction(
   brandId: string

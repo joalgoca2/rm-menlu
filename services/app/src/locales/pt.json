@@ -1211,5 +1211,51 @@
     "loadError": "Erro ao carregar modelos de avaliação.",
     "saveError": "Erro ao salvar o modelo.",
     "deleteError": "Erro ao excluir o modelo."
+  },
+  "guidedTour": {
+    "senseiTitle": "Ajuda Sensei",
+    "toggleLabel": "Ajuda Sensei",
+    "enableTooltip": "Iniciar a ajuda guiada passo a passo",
+    "disableTooltip": "Parar a ajuda guiada passo a passo",
+    "noTourAvailable": "Nenhum guia disponível para esta visualização",
+    "prev": "Anterior",
+    "next": "Próximo",
+    "finish": "Entendido"
+  },
+  "dojo": {
+    "disciplinesTitle": "Disciplinas & Cursos",
+    "disciplinesSub": "Gerencie as disciplinas marciais da academia, cursos e hierarquia de faixas.",
+    "kpiTotalDisciplines": "Disciplinas Ativas",
+    "kpiInAcademicOffer": "Na oferta acadêmica",
+    "kpiTotalBelts": "Faixas Configuradas",
+    "kpiInActiveDiscipline": "Na disciplina ativa",
+    "kpiAvgMinClasses": "Média Aulas/Faixa",
+    "kpiExamRequirement": "Requisito de exame",
+    "classesWord": "aulas",
+    "academyDisciplines": "Disciplinas da Academia",
+    "searchDisciplinePlaceholder": "Buscar disciplina...",
+    "searchBtn": "Buscar",
+    "registerNewDiscipline": "+ Registrar Nova Disciplina",
+    "templateLabel": "Modelo Pré-configurado",
+    "disciplineNamePlaceholder": "Nome (ex. Sanda, Wing Chun)",
+    "disciplineCodePlaceholder": "Código Abreviado (ex. SND)",
+    "createBtn": "Criar Disciplina",
+    "loadingDisciplines": "Carregando disciplinas...",
+    "noDisciplinesRegistered": "Nenhuma disciplina registrada.",
+    "inactiveBadge": "Inativa",
+    "beltHierarchyTitle": "Hierarquia e Progressão de Faixas",
+    "beltHierarchySub": "Requisitos mínimos de frequência e permanência por faixa.",
+    "applyTemplateBtn": "Carregar Modelo Pré-configurado",
+    "applyTemplateModalTitle": "Carregar Modelo Pré-configurado",
+    "applyTemplateModalDesc": "Selecione um modelo para carregar suas faixas, desafios e rubricas em ",
+    "selectTemplateLabel": "Selecione a Disciplina Padrão:",
+    "applyTemplateConfirmBtn": "Carregar na Disciplina",
+    "addNewBeltTitle": "+ Adicionar Nova Faixa / Grau",
+    "beltNameLabel": "Nome da Faixa",
+    "beltNamePlaceholder": "ex. Faixa Amarela",
+    "beltColorLabel": "Cor Distintiva",
+    "minClassesLabel": "Mín. Aulas"
   }
 }
+
+

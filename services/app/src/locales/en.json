@@ -1213,5 +1213,51 @@
     "loadError": "Error loading evaluation templates.",
     "saveError": "Error saving template.",
     "deleteError": "Error deleting template."
+  },
+  "guidedTour": {
+    "senseiTitle": "Sensei Help",
+    "toggleLabel": "Sensei Help",
+    "enableTooltip": "Start step-by-step guided tour",
+    "disableTooltip": "Stop step-by-step guided tour",
+    "noTourAvailable": "No guided tour available for this view",
+    "prev": "Previous",
+    "next": "Next",
+    "finish": "Got it"
+  },
+  "dojo": {
+    "disciplinesTitle": "Disciplines & Courses",
+    "disciplinesSub": "Manage academy martial disciplines, courses, and belt rank hierarchy.",
+    "kpiTotalDisciplines": "Active Disciplines",
+    "kpiInAcademicOffer": "In academic catalog",
+    "kpiTotalBelts": "Configured Belts",
+    "kpiInActiveDiscipline": "In active discipline",
+    "kpiAvgMinClasses": "Avg. Classes/Rank",
+    "kpiExamRequirement": "Exam requirement",
+    "classesWord": "classes",
+    "academyDisciplines": "Academy Disciplines",
+    "searchDisciplinePlaceholder": "Search discipline...",
+    "searchBtn": "Search",
+    "registerNewDiscipline": "+ Register New Discipline",
+    "templateLabel": "Preconfigured Template",
+    "disciplineNamePlaceholder": "Name (e.g. Sanda, Wing Chun)",
+    "disciplineCodePlaceholder": "Short Code (e.g. SND)",
+    "createBtn": "Create Discipline",
+    "loadingDisciplines": "Loading disciplines...",
+    "noDisciplinesRegistered": "No disciplines registered.",
+    "inactiveBadge": "Inactive",
+    "beltHierarchyTitle": "Belt Rank Hierarchy & Progression",
+    "beltHierarchySub": "Minimum attendance & tenure requirements per belt rank.",
+    "applyTemplateBtn": "Load Preconfigured Template",
+    "applyTemplateModalTitle": "Load Preconfigured Template",
+    "applyTemplateModalDesc": "Select a template to load its belts, challenges, and rubrics into ",
+    "selectTemplateLabel": "Select Standard Discipline:",
+    "applyTemplateConfirmBtn": "Load into Discipline",
+    "addNewBeltTitle": "+ Add New Belt Rank",
+    "beltNameLabel": "Belt Name",
+    "beltNamePlaceholder": "e.g. Yellow Belt",
+    "beltColorLabel": "Badge Color",
+    "minClassesLabel": "Min. Classes"
   }
 }
+
+

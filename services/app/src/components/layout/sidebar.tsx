@@ -35,7 +35,6 @@ import { useTranslation } from "@/components/providers/i18n-provider";
 import { useSidebar } from "@/context/sidebar-context";
 import { hasRouteAccess } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
-import { GuidedTourToggle } from "@/components/ui/guided-tour-toggle";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -174,6 +173,7 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isDojoSettingsOpen, setIsDojoSettingsOpen] = useState(true);
+  const [isSaaSAdminOpen, setIsSaaSAdminOpen] = useState(true);
   const isAdmin = userRoles?.includes("SUPER_ADMIN") || userRoles?.includes("ADMIN");
   const isSuperAdmin = userRoles?.includes("SUPER_ADMIN");
 
@@ -219,38 +219,34 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
 
       <aside
         className={cn(
-          "bg-white/90 border-r border-zinc-200 text-zinc-900 " +
-            "dark:bg-zinc-950/90 dark:border-zinc-800 dark:text-zinc-100 " +
+          "bg-white/95 border-r border-zinc-200/80 text-zinc-900 " +
+            "dark:bg-zinc-950/95 dark:border-zinc-800/80 dark:text-zinc-100 " +
             "backdrop-blur-xl transition-all duration-300 ease-in-out " +
-            "flex flex-col z-50 md:z-20 fixed inset-y-0 left-0 md:relative",
+            "flex flex-col z-50 md:z-20 fixed inset-y-0 left-0 md:relative shadow-xs",
           isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0",
           !isMobileOpen && isCollapsed ? "md:w-20" : "md:w-64"
         )}
       >
-        {/* Brand Header & Brand Switcher */}
+        {/* Brand Header & Switcher */}
         <div
           className={cn(
-            "p-4 border-b border-zinc-200 dark:border-zinc-800 transition-all duration-300 flex flex-col gap-3",
-            !isExpanded ? "items-center" : ""
+            "px-3.5 py-3 border-b border-zinc-200/80 dark:border-zinc-800/80 " +
+              "transition-all duration-300 flex flex-col gap-2 shrink-0",
+            !isExpanded ? "items-center px-2" : ""
           )}
         >
           <BrandSwitcherHeader isExpanded={isExpanded} isSuperAdmin={isSuperAdmin} />
-          {isExpanded && (
-            <div className="flex justify-center pt-1">
-              <GuidedTourToggle />
-            </div>
-          )}
         </div>
 
         {/* Navigation Body */}
-        <nav className="flex-1 px-3 space-y-6 mt-6 overflow-y-auto">
+        <nav className="flex-1 px-2.5 space-y-4 my-2 overflow-y-auto sidebar-scroll">
           {/* Main Navigation */}
           <div className="space-y-1">
             {isExpanded && (
               <div
                 className={
-                  "text-[10px] font-extrabold text-zinc-500 " +
-                  "uppercase tracking-widest mb-3 px-3"
+                  "text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 " +
+                  "uppercase tracking-widest mb-1.5 px-2.5"
                 }
               >
                 {t("nav.mainMenu", "Menú Principal")}
@@ -277,19 +273,19 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   type="button"
                   onClick={() => setIsDojoSettingsOpen(!isDojoSettingsOpen)}
                   className={
-                    "w-full flex items-center justify-between px-3 py-2 text-xs " +
-                    "font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-900 " +
-                    "dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+                    "w-full flex items-center justify-between px-2.5 py-1 text-[10px] " +
+                    "font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-900 " +
+                    "dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors"
                   }
                 >
-                  <span className="flex items-center gap-2">
-                    <Settings size={14} className="text-amber-500" />
+                  <span className="flex items-center gap-1.5">
+                    <Settings size={13} className="text-amber-500" />
                     {t("nav.dojoSettings", "Configuración Dojo")}
                   </span>
-                  {isDojoSettingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  {isDojoSettingsOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                 </button>
               ) : (
-                <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-2" />
+                <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1" />
               )}
 
               {(isDojoSettingsOpen || !isExpanded) &&
@@ -305,120 +301,110 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
             </div>
           )}
 
-          {/* Admin Navigation */}
-          {isAdmin && (
+          {/* Admin Navigation (Desplegable) */}
+          {isAdmin && visibleAdminNavItems.length > 0 && (
             <div className="space-y-1 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
-              {isExpanded && (
-                <div
+              {isExpanded ? (
+                <button
+                  type="button"
+                  onClick={() => setIsSaaSAdminOpen(!isSaaSAdminOpen)}
                   className={
-                    "text-[10px] font-extrabold text-zinc-500 " +
-                    "uppercase tracking-widest mb-3 px-3"
+                    "w-full flex items-center justify-between px-2.5 py-1 text-[10px] " +
+                    "font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-900 " +
+                    "dark:text-zinc-500 dark:hover:text-zinc-200 transition-colors"
                   }
                 >
-                  {t("nav.adminSection", "SaaS Admin")}
-                </div>
+                  <span className="flex items-center gap-1.5">
+                    <Building2 size={13} className="text-emerald-500" />
+                    {t("nav.adminSection", "SaaS Admin")}
+                  </span>
+                  {isSaaSAdminOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                </button>
+              ) : (
+                <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1" />
               )}
-              {visibleAdminNavItems.map((item) => (
-                <SidebarNavLink
-                  key={item.href}
-                  item={item}
-                  pathname={pathname}
-                  isExpanded={isExpanded}
-                  onClick={handleLinkClick}
-                />
-              ))}
+
+              {(isSaaSAdminOpen || !isExpanded) &&
+                visibleAdminNavItems.map((item) => (
+                  <SidebarNavLink
+                    key={item.href}
+                    item={item}
+                    pathname={pathname}
+                    isExpanded={isExpanded}
+                    onClick={handleLinkClick}
+                  />
+                ))}
             </div>
           )}
         </nav>
 
-        {/* Theme Switcher Footer */}
-        {mounted && (
-          <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800">
-            {isExpanded ? (
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+        {/* Streamlined Footer Controls */}
+        <div className="p-2.5 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-2 bg-zinc-50/50 dark:bg-zinc-900/30 shrink-0">
+          {mounted && (
+            <div className="flex items-center justify-between px-1">
+              {isExpanded && (
+                <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
                   {t("nav.themeMode", "Modo")}
                 </span>
-                <div
-                  className={
-                    "flex bg-zinc-100 border border-zinc-200 " +
-                    "dark:bg-zinc-900 dark:border-zinc-800 rounded-lg p-0.5"
-                  }
-                >
-                  <button
-                    type="button"
-                    onClick={() => setTheme("light")}
-                    className={cn(
-                      "p-1.5 rounded-md transition-all cursor-pointer",
-                      theme === "light"
-                        ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                            "dark:text-emerald-400 shadow-sm font-bold"
-                        : "text-zinc-500 hover:text-zinc-900 " +
-                            "dark:text-zinc-400 dark:hover:text-zinc-200"
-                    )}
-                    title={t("nav.themeLight", "Claro")}
-                  >
-                    <Sun size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTheme("dark")}
-                    className={cn(
-                      "p-1.5 rounded-md transition-all cursor-pointer",
-                      theme === "dark"
-                        ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                            "dark:text-emerald-400 shadow-sm font-bold"
-                        : "text-zinc-500 hover:text-zinc-900 " +
-                            "dark:text-zinc-400 dark:hover:text-zinc-200"
-                    )}
-                    title={t("nav.themeDark", "Oscuro")}
-                  >
-                    <Moon size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTheme("system")}
-                    className={cn(
-                      "p-1.5 rounded-md transition-all cursor-pointer",
-                      theme === "system"
-                        ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                            "dark:text-emerald-400 shadow-sm font-bold"
-                        : "text-zinc-500 hover:text-zinc-900 " +
-                            "dark:text-zinc-400 dark:hover:text-zinc-200"
-                    )}
-                    title={t("nav.themeSystem", "Sistema")}
-                  >
-                    <Laptop size={14} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center">
+              )}
+              <div
+                className={cn(
+                  "flex bg-zinc-200/60 border border-zinc-200/80 " +
+                    "dark:bg-zinc-900 dark:border-zinc-800 rounded-lg p-0.5",
+                  !isExpanded && "mx-auto"
+                )}
+              >
                 <button
                   type="button"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className={
-                    "p-2 text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 " +
-                    "dark:hover:text-emerald-400 rounded-xl hover:bg-zinc-100 " +
-                    "dark:hover:bg-zinc-900 transition-colors mx-auto cursor-pointer"
-                  }
-                  title={t("nav.themeMode", "Modo")}
+                  onClick={() => setTheme("light")}
+                  className={cn(
+                    "p-1 rounded-md transition-all cursor-pointer",
+                    theme === "light"
+                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
+                          "dark:text-emerald-400 shadow-xs font-bold"
+                      : "text-zinc-500 hover:text-zinc-900 " +
+                          "dark:text-zinc-400 dark:hover:text-zinc-200"
+                  )}
+                  title={t("nav.themeLight", "Claro")}
                 >
-                  {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                  <Sun size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("dark")}
+                  className={cn(
+                    "p-1 rounded-md transition-all cursor-pointer",
+                    theme === "dark"
+                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
+                          "dark:text-emerald-400 shadow-xs font-bold"
+                      : "text-zinc-500 hover:text-zinc-900 " +
+                          "dark:text-zinc-400 dark:hover:text-zinc-200"
+                  )}
+                  title={t("nav.themeDark", "Oscuro")}
+                >
+                  <Moon size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme("system")}
+                  className={cn(
+                    "p-1 rounded-md transition-all cursor-pointer",
+                    theme === "system"
+                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
+                          "dark:text-emerald-400 shadow-xs font-bold"
+                      : "text-zinc-500 hover:text-zinc-900 " +
+                          "dark:text-zinc-400 dark:hover:text-zinc-200"
+                  )}
+                  title={t("nav.themeSystem", "Sistema")}
+                >
+                  <Laptop size={13} />
                 </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Footer Actions (Lock App + Sign Out) */}
-        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
-          <div
-            className={cn(
-              "grid gap-2",
-              isExpanded ? "grid-cols-2" : "grid-cols-1"
-            )}
-          >
+          {/* Quick Actions (Lock App + Sign Out) */}
+          <div className={cn("grid gap-1.5", isExpanded ? "grid-cols-2" : "grid-cols-1")}>
             {FEATURES.screenLock && (
               <Button
                 variant="ghost"
@@ -427,15 +413,15 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   window.dispatchEvent(new Event("lock-screen-trigger"));
                 }}
                 className={cn(
-                  "w-full rounded-xl h-10 transition-all font-bold text-[11px] " +
-                    "uppercase tracking-wider flex items-center justify-center gap-1.5 px-2 " +
-                    "bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 " +
+                  "w-full rounded-lg h-8 transition-all font-bold text-[10px] " +
+                    "uppercase tracking-wider flex items-center justify-center gap-1 px-1.5 " +
+                    "bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 " +
                     "hover:bg-amber-500/20 hover:text-amber-800 dark:hover:text-amber-300",
                   !isExpanded && "px-0"
                 )}
                 title={t("sidebar.lockApp", "Bloquear Pantalla")}
               >
-                <Lock size={15} className="shrink-0" />
+                <Lock size={13} className="shrink-0" />
                 {isExpanded && <span>{t("sidebar.lockShort", "BLOQUEAR")}</span>}
               </Button>
             )}
@@ -447,16 +433,16 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                 signOut({ callbackUrl: "/login" });
               }}
               className={cn(
-                "w-full rounded-xl h-10 transition-all font-bold text-[11px] " +
-                  "uppercase tracking-wider flex items-center justify-center gap-1.5 px-2 " +
-                  "bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 " +
+                "w-full rounded-lg h-8 transition-all font-bold text-[10px] " +
+                  "uppercase tracking-wider flex items-center justify-center gap-1 px-1.5 " +
+                  "bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 " +
                   "hover:bg-rose-500/20 hover:text-rose-800 dark:hover:text-rose-300",
                 !isExpanded && "px-0",
                 !FEATURES.screenLock && isExpanded && "col-span-2"
               )}
               title={t("nav.signOut", "Cerrar Sesión")}
             >
-              <LogOut size={15} className="shrink-0" />
+              <LogOut size={13} className="shrink-0" />
               {isExpanded && <span>{t("nav.signOutShort", "SALIR")}</span>}
             </Button>
           </div>
@@ -490,17 +476,25 @@ function SidebarNavLink({
       href={item.href}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-xl " +
+        "relative flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg " +
           "transition-all duration-200 border group",
         isActive
           ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 " +
-              "dark:text-emerald-400 font-bold shadow-sm"
-          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 border-transparent " +
-              "dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white",
-        !isExpanded && "justify-center px-0"
+              "dark:text-emerald-400 font-bold shadow-xs"
+          : "text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900 border-transparent " +
+              "dark:text-zinc-400 dark:hover:bg-zinc-900/80 dark:hover:text-white",
+        !isExpanded && "justify-center px-0 py-2"
       )}
       title={!isExpanded ? title : undefined}
     >
+      {isActive && (
+        <span
+          className={cn(
+            "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-emerald-500 rounded-r-full",
+            !isExpanded && "left-0.5"
+          )}
+        />
+      )}
       <Icon
         className={cn(
           "h-4 w-4 shrink-0 transition-colors",
@@ -533,29 +527,34 @@ function BrandSwitcherHeader({
   }
 
   return (
-    <div className="flex flex-col gap-1 w-full truncate">
-      <div className="flex items-center gap-2">
-        <div className="bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20 shrink-0 text-amber-500">
+    <div className="flex flex-col gap-2 w-full truncate">
+      <div className="flex items-center gap-2 truncate">
+        <div
+          className={
+            "bg-amber-500/10 p-1.5 rounded-lg border " +
+            "border-amber-500/20 shrink-0 text-amber-500"
+          }
+        >
           <Swords className="h-4 w-4" />
         </div>
         <div className="flex flex-col truncate">
           <span className="text-sm font-extrabold text-zinc-900 dark:text-white tracking-tight leading-none">
             Menlu <span className="text-amber-500 font-normal text-xs">门路</span>
           </span>
-          <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+          <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">
             Dojo Platform
           </span>
         </div>
       </div>
 
       {isSuperAdmin && (
-        <div className="mt-2">
+        <div className="mt-0.5">
           <select
             value={selectedBrandId}
             onChange={(e) => setSelectedBrandId(e.target.value)}
             className={cn(
-              "w-full text-[11px] font-semibold rounded-lg px-2 py-1.5 border " +
-                "transition-all cursor-pointer outline-none",
+              "w-full text-[11px] font-semibold rounded-lg px-2 py-1 border " +
+                "transition-all cursor-pointer outline-none h-7",
               isGlobalMode
                 ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold"
                 : "bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
@@ -573,4 +572,3 @@ function BrandSwitcherHeader({
     </div>
   );
 }
-

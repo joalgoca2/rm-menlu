@@ -1,0 +1,55 @@
+{
+  "id": "KUNGFU_CHOYLEEFUT",
+  "name": "Kungfu - Choy Lee Fut",
+  "code": "CLF",
+  "description": "Estilo tradicional del sur de China caracterizado por barridos largos, desplazamientos circulares y gran potencia de puño.",
+  "belts": [
+    { "name": "Cinta Blanca (Grado Inicial)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 24, "minMonths": 3 },
+    { "name": "Cinta Amarilla (Ng Lun Chui)", "colorHex": "#F59E0B", "orderIndex": 2, "minClasses": 36, "minMonths": 3 },
+    { "name": "Cinta Verde (Sup Ji Kuen)", "colorHex": "#10B981", "orderIndex": 3, "minClasses": 48, "minMonths": 4 },
+    { "name": "Cinta Roja (Tên Kuen)", "colorHex": "#EF4444", "orderIndex": 4, "minClasses": 60, "minMonths": 4 },
+    { "name": "Cinta Azul (Armas Tradicionales)", "colorHex": "#3B82F6", "orderIndex": 5, "minClasses": 72, "minMonths": 6 },
+    { "name": "Cinta Café (Ping Kuen / Formas Avanzadas)", "colorHex": "#78350F", "orderIndex": 6, "minClasses": 96, "minMonths": 8 },
+    { "name": "Cinta Negra (Instructor / Sifu)", "colorHex": "#18181B", "orderIndex": 7, "minClasses": 120, "minMonths": 12 }
+  ],
+  "challenges": [
+    {
+      "title": "60 Golpes Continuos (Charp Chui)",
+      "description": "Ejecuta 60 golpes circulares largos alternando puños con postura en guardia.",
+      "targetReps": 60,
+      "metricType": "REPETITIONS",
+      "xpReward": 55,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Postura Cuadrada (Sei Ping Ma 90s)",
+      "description": "Mantén la postura de caballo Sei Ping Ma fija durante 90 segundos.",
+      "targetReps": 90,
+      "metricType": "SECONDS",
+      "xpReward": 70,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Flexiones de Puño en Cadena (Gwar Chui)",
+      "description": "40 despechadas cerradas alternando rotación de nudillos.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Formas Tradicionales & Combate Sanda/CLF",
+      "description": "Rúbrica de 3 niveles para examinar barridos, formas tradicionales y potencia.",
+      "criteria": [
+        { "name": "Forma Ng Lun Chui / Sup Ji Kuen", "category": "FORMAS", "description": "Secuencia correcta, alineación de hombros y cadera.", "orderIndex": 1 },
+        { "name": "Posturas & Desplazamientos (Ma Bu)", "category": "POSTURAS", "description": "Estabilidad en Sei Ping Ma, Ding Ji Ma y Lok Ma.", "orderIndex": 2 },
+        { "name": "Aplicación Técnica & Barridos", "category": "APLICACION", "description": "Potencia de impacto y uso de barridos de puño.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

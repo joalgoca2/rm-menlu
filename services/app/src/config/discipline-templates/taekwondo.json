@@ -1,0 +1,63 @@
+{
+  "id": "TAEKWONDO",
+  "name": "Taekwondo",
+  "code": "TKD",
+  "description": "Arte marcial coreano olímpico especializado en patadas dinámicas, velocidad, Poomsae y combate Kyorugi.",
+  "belts": [
+    { "name": "Cinta Blanca (10º Kup)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 24, "minMonths": 3 },
+    { "name": "Cinta Amarilla (8º Kup)", "colorHex": "#F59E0B", "orderIndex": 2, "minClasses": 36, "minMonths": 3 },
+    { "name": "Cinta Verde (6º Kup)", "colorHex": "#10B981", "orderIndex": 3, "minClasses": 48, "minMonths": 4 },
+    { "name": "Cinta Azul (4º Kup)", "colorHex": "#3B82F6", "orderIndex": 4, "minClasses": 60, "minMonths": 4 },
+    { "name": "Cinta Roja (2º Kup)", "colorHex": "#EF4444", "orderIndex": 5, "minClasses": 72, "minMonths": 6 },
+    { "name": "Cinta Negra (1er Dan)", "colorHex": "#18181B", "orderIndex": 6, "minClasses": 120, "minMonths": 12 }
+  ],
+  "challenges": [
+    {
+      "title": "100 Patadas Frontales (Ap Chagi)",
+      "description": "Ejecuta 100 Ap Chagi con buena extensión y retorno rápido de rodilla.",
+      "targetReps": 100,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "50 Patadas Circulares (Dollyo Chagi)",
+      "description": "Ejecuta 50 patadas circulares al peto con guardia arriba.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 60,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Salto con Patada (Twi Chagi)",
+      "description": "Práctica de patadas girosas traseras en salto para coordinación.",
+      "targetReps": 20,
+      "metricType": "REPETITIONS",
+      "xpReward": 75,
+      "minAge": 6,
+      "maxAge": 99
+    },
+    {
+      "title": "40 Abdominales de Combate",
+      "description": "Fortalecimiento de zona media para aguantar impactos de peto.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 40,
+      "minAge": 4,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Oficial Kup & Dan (Poomsae / Kyorugi)",
+      "description": "Rúbrica de 3 niveles para examinar Taegeuk, técnicas de patada y combate.",
+      "criteria": [
+        { "name": "Ejecución de Poomsae (Formas Taegeuk)", "category": "POOMSAE", "description": "Precisión de posiciones, bloqueos y grito Kiai.", "orderIndex": 1 },
+        { "name": "Combate (Kyorugi) & Distancia", "category": "KYORUGI", "description": "Dominio de distancia, contraataque y guardia de combate.", "orderIndex": 2 },
+        { "name": "Rompimiento de Tablas (Gyeokpa)", "category": "GYEOKPA", "description": "Fuerza, precisión e impacto en técnicas de graduación.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

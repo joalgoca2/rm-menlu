@@ -1,0 +1,64 @@
+{
+  "id": "KARATE",
+  "name": "Karate",
+  "code": "KARATE",
+  "description": "Arte marcial japonés centrado en percusión con puños (Tsuki), bloqueos (Uke), patadas (Geri), Kata y Kumite.",
+  "belts": [
+    { "name": "Cinta Blanca (9º Kyu)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 24, "minMonths": 3 },
+    { "name": "Cinta Amarilla (8º Kyu)", "colorHex": "#F59E0B", "orderIndex": 2, "minClasses": 36, "minMonths": 3 },
+    { "name": "Cinta Naranja (7º Kyu)", "colorHex": "#F97316", "orderIndex": 3, "minClasses": 48, "minMonths": 4 },
+    { "name": "Cinta Verde (6º Kyu)", "colorHex": "#10B981", "orderIndex": 4, "minClasses": 60, "minMonths": 4 },
+    { "name": "Cinta Azul (5º Kyu)", "colorHex": "#3B82F6", "orderIndex": 5, "minClasses": 72, "minMonths": 6 },
+    { "name": "Cinta Café (1er Kyu)", "colorHex": "#78350F", "orderIndex": 6, "minClasses": 96, "minMonths": 8 },
+    { "name": "Cinta Negra (1er Dan)", "colorHex": "#18181B", "orderIndex": 7, "minClasses": 120, "minMonths": 12 }
+  ],
+  "challenges": [
+    {
+      "title": "50 Golpes Directos (Seiken Tsuki)",
+      "description": "50 tsukis en Zenkutsu Dachi con fuerte kime y kiai.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 45,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "40 Patadas de Costado (Yoko Geri)",
+      "description": "40 patadas de lado manteniendo el talón firme y la mirada al objetivo.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 55,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Posición Kiba Dachi (60 segundos)",
+      "description": "Resistencia de piernas en posición del jinete durante 60 segundos.",
+      "targetReps": 60,
+      "metricType": "SECONDS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "30 Despechadas Marciales",
+      "description": "30 flexiones de pecho con codos pegados al cuerpo.",
+      "targetReps": 30,
+      "metricType": "REPETITIONS",
+      "xpReward": 40,
+      "minAge": 4,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Oficial Karate Do (Kihon / Kata / Kumite)",
+      "description": "Rúbrica de 3 niveles para examinar técnicas básicas, Katas y combate controlado.",
+      "criteria": [
+        { "name": "Kihon (Técnicas Básicas & Posiciones)", "category": "KIHON", "description": "Precisión técnica en Zenkutsu Dachi, Kokutsu Dachi y bloqueos.", "orderIndex": 1 },
+        { "name": "Kata (Formas & Kime)", "category": "KATA", "description": "Ritmo, concentración, expansión de energía y Kiai.", "orderIndex": 2 },
+        { "name": "Kumite (Combate & Control)", "category": "KUMITE", "description": "Distancia (Maai), timing de ataque y control de impacto.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

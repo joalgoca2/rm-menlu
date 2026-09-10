@@ -9,7 +9,6 @@ import {
   Sparkles,
   Users,
   CheckCircle2,
-  Zap,
   Award,
   ShieldCheck,
   Calendar,
@@ -31,6 +30,7 @@ export default function HomePage() {
       <div className="relative overflow-hidden pt-12 pb-16 px-6 max-w-7xl mx-auto flex flex-col items-center text-center space-y-8">
         {/* Transparent Martial Arts Collage Background */}
         <div className="absolute inset-0 -z-10 pointer-events-none flex items-center justify-center overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/dojo-hero-bg.png"
             alt="Kung Fu, BJJ & Taekwondo"
@@ -196,6 +196,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 shadow-2xl bg-zinc-950 text-white p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute inset-0 -z-0 opacity-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/dojo-hero-bg.png"
               alt="Martial Arts Collage"

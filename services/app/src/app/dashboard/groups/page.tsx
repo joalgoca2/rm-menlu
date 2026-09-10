@@ -13,7 +13,6 @@ import {
   UserPlus,
   Calendar,
   Clock,
-  Sparkles,
   CheckCircle2,
   Loader2,
   LayoutGrid,
@@ -23,8 +22,8 @@ import {
 import { toast } from "sonner";
 import { useBrand } from "@/context/brand-context";
 import { useTranslation } from "@/components/providers/i18n-provider";
-import { useGuidedTour } from "@/components/providers/guided-tour-provider";
 import { PaginationControl } from "@/components/ui/pagination-control";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,12 +70,11 @@ function GroupsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
   const { selectedBrandId, brands } = useBrand();
   const { t } = useTranslation();
-  const { isGuidedTourEnabled } = useGuidedTour();
 
   const effectiveBrandId =
+
     selectedBrandId === "ALL" ? (brands[0]?.id || "seed-brand-general") : selectedBrandId;
   const activeBrand = brands.find((b) => b.id === effectiveBrandId) || brands[0];
   const _brandCurrency = activeBrand?.currency || "USD";
@@ -373,23 +371,6 @@ function GroupsPageContent() {
         </Button>
       </div>
 
-      {/* Sensei Guided Tour Banner */}
-      {isGuidedTourEnabled && (
-        <Card className="bg-amber-500/10 border-amber-500/30 dark:bg-amber-500/5">
-          <CardContent className="p-4 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-              <strong className="font-semibold block mb-0.5">
-                {t("guidedTour.groupsTitle", "💡 Guía Sensei: ¿Cómo funcionan los grupos?")}
-              </strong>
-              {t(
-                "guidedTour.groupsDesc",
-                "Puedes crear grupos como 'Mayores Principiantes' o 'Mayores Avanzados'. Cada grupo puede entrenar Tai Chi los Martes y Sanda los Jueves. Asigna tus alumnos a su grupo para llevar un control automático de asistencias y exámenes."
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

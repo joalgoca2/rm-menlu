@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const es = require("../src/locales/es.json");
 const en = require("../src/locales/en.json");
 const pt = require("../src/locales/pt.json");

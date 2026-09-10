@@ -6,6 +6,7 @@ import { Menu, ChevronDown } from "lucide-react";
 import { useSidebar } from "@/context/sidebar-context";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { GuidedTourToggle } from "@/components/ui/guided-tour-toggle";
 import { NotificationCenter } from "@/components/layout/notification-center";
 import { useTranslation } from "@/components/providers/i18n-provider";
 
@@ -64,9 +65,11 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3 ml-4">
+        <GuidedTourToggle compact />
         <NotificationCenter isAdmin={isAdmin} />
 
         <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-1 hidden md:block" />
+
 
         <Link
           href="/dashboard/settings"

@@ -1,0 +1,64 @@
+{
+  "id": "KUNGFU_WUSHU",
+  "name": "Kungfu - Wu Shu",
+  "code": "WUSHU",
+  "description": "Arte marcial chino enfocado en formas tradicionales y contemporáneas (Taolu), acrobacia y disciplina militar.",
+  "belts": [
+    { "name": "Blanco (Grado Básico)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 24, "minMonths": 3 },
+    { "name": "Amarillo (1er Duan Jibengong)", "colorHex": "#F59E0B", "orderIndex": 2, "minClasses": 36, "minMonths": 3 },
+    { "name": "Naranja (2º Duan Formas Básicas)", "colorHex": "#F97316", "orderIndex": 3, "minClasses": 48, "minMonths": 4 },
+    { "name": "Verde (3er Duan Taolu Intermedio)", "colorHex": "#10B981", "orderIndex": 4, "minClasses": 60, "minMonths": 4 },
+    { "name": "Azul (4º Duan Armas Básicas)", "colorHex": "#3B82F6", "orderIndex": 5, "minClasses": 72, "minMonths": 6 },
+    { "name": "Café (5º Duan Marcialidad Avanzada)", "colorHex": "#78350F", "orderIndex": 6, "minClasses": 96, "minMonths": 8 },
+    { "name": "Negro (1er Duan Superior / Instructor)", "colorHex": "#18181B", "orderIndex": 7, "minClasses": 120, "minMonths": 12 }
+  ],
+  "challenges": [
+    {
+      "title": "50 Patadas de Abanico (Waipaitui)",
+      "description": "Ejecuta 50 patadas circulares exteriores manteniendo equilibrio y altura.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Posición de Caballo (Mabu 60 segundos)",
+      "description": "Mantén la postura Mabu alineada con muslos paralelos al piso durante 60s.",
+      "targetReps": 60,
+      "metricType": "SECONDS",
+      "xpReward": 60,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "40 Flexiones de Puño (Quan)",
+      "description": "Despechadas sobre nudillos para fortalecer muñeca y antebrazo.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 45,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Salto de Mariposa (Zixuantui)",
+      "description": "Práctica de saltos de mariposa con giro limpio y aterrizaje controlado.",
+      "targetReps": 15,
+      "metricType": "REPETITIONS",
+      "xpReward": 80,
+      "minAge": 6,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Oficial Taolu Tradicional & Jibengong",
+      "description": "Rúbrica semafórica de 3 niveles para examinar posturas, formas y marcialidad.",
+      "criteria": [
+        { "name": "Posturas Básicas (Mabu, Bow, Pu Bu)", "category": "POSTURAS", "description": "Fuerza, estabilidad y profundidad en posturas marciales.", "orderIndex": 1 },
+        { "name": "Ejecución de Forma (Taolu)", "category": "FORMAS", "description": "Fluidez, ritmo, precisión en bloqueos y golpes.", "orderIndex": 2 },
+        { "name": "Expresión Marcial (Shenfa & Kiai)", "category": "MARCIALIDAD", "description": "Enfoque de mirada, energía de golpe e intención marcial.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

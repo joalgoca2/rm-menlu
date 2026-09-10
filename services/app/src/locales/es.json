@@ -646,18 +646,8 @@
     "freePlan": "Plan Gratuito / Base",
     "activeStatus": "Activo"
   },
-  "landing": {
-    "containerRunning": "Plataforma SaaS Menlu 门路 Activa",
-    "title": "Menlu 门路 | Gestión Inteligente & Gamificación para tu Dojo",
-    "subtitle": "Plataforma B2B SaaS para escuelas de artes marciales en Latinoamérica.",
-    "frameworkTitle": "Next.js 16.3",
-    "frameworkSub": "App Router + Node 22 LTS",
-    "uiTitle": "React 19 + Tailwind v4",
-    "uiSub": "Sistema de diseño moderno listo",
-    "dbTitle": "Prisma 6",
-    "dbSub": "Esquema y Seed preparados"
-  },
   "privacy": {
+
     "title": "Política de Privacidad",
     "subtitle": "Conoce cómo recopilamos, usamos y protegemos la información personal en nuestra plataforma.",
     "lastUpdated": "Última actualización: 10 de Agosto, 2026",
@@ -1219,5 +1209,51 @@
     "loadError": "Error al cargar plantillas de evaluación.",
     "saveError": "Error al guardar plantilla.",
     "deleteError": "Error al eliminar plantilla."
+  },
+  "guidedTour": {
+    "senseiTitle": "Ayuda Sensei",
+    "toggleLabel": "Ayuda Sensei",
+    "enableTooltip": "Iniciar la ayuda guiada por pasos",
+    "disableTooltip": "Detener la ayuda guiada por pasos",
+    "noTourAvailable": "No hay guía disponible para esta vista",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "finish": "Entendido"
+  },
+  "dojo": {
+    "disciplinesTitle": "Disciplinas & Cursos",
+    "disciplinesSub": "Administra las disciplinas marciales de la academia, sus cursos y la jerarquía de cinturones de grado.",
+    "kpiTotalDisciplines": "Disciplinas Activas",
+    "kpiInAcademicOffer": "En oferta académica",
+    "kpiTotalBelts": "Grados Configurados",
+    "kpiInActiveDiscipline": "En disciplina activa",
+    "kpiAvgMinClasses": "Promedio Clases/Grado",
+    "kpiExamRequirement": "Requisito de examen",
+    "classesWord": "clases",
+    "academyDisciplines": "Disciplinas de la Academia",
+    "searchDisciplinePlaceholder": "Buscar disciplina...",
+    "searchBtn": "Buscar",
+    "registerNewDiscipline": "+ Registrar Nueva Disciplina",
+    "templateLabel": "Plantilla Preconfigurada",
+    "disciplineNamePlaceholder": "Nombre (ej. Sanda, Wing Chun)",
+    "disciplineCodePlaceholder": "Código Abreviado (ej. SND)",
+    "createBtn": "Crear Disciplina",
+    "loadingDisciplines": "Cargando disciplinas...",
+    "noDisciplinesRegistered": "No hay disciplinas registradas.",
+    "inactiveBadge": "Inactiva",
+    "beltHierarchyTitle": "Jerarquía y Progresión de Grados",
+    "beltHierarchySub": "Requisitos mínimos de asistencia y permanencia por grado.",
+    "applyTemplateBtn": "Cargar Plantilla Preconfigurada",
+    "applyTemplateModalTitle": "Cargar Plantilla Preconfigurada",
+    "applyTemplateModalDesc": "Selecciona una plantilla para cargar sus cinturones, retos y rúbricas en ",
+    "selectTemplateLabel": "Selecciona la Disciplina Estándar:",
+    "applyTemplateConfirmBtn": "Cargar en Disciplina",
+    "addNewBeltTitle": "+ Agregar Nuevo Grado / Cinturón",
+    "beltNameLabel": "Nombre Grado",
+    "beltNamePlaceholder": "ej. Cinturón Amarillo",
+    "beltColorLabel": "Color Distintivo",
+    "minClassesLabel": "Mín. Clases"
   }
 }
+
+
