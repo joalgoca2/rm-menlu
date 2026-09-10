@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   getPaymentEngineMetricsAction,
@@ -37,7 +37,7 @@ interface BrandOption {
   name: string;
 }
 
-export default function PaymentEnginePage() {
+function PaymentEngineContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
 
@@ -397,5 +397,19 @@ export default function PaymentEnginePage() {
         isSuperAdmin={true}
       />
     </div>
+  );
+}
+
+export default function PaymentEnginePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-12 text-center flex items-center justify-center gap-2 text-indigo-500">
+          <RefreshCw className="h-6 w-6 animate-spin" />
+        </div>
+      }
+    >
+      <PaymentEngineContent />
+    </Suspense>
   );
 }

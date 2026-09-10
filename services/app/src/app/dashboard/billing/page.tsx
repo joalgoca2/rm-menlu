@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
@@ -308,7 +308,7 @@ function FormToggleRow({
   );
 }
 
-export default function PlanManagementPage() {
+function PlanManagementContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1427,5 +1427,19 @@ export default function PlanManagementPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function PlanManagementPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-12 text-center flex items-center justify-center gap-2 text-amber-500">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      }
+    >
+      <PlanManagementContent />
+    </Suspense>
   );
 }

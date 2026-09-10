@@ -36,4 +36,5 @@ const nextConfig = {
   },
 };
 
+// Force Next.js locale JSON reload
 export default nextConfig;

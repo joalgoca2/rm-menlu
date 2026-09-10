@@ -15,11 +15,20 @@ interface I18nContextType {
   t: (path: string, fallback?: string, params?: Record<string, string | number>) => string;
 }
 
-const dictionaries: Record<string, DictionaryMap> = {
-  es,
-  en: en as unknown as DictionaryMap,
-  pt: pt as unknown as DictionaryMap,
-};
+function unwrapDict(raw: unknown): DictionaryMap {
+  if (raw && typeof raw === "object") {
+    if ("default" in raw && (raw as { default: unknown }).default) {
+      return (raw as { default: DictionaryMap }).default;
+    }
+  }
+  return raw as DictionaryMap;
+}
+
+function getDictionary(lang: string): DictionaryMap {
+  if (lang === "en") return unwrapDict(en);
+  if (lang === "pt") return unwrapDict(pt);
+  return unwrapDict(es);
+}
 
 const I18nContext = createContext<I18nContextType>({
   locale: "es",
@@ -77,15 +86,15 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     fallback?: string,
     params?: Record<string, string | number>
   ): string => {
-    const activeDict = dictionaries[locale] ?? dictionaries.es;
+    const activeDict = getDictionary(locale);
     const parts = path.split(".");
     let current: unknown = activeDict;
 
     for (const part of parts) {
-      if (current && typeof current === "object" && part in (current as Record<string, unknown>)) {
+      if (current && typeof current === "object" && current !== null && part in (current as Record<string, unknown>)) {
         current = (current as Record<string, unknown>)[part];
       } else {
-        current = fallback ?? path;
+        current = undefined;
         break;
       }
     }

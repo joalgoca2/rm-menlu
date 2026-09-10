@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Award,
@@ -94,7 +94,7 @@ function getContrastTextColor(hexColor: string | null | undefined): string {
   return brightness > 165 ? "text-zinc-950 font-extrabold" : "text-white font-extrabold";
 }
 
-export default function ExamsPage() {
+function ExamsContent() {
   const { selectedBrandId, brands } = useBrand();
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -1814,5 +1814,19 @@ export default function ExamsPage() {
         activeFilterDisciplineName={diplomaDisciplineName}
       />
     </div>
+  );
+}
+
+export default function ExamsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-12 text-center flex items-center justify-center gap-2 text-amber-500">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      }
+    >
+      <ExamsContent />
+    </Suspense>
   );
 }

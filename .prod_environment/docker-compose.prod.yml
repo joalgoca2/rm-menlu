@@ -1,7 +1,7 @@
 services:
-    menlu-app:
-        container_name: menlu-app
-        image: menlu:${PROD_DEPLOY_TAG}
+    rm-menlu-app:
+        container_name: rm-menlu-app
+        image: rm-menlu:${PROD_DEPLOY_TAG}
         read_only: true
         tmpfs:
             - /tmp
@@ -9,13 +9,13 @@ services:
         security_opt:
             - "no-new-privileges:true"
         expose:
-            - "${APP_PORT}"
+            - "${PORT}"
         labels:
             - "traefik.enable=true"
-            - "traefik.http.routers.menlu.rule=Host(`${APP_SUBDOMAIN}`)"
-            - "traefik.http.routers.menlu.entrypoints=websecure"
-            - "traefik.http.routers.menlu.tls.certresolver=letsencrypt"
-            - "traefik.http.services.menlu.loadbalancer.server.port=${PORT}"
+            - "traefik.http.routers.rm-menlu.rule=Host(`${APP_SUBDOMAIN}`)"
+            - "traefik.http.routers.rm-menlu.entrypoints=websecure"
+            - "traefik.http.routers.rm-menlu.tls.certresolver=letsencrypt"
+            - "traefik.http.services.rm-menlu.loadbalancer.server.port=${PORT}"
         environment:
             - HOSTNAME=0.0.0.0
         env_file:
@@ -33,3 +33,4 @@ services:
 networks:
     rm_monkeycore_network:
         external: true
+

@@ -44,28 +44,37 @@ export function Navbar() {
         <nav className="flex items-center gap-3">
           <Link href="/student/effort-path" className="hidden md:flex items-center gap-1.5 text-xs font-semibold text-amber-500 hover:text-amber-600 transition-colors">
             <Flame className="h-4 w-4" />
-            <span>El Camino del Esfuerzo</span>
+            <span>{t("nav.effortPath", "El Camino del Esfuerzo")}</span>
           </Link>
 
           <LanguageSelector compact />
-          <ThemeToggle />
+          <ThemeToggle showColorSelector={Boolean(session?.user)} />
 
           {session?.user ? (
             <>
-              <Link href="/dashboard">
-                <Button size="sm" className="gap-2 text-xs bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl">
+              <Button
+                asChild
+                size="sm"
+                className="gap-2 text-xs bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl"
+              >
+                <Link href="/dashboard">
                   <LayoutDashboard className="h-4 w-4" />
                   <span>{t("nav.dashboard", "Dashboard")}</span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
 
               {session.user.roles?.includes("ADMIN") && (
-                <Link href="/dashboard/admin">
-                  <Button variant="outline" size="sm" className="gap-2 text-xs rounded-xl border-amber-500/40 text-amber-600 dark:text-amber-400">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 text-xs rounded-xl border-amber-500/40 text-amber-600 dark:text-amber-400"
+                >
+                  <Link href="/dashboard/admin">
                     <Shield className="h-4 w-4" />
                     <span className="hidden sm:inline">{t("nav.admin", "Admin")}</span>
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
 
               <Button
@@ -80,11 +89,15 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login">
-                <Button size="sm" className="text-xs bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl shadow-xs">
+              <Button
+                asChild
+                size="sm"
+                className="text-xs bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl shadow-xs"
+              >
+                <Link href="/login">
                   {t("nav.signIn", "Iniciar Sesión")}
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </>
           )}
         </nav>

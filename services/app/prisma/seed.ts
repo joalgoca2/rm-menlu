@@ -1,6 +1,29 @@
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
-import { encryptSecret } from "../src/lib/crypto";
+import crypto from "crypto";
+
+const ALGORITHM = "aes-256-gcm";
+const SECRET =
+  process.env.AUTH_SECRET ||
+  process.env.NEXTAUTH_SECRET ||
+  "default_32_byte_secret_key_for_aes_encryption_12345";
+
+function getMasterKey(): Buffer {
+  return crypto.createHash("sha256").update(SECRET).digest();
+}
+
+function encryptSecret(plainText: string): string {
+  if (!plainText) return "";
+  const iv = crypto.randomBytes(12);
+  const key = getMasterKey();
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+
+  let encrypted = cipher.update(plainText, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  const authTag = cipher.getAuthTag().toString("hex");
+
+  return `${iv.toString("hex")}:${authTag}:${encrypted}`;
+}
 
 const prisma = new PrismaClient();
 

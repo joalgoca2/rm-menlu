@@ -22,7 +22,7 @@ export default function AuthLayout({
             <span className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight leading-none">
               Menlu <span className="text-amber-500 font-normal text-base">门路</span>
             </span>
-            <span className="text-xs text-zinc-400 font-medium">Gestión Inteligente & Gamificación</span>
+            <span className="text-xs text-zinc-400 font-medium">Dojo Platform</span>
           </div>
         </Link>
       </div>

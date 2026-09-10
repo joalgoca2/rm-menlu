@@ -57,13 +57,15 @@ PROD_IMAGE_FULL = $(PROD_IMAGE_NAME):$(PROD_IMAGE_TAG)
 REMOTE_USER ?= root
 REMOTE_HOST ?= 5.161.111.221
 REMOTE_PORT ?= 22
-REMOTE_APP_DIR ?= /srv/menlu
-IMAGE_TAR_FILE = $(PROJECT_NAME)-$(PROD_IMAGE_TAG).tar
+REMOTE_APP_DIR ?= /srv/rm-menlu
+IMAGE_TAR_FILE = $(PROJECT_NAME)-$(PROD_IMAGE_TAG).tar.gz
+PROD_ENV_DIR = .prod_environment
 
-# Llave SSH (tomada de .env o ruta por defecto)
-SSH_KEY ?= $(SSH_KEY_PATH)
-SSH_CMD = ssh -P $(REMOTE_PORT) $(if $(SSH_KEY),-i $(SSH_KEY))
-SCP_CMD = scp -P $(REMOTE_PORT) $(if $(SSH_KEY),-i $(SSH_KEY))
+# Llave SSH y Opciones de Conexión (con KeepAlive y Timeout extendido)
+SSH_OPTS = -o ConnectTimeout=120 -o ServerAliveInterval=30 -o ServerAliveCountMax=5 -o IPQoS=throughput
+SSH_CMD = ssh $(SSH_OPTS) -p $(REMOTE_PORT) $(if $(SSH_KEY_PATH),-i "$(SSH_KEY_PATH)")
+SCP_CMD = scp $(SSH_OPTS) -P $(REMOTE_PORT) $(if $(SSH_KEY_PATH),-i "$(SSH_KEY_PATH)")
+RSYNC_CMD = rsync -avzP -e "ssh -p $(REMOTE_PORT) $(if $(SSH_KEY_PATH),-i '$(SSH_KEY_PATH)') $(SSH_OPTS)"
 
 prod-validate: ## [LOCAL] Valida tipos y linter dentro del contenedor antes del build
 	@echo "🔍 Validando tipos y linter dentro del contenedor..."
@@ -78,26 +80,32 @@ prod-build: prod-validate ## [LOCAL] Construye la imagen de producción
 		--target runner \
 		services/app
 
-prod-save: prod-build ## [LOCAL] Guarda la imagen en un archivo .tar
-	@echo "💾 Guardando imagen en .prod_environment/$(IMAGE_TAR_FILE)..."
-	@mkdir -p .prod_environment/.image
-	docker save -o .prod_environment/.image/$(IMAGE_TAR_FILE) $(PROD_IMAGE_FULL)
+prod-save: prod-build ## [LOCAL] Guarda la imagen comprimida en un archivo .tar.gz
+	@echo "💾 Guardando y comprimiendo imagen en $(PROD_ENV_DIR)/.image/$(IMAGE_TAR_FILE)..."
+	@mkdir -p $(PROD_ENV_DIR)/.image
+	docker save $(PROD_IMAGE_FULL) | gzip > $(PROD_ENV_DIR)/.image/$(IMAGE_TAR_FILE)
 
-prod-scp: ## [LOCAL] Transfiere archivos al servidor vía SCP
-	@echo "⬆️ Transfiriendo archivos a $(REMOTE_HOST)..."
+prod-scp: ## [LOCAL] Transfiere archivos al servidor (Optimizado con RSYNC resistente a cortes)
+	@echo "⬆️ Preparando servidor $(REMOTE_HOST)..."
 	@$(SSH_CMD) $(REMOTE_USER)@$(REMOTE_HOST) "mkdir -p $(REMOTE_APP_DIR)/.image"
-	$(SCP_CMD) .prod_environment/README.md $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/README.md
-	$(SCP_CMD) .prod_environment/Makefile $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/Makefile
-	$(SCP_CMD) .prod_environment/docker-compose.prod.yml $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/docker-compose.prod.yml
-	$(SCP_CMD) .prod_environment/.env.production $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/.env
-	$(SCP_CMD) .prod_environment/.image/$(IMAGE_TAR_FILE) $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/.image/
-	@echo "✅ Transferencia completada."
 	
-prod-deploy: ## [LOCAL -> REMOTE] Flujo completo de despliegue usando el Makefile remoto
-	@echo '$(MAKE) prod-save'
+	@echo "⬆️ Transfiriendo archivos de configuración (En un solo viaje)..."
+	@$(SCP_CMD) $(PROD_ENV_DIR)/README.md \
+	           $(PROD_ENV_DIR)/Makefile \
+	           $(PROD_ENV_DIR)/docker-compose.prod.yml \
+	           $(PROD_ENV_DIR)/.env.production \
+	           $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/
+
+	@echo "⬆️ Transfiriendo imagen comprimida con RSYNC (Resistente a cortes)..."
+	@$(RSYNC_CMD) $(PROD_ENV_DIR)/.image/$(IMAGE_TAR_FILE) $(REMOTE_USER)@$(REMOTE_HOST):$(REMOTE_APP_DIR)/.image/
+	
+	@echo "✅ Transferencia exitosa. Configurando .env en servidor..."
+	@$(SSH_CMD) $(REMOTE_USER)@$(REMOTE_HOST) "cd $(REMOTE_APP_DIR) && mv -f .env.production .env && chmod 600 .env"
+
+prod-deploy: ## [LOCAL -> REMOTE] Flujo completo: Build -> Save -> SCP -> Remote Deploy
 	$(MAKE) prod-save
 	$(MAKE) prod-scp
-	@echo "💻 Conectando al servidor para ejecutar despliegue con control de versiones..."
+	@echo "💻 Conectando al servidor para activar la nueva versión..."
 	$(SSH_CMD) $(REMOTE_USER)@$(REMOTE_HOST) "cd $(REMOTE_APP_DIR) && make deploy"
 	@echo "✨ Despliegue de producción completado."
 

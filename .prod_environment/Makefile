@@ -6,16 +6,16 @@ export $(shell sed 's/=.*//' .env)
 
 # --- Configuración ---
 # Nombre del contenedor definido en docker-compose.prod.yml
-CONTAINER_NAME := menlu-app
+CONTAINER_NAME := rm-menlu-app
 # Etiqueta para la imagen de producción (tomadas de .env)
 PREVIOUS_TAG := $(PROD_PREVIOUS_TAG)
 DEPLOY_TAG := $(PROD_DEPLOY_TAG)
 # Nombre del archivo .tar.gz que contiene la imagen
 IMAGE_TAR_PATH := .image/
-IMAGE_TAR_DEPLOY_FILE := menlu-$(DEPLOY_TAG).tar.gz
-IMAGE_TAR_PREVIOUS_FILE := menlu-$(PREVIOUS_TAG).tar.gz
+IMAGE_TAR_DEPLOY_FILE := rm-menlu-$(DEPLOY_TAG).tar.gz
+IMAGE_TAR_PREVIOUS_FILE := rm-menlu-$(PREVIOUS_TAG).tar.gz
 # Imagen a limpiar
-IMAGE_PREVIOUS_REMOVE := menlu:$(PREVIOUS_TAG)
+IMAGE_PREVIOUS_REMOVE := rm-menlu:$(PREVIOUS_TAG)
 # Nombre del archivo Docker Compose de producción
 COMPOSE_PROD_FILE := docker-compose.prod.yml 
 
@@ -84,7 +84,7 @@ db-migrate: ## Sincroniza esquema en producción mediante contenedor efímero
 		--network $(DB_NETWORK) \
 		--env-file $(PWD)/.env \
 		-v $(PWD)/.env:/app/.env \
-		menlu:$(DEPLOY_TAG) \
+		rm-menlu:$(DEPLOY_TAG) \
 		sh -c "npx -y prisma@$(PRISMA_VERSION) migrate deploy"
 
 seed: ## Ejecuta el sembrado de datos mediante contenedor efímero
@@ -93,12 +93,12 @@ seed: ## Ejecuta el sembrado de datos mediante contenedor efímero
 		--network $(DB_NETWORK) \
 		--env-file $(PWD)/.env \
 		-v $(PWD)/.env:/app/.env \
-		menlu:$(DEPLOY_TAG) \
+		rm-menlu:$(DEPLOY_TAG) \
 		sh -c "npx -y tsx prisma/seed.ts"
 
 clean-images-files: ## Elimina los archivos .tar.gz antiguos
 	@echo "🧹 Eliminando archivos locales de imagen..."	
-	@find $(IMAGE_TAR_PATH) -name 'menlu-*.tar.gz' \
+	@find $(IMAGE_TAR_PATH) -name 'rm-menlu-*.tar.gz' \
 		! -name '$(IMAGE_TAR_PREVIOUS_FILE)' \
 		! -name '$(IMAGE_TAR_DEPLOY_FILE)' \
 		-exec rm -v {} +

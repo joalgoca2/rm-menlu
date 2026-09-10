@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -36,7 +36,7 @@ import {
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function BrandsCatalogPage() {
+function BrandsCatalogContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -356,5 +356,19 @@ export default function BrandsCatalogPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function BrandsCatalogPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-12 text-center flex items-center justify-center gap-2 text-amber-500">
+          <Building2 className="h-6 w-6 animate-spin" />
+        </div>
+      }
+    >
+      <BrandsCatalogContent />
+    </Suspense>
   );
 }

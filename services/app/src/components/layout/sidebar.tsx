@@ -543,7 +543,7 @@ function BrandSwitcherHeader({
             Menlu <span className="text-amber-500 font-normal text-xs">门路</span>
           </span>
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-            {isSuperAdmin ? "SaaS Platform" : "Brand Portal"}
+            Dojo Platform
           </span>
         </div>
       </div>
