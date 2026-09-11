@@ -641,13 +641,18 @@ model ParentProfile {
 
 model StudentProfile {
   id                 String              @id @default(cuid())
-  userId             String              @unique @map("user_id")
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String?             @unique @map("user_id")
+  user               User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
   brandId            String              @map("brand_id")
   brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
   parentId           String?             @map("parent_id")
   parent             ParentProfile?      @relation(fields: [parentId], references: [id], onDelete: SetNull)
+
+  firstName          String?             @map("first_name")
+  lastName           String?             @map("last_name")
+  email              String?
+  photoUrl           String?             @map("photo_url")
 
   birthDate          DateTime?           @map("birth_date")
   emergencyContact   String?             @map("emergency_contact")

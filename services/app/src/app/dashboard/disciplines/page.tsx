@@ -767,13 +767,13 @@ export default function DisciplinesPage() {
 
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsApplyTemplateModalOpen(true)}
-                  className="h-9 text-xs font-bold gap-1.5 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 rounded-xl shrink-0 shadow-xs"
+                  className="h-8 text-[11px] font-medium gap-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg shrink-0 transition-colors"
                 >
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                  <span>{t("dojo.applyTemplateBtn", "Cargar Plantilla Preconfigurada")}</span>
+                  <Sparkles className="h-3.5 w-3.5 text-zinc-400" />
+                  <span>{t("dojo.applyTemplateBtn", "Cargar Plantilla")}</span>
                 </Button>
               </div>
 

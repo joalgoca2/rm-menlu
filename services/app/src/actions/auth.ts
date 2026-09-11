@@ -293,6 +293,17 @@ export async function createUser(data: {
       return { success: false, error: `Role ${roleName} does not exist.` };
     }
 
+    let brandLocale = "es";
+    let brandTimezone = "UTC";
+    if (finalBrandId) {
+      const brand = await prisma.brand.findUnique({
+        where: { id: finalBrandId },
+        select: { locale: true, timezone: true },
+      });
+      if (brand?.locale) brandLocale = brand.locale;
+      if (brand?.timezone) brandTimezone = brand.timezone;
+    }
+
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -300,6 +311,8 @@ export async function createUser(data: {
         password: hashedPassword,
         isActive: true,
         brandId: finalBrandId,
+        locale: brandLocale,
+        timezone: brandTimezone,
         roles: {
           create: {
             roleId: role.id,

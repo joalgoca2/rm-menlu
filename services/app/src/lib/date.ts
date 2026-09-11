@@ -226,4 +226,33 @@ export function formatDateForPicker(
   }
 }
 
+export interface TimezoneOption {
+  value: string;
+  label: string;
+}
+
+export const SUPPORTED_TIMEZONES: TimezoneOption[] = [
+  { value: "UTC", label: "UTC (Tiempo Universal Coordenado)" },
+  { value: "America/Mexico_City", label: "América / Ciudad de México (CST - UTC-6)" },
+  { value: "America/Chicago", label: "América / Chicago (CST - UTC-6)" },
+  { value: "America/Bogota", label: "América / Bogotá (COT - UTC-5)" },
+  { value: "America/New_York", label: "América / Nueva York (EST - UTC-5)" },
+  { value: "America/Buenos_Aires", label: "América / Buenos Aires (ART - UTC-3)" },
+  { value: "America/Santiago", label: "América / Santiago (CLT - UTC-4)" },
+  { value: "America/Los_Angeles", label: "América / Los Ángeles (PST - UTC-8)" },
+  { value: "Europe/Madrid", label: "Europa / Madrid (CET - UTC+1)" },
+];
+
+export interface LanguageOption {
+  value: string;
+  label: string;
+  flag: string;
+}
+
+export const SUPPORTED_LANGUAGES: LanguageOption[] = [
+  { value: "es", label: "Español (es)", flag: "🇪🇸" },
+  { value: "en", label: "English (en)", flag: "🇺🇸" },
+  { value: "pt", label: "Português (pt)", flag: "🇧🇷" },
+];
+
 

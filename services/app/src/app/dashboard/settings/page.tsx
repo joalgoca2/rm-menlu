@@ -28,6 +28,9 @@ import { BrandPaymentConfigDialog } from "@/components/payment/brand-payment-con
 import { BrandPaymentsHistoryTable } from "@/components/brand/brand-payments-history-table";
 import { BrandPaymentGatewaysList } from "@/components/payment/brand-payment-gateways-list";
 import { FormattedDate } from "@/components/ui/formatted-date";
+import { SUPPORTED_TIMEZONES, SUPPORTED_LANGUAGES } from "@/lib/date";
+import { FEATURES } from "@/lib/config/features";
+import { useEntitlements } from "@/hooks/use-entitlements";
 import {
   getUserById,
   updateUserPreferences,
@@ -140,7 +143,10 @@ function SettingsContent() {
   const [isGatewayModalOpen, setIsGatewayModalOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [isDowngrading, setIsDowngrading] = useState(false);
-  const [paymentsSubTab, setPaymentsSubTab] = useState<"plans" | "history" | "gateway">("plans");
+  const { isFeatureEnabled } = useEntitlements({ planName: currentPlanName });
+  const [paymentsSubTab, setPaymentsSubTab] = useState<"plans" | "history" | "gateway">(
+    isFeatureEnabled("billing") ? "plans" : "gateway"
+  );
 
   const handleConfirmDowngrade = async () => {
     if (!downgradeTargetPlan || !sessionUser?.id || !brandId) return;
@@ -580,28 +586,11 @@ function SettingsContent() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="UTC">UTC (Tiempo Universal Coordenado)</SelectItem>
-                        <SelectItem value="America/Mexico_City">
-                          América / Ciudad de México (CST - UTC-6)
-                        </SelectItem>
-                        <SelectItem value="America/Chicago">
-                          América / Chicago (CST - UTC-6)
-                        </SelectItem>
-                        <SelectItem value="America/Bogota">
-                          América / Bogotá (COT - UTC-5)
-                        </SelectItem>
-                        <SelectItem value="America/New_York">
-                          América / Nueva York (EST - UTC-5)
-                        </SelectItem>
-                        <SelectItem value="America/Buenos_Aires">
-                          América / Buenos Aires (ART - UTC-3)
-                        </SelectItem>
-                        <SelectItem value="America/Santiago">
-                          América / Santiago (CLT - UTC-4)
-                        </SelectItem>
-                        <SelectItem value="America/Los_Angeles">
-                          América / Los Ángeles (PST - UTC-8)
-                        </SelectItem>
+                        {SUPPORTED_TIMEZONES.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -858,8 +847,11 @@ function SettingsContent() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="es">Español (es)</SelectItem>
-                            <SelectItem value="en">English (en)</SelectItem>
+                            {SUPPORTED_LANGUAGES.map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                {lang.flag} {lang.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -872,29 +864,32 @@ function SettingsContent() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="UTC">UTC</SelectItem>
-                            <SelectItem value="America/Mexico_City">
-                              América / Ciudad de México (CST)
-                            </SelectItem>
+                            {SUPPORTED_TIMEZONES.map((tz) => (
+                              <SelectItem key={tz.value} value={tz.value}>
+                                {tz.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                      <Label>{t("settings.currentPlanLabel", "Plan Actual de la Empresa")}</Label>
-                      <div className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-950/60 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-                        <div className="flex items-center gap-2.5">
-                          <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span className="text-xs font-extrabold text-zinc-900 dark:text-white">
-                            {currentPlanName || t("settings.freePlan", "Plan Gratuito / Base")}
-                          </span>
+                    {isFeatureEnabled("billing") && (
+                      <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                        <Label>{t("settings.currentPlanLabel", "Plan Actual de la Empresa")}</Label>
+                        <div className="flex items-center justify-between p-3.5 bg-zinc-50 dark:bg-zinc-950/60 rounded-2xl border border-zinc-200 dark:border-zinc-800">
+                          <div className="flex items-center gap-2.5">
+                            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                            <span className="text-xs font-extrabold text-zinc-900 dark:text-white">
+                              {currentPlanName || t("settings.freePlan", "Plan Gratuito / Base")}
+                            </span>
+                          </div>
+                          <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-lg">
+                            {t("settings.activeStatus", "Activo")}
+                          </Badge>
                         </div>
-                        <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-lg">
-                          {t("settings.activeStatus", "Activo")}
-                        </Badge>
                       </div>
-                    </div>
+                    )}
 
                     <div className="flex justify-end pt-4 border-t border-zinc-200 dark:border-zinc-800">
                       <Button type="submit" disabled={isSubmitting} className="gap-2 font-bold">
@@ -918,33 +913,37 @@ function SettingsContent() {
           <TabsContent value="payments" className="mt-6 space-y-6">
             {/* Sub-tabs Navigation */}
             <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-3">
-              <button
-                type="button"
-                onClick={() => setPaymentsSubTab("plans")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
-                  paymentsSubTab === "plans"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-black"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                )}
-              >
-                <Sparkles className="h-4 w-4" />
-                <span>{t("settings.tabPlansAndSubscription", "Planes y Suscripción")}</span>
-              </button>
+              {isFeatureEnabled("billing") && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentsSubTab("plans")}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    paymentsSubTab === "plans"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-black"
+                      : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                  )}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>{t("settings.tabPlansAndSubscription", "Planes y Suscripción")}</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setPaymentsSubTab("history")}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
-                  paymentsSubTab === "history"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-black"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
-                )}
-              >
-                <History className="h-4 w-4" />
-                <span>{t("settings.tabPaymentHistory", "Historial de Pagos")}</span>
-              </button>
+              {isFeatureEnabled("billing") && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentsSubTab("history")}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
+                    paymentsSubTab === "history"
+                      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-black"
+                      : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                  )}
+                >
+                  <History className="h-4 w-4" />
+                  <span>{t("settings.tabPaymentHistory", "Historial de Pagos")}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -952,7 +951,7 @@ function SettingsContent() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer",
                   paymentsSubTab === "gateway"
-                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-black"
+                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-black"
                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                 )}
               >
@@ -962,7 +961,7 @@ function SettingsContent() {
             </div>
 
             {/* Sub-tab 1: Plans */}
-            {paymentsSubTab === "plans" && (
+            {isFeatureEnabled("billing") && paymentsSubTab === "plans" && (
               <Card className="border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/50 backdrop-blur">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-white">
@@ -1186,7 +1185,7 @@ function SettingsContent() {
             )}
 
             {/* Sub-tab 2: History */}
-            {paymentsSubTab === "history" && brandId && (
+            {isFeatureEnabled("billing") && paymentsSubTab === "history" && brandId && (
               <BrandPaymentsHistoryTable brandId={brandId} />
             )}
 

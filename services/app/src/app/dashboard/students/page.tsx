@@ -32,7 +32,10 @@ import {
 } from "lucide-react";
 import { QRCode } from "@/components/ui/qr-code";
 import { printStudentCredentials } from "@/lib/print-utils";
+import { getStudentPhotoUrl } from "@/lib/utils";
 import { DiplomaBuilderModal } from "@/components/students/diploma-builder-modal";
+import { CSVImportModal } from "@/components/students/csv-import-modal";
+import { Key, UserPlus } from "lucide-react";
 import {
   getStudentsAction,
   createStudentAction,
@@ -43,6 +46,7 @@ import {
   bulkToggleStudentsActiveAction,
   getStudentExpedienteAction,
   uploadStudentPhotoAction,
+  createStudentUserAccountAction,
 } from "@/actions/students";
 import {
   getDisciplinesByBrandAction,
@@ -123,6 +127,7 @@ function StudentsTableContent() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [activeCount, setActiveCount] = useState(0);
+  const [minorsCount, setMinorsCount] = useState(0);
   const [totalXpPoints, setTotalXpPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -147,6 +152,46 @@ function StudentsTableContent() {
   // Expediente 360° Drawer State
   const [expedienteStudent, setExpedienteStudent] = useState<StudentExpediente | null>(null);
   const [_isLoadingExpediente, setIsLoadingExpediente] = useState(false);
+
+  // User Account Modal State (Post-creation)
+  const [userAccountStudent, setUserAccountStudent] = useState<StudentWithDetails | null>(null);
+  const [userAccountEmail, setUserAccountEmail] = useState<string>("");
+  const [userAccountPassword, setUserAccountPassword] = useState<string>("");
+  const [isUserAccountLoading, setIsUserAccountLoading] = useState<boolean>(false);
+
+  const handleOpenUserAccountModal = (student: StudentWithDetails) => {
+    setUserAccountStudent(student);
+    setUserAccountEmail(student.email || "");
+    setUserAccountPassword("");
+  };
+
+  const handleCreateUserAccount = async () => {
+    if (!userAccountStudent) return;
+    if (!userAccountEmail || !userAccountEmail.includes("@")) {
+      toast.error("Ingresa un correo electrónico válido.");
+      return;
+    }
+    if (!userAccountPassword || userAccountPassword.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    setIsUserAccountLoading(true);
+    const res = await createStudentUserAccountAction({
+      studentId: userAccountStudent.id,
+      email: userAccountEmail,
+      password: userAccountPassword,
+    });
+    setIsUserAccountLoading(false);
+
+    if (res.success) {
+      toast.success("Cuenta de usuario creada exitosamente para el alumno.");
+      setUserAccountStudent(null);
+      fetchStudents();
+    } else {
+      toast.error(res.error || "Error al crear la cuenta de usuario.");
+    }
+  };
 
   // Filter states
   const [searchInput, setSearchInput] = useState(currentSearch);
@@ -238,6 +283,7 @@ function StudentsTableContent() {
       setTotal(res.data.total);
       setTotalPages(res.data.totalPages);
       setActiveCount(res.data.activeCount);
+      setMinorsCount(res.data.minorsCount || 0);
       setTotalXpPoints(res.data.totalXpPoints);
     } else if (res.error) {
       toast.error(res.error);
@@ -351,17 +397,101 @@ function StudentsTableContent() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64 = reader.result as string;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen elegida supera el límite de 5 MB. Selecciona una imagen más liviana.");
+      return;
+    }
+
+    const processImage = (imageFile: File): Promise<string> => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 400; // Optimal 400px avatar size for badges & UI
+
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              // Compressed JPEG at 75% quality (~30-50 KB per photo)
+              resolve(canvas.toDataURL("image/jpeg", 0.75));
+            } else {
+              resolve(event.target?.result as string);
+            }
+          };
+          img.onerror = () => resolve(event.target?.result as string);
+          img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(imageFile);
+      });
+    };
+
+    processImage(file).then(async (base64) => {
       if (isEdit && studentId) {
         const res = await uploadStudentPhotoAction(studentId, base64);
         if (res.success && res.data) {
+          const updatedImageUrl = res.data.imageUrl;
           toast.success("Fotografía del alumno actualizada.");
+
+          setStudents((prev) =>
+            prev.map((s) =>
+              s.id === studentId
+                ? {
+                    ...s,
+                    photoUrl: updatedImageUrl,
+                    user: s.user ? { ...s.user, image: updatedImageUrl } : s.user,
+                  }
+                : s
+            )
+          );
+
+          setStudentToEdit((prev) =>
+            prev && prev.id === studentId
+              ? {
+                  ...prev,
+                  photoUrl: updatedImageUrl,
+                  user: prev.user ? { ...prev.user, image: updatedImageUrl } : prev.user,
+                }
+              : prev
+          );
+
+          setExpedienteStudent((prev) =>
+            prev && prev.id === studentId
+              ? {
+                  ...prev,
+                  photoUrl: updatedImageUrl,
+                  user: prev.user ? { ...prev.user, image: updatedImageUrl } : prev.user,
+                }
+              : prev
+          );
+
+          setStudentForCredential((prev) =>
+            prev && prev.id === studentId
+              ? {
+                  ...prev,
+                  photoUrl: updatedImageUrl,
+                  user: prev.user ? { ...prev.user, image: updatedImageUrl } : prev.user,
+                }
+              : prev
+          );
+
           fetchStudents();
-          if (expedienteStudent?.id === studentId) {
-            handleOpenExpediente(studentId);
-          }
         } else if (res.error) {
           toast.error(res.error);
         }
@@ -369,8 +499,7 @@ function StudentsTableContent() {
         setCreatePhotoPreview(base64);
         setValueCreate("image", base64);
       }
-    };
-    reader.readAsDataURL(file);
+    });
   };
 
   // Create Student Handler
@@ -407,9 +536,15 @@ function StudentsTableContent() {
     const activeDiscIds = student.enrollments.map((e) => e.disciplineId);
     setSelectedEditDisciplineIds(activeDiscIds);
 
+    const studentName =
+      student.user?.name ||
+      `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+      "";
+    const studentEmail = student.user?.email || student.email || "";
+
     setValueEdit("studentId", student.id);
-    setValueEdit("name", student.user.name || "");
-    setValueEdit("email", student.user.email);
+    setValueEdit("name", studentName);
+    setValueEdit("email", studentEmail);
     setValueEdit("birthDate", dateStr);
     setValueEdit("emergencyContact", student.emergencyContact || "");
     setValueEdit("idNumber", student.idNumber || "");
@@ -453,9 +588,13 @@ function StudentsTableContent() {
   // Delete Handlers
   const handleDeleteSingle = async () => {
     if (!studentToDelete) return;
+    const delName =
+      studentToDelete.user?.name ||
+      `${studentToDelete.firstName || ""} ${studentToDelete.lastName || ""}`.trim() ||
+      "Alumno";
     const res = await deleteStudentAction(studentToDelete.id);
     if (res.success) {
-      toast.success(`Alumno "${studentToDelete.user.name}" eliminado del sistema.`);
+      toast.success(`Alumno "${delName}" eliminado del sistema.`);
       setStudentToDelete(null);
       fetchStudents();
     } else if (res.error) {
@@ -504,12 +643,15 @@ function StudentsTableContent() {
             {t("dojo.studentsSub", "Administra expedientes completos de estudiantes, ficha médica, seguro, identificación, grados y gamificación.")}
           </p>
         </div>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-sm font-bold text-xs"
-        >
-          <Plus className="h-4 w-4 mr-2" /> {t("dojo.createStudent", "Alta de Alumno")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <CSVImportModal brandId={selectedBrandId || "ALL"} onSuccess={fetchStudents} />
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-sm font-bold text-xs"
+          >
+            <Plus className="h-4 w-4 mr-2" /> {t("dojo.createStudent", "Alta de Alumno")}
+          </Button>
+        </div>
       </div>
 
       {/* Metrics Banner */}
@@ -532,11 +674,16 @@ function StudentsTableContent() {
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500">
               {t("dojo.kpiActiveStudents", "Alumnos Activos")}
             </CardTitle>
-            <UserCheck className="h-4 w-4 text-emerald-500" />
+            <UserCheck className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-              {activeCount}
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
+                {activeCount}
+              </span>
+              <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                👦 {minorsCount} {t("dojo.minorsTag", "menores (<18)")}
+              </span>
             </div>
             <p className="text-[11px] text-zinc-500 mt-1">{t("dojo.kpiActiveStudentsSub", "Con membresía y cuenta al día")}</p>
           </CardContent>
@@ -667,24 +814,26 @@ function StudentsTableContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {student.user.image ? (
+                          {getStudentPhotoUrl(student) ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
-                              src={student.user.image}
-                              alt={student.user.name || "Alumno"}
+                              src={getStudentPhotoUrl(student)!}
+                              alt={student.user?.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || "Alumno"}
                               className="w-9 h-9 rounded-full object-cover border border-amber-500/40 shrink-0 shadow-xs"
                             />
                           ) : (
                             <div className="w-9 h-9 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 font-black text-xs flex items-center justify-center border border-amber-500/30 shrink-0">
-                              {(student.user.name || "Alumno").slice(0, 2).toUpperCase()}
+                              {(student.user?.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || "Alumno").slice(0, 2).toUpperCase()}
                             </div>
                           )}
                           <div>
                             <div className="font-bold text-zinc-900 dark:text-white text-sm">
-                              {student.user.name}
+                              {student.user?.name || `${student.firstName || ''} ${student.lastName || ''}`.trim() || "Alumno"}
                             </div>
                             <div className="text-xs text-zinc-500 flex items-center gap-1.5">
-                              <span>{student.user.email}</span>
+                              <span>
+                                {student.user?.email || student.email || (student.parent?.user ? `Tutor: ${student.parent.user.name}` : t("dojo.noUserAccount", "Sin cuenta de usuario"))}
+                              </span>
                               {age !== null && (
                                 <span className="text-amber-600/90 dark:text-amber-400/90 font-bold">
                                   • {age} {t("dojo.yearsOld", "años")}
@@ -742,23 +891,35 @@ function StudentsTableContent() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="grid grid-cols-3 gap-1 w-[104px] ml-auto justify-items-center">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleToggleActive(student.id, student.user.isActive)}
-                            className={`w-7 h-7 p-0 rounded-lg cursor-pointer transition-all ${
-                              student.user.isActive
-                                ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
-                                : "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
-                            }`}
-                            title={student.user.isActive ? "Desactivar Alumno" : "Activar Alumno"}
-                          >
-                            {student.user.isActive ? (
-                              <UserCheck className="h-3.5 w-3.5" />
-                            ) : (
-                              <UserX className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
+                          {student.user ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleToggleActive(student.id, student.user?.isActive ?? true)}
+                              className={`w-7 h-7 p-0 rounded-lg cursor-pointer transition-all ${
+                                student.user.isActive
+                                  ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                  : "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                              }`}
+                              title={student.user.isActive ? "Desactivar Alumno" : "Activar Alumno"}
+                            >
+                              {student.user.isActive ? (
+                                <UserCheck className="h-3.5 w-3.5" />
+                              ) : (
+                                <UserX className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleOpenUserAccountModal(student)}
+                              className="w-7 h-7 p-0 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg cursor-pointer transition-all"
+                              title="Generar Cuenta de Usuario"
+                            >
+                              <UserPlus className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -1135,7 +1296,10 @@ function StudentsTableContent() {
             <DialogHeader className="p-6 pb-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
                 <Edit2 className="h-5 w-5 text-amber-500" />
-                Editar Expediente Completo de Alumno: {studentToEdit.user.name}
+                Editar Expediente Completo de Alumno:{" "}
+                {studentToEdit.user?.name ||
+                  `${studentToEdit.firstName || ""} ${studentToEdit.lastName || ""}`.trim() ||
+                  "Alumno"}
               </DialogTitle>
               <DialogDescription className="text-xs">
                 Modifica datos personales, ficha médica, seguro, identificación, grados,
@@ -1147,9 +1311,9 @@ function StudentsTableContent() {
               {/* Sección 1: Fotografía Oficial */}
               <div className="flex items-center gap-4 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700">
                 <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500/40 bg-zinc-200 shrink-0">
-                  {studentToEdit.user.image ? (
+                  {getStudentPhotoUrl(studentToEdit) ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={studentToEdit.user.image} alt={studentToEdit.user.name || "Alumno"} className="w-full h-full object-cover" />
+                    <img src={getStudentPhotoUrl(studentToEdit)!} alt={studentToEdit.user?.name || `${studentToEdit.firstName || ''} ${studentToEdit.lastName || ''}`.trim() || "Alumno"} className="w-full h-full object-cover" />
                   ) : (
                     <Camera className="w-6 h-6 text-zinc-400 m-5" />
                   )}
@@ -1408,7 +1572,13 @@ function StudentsTableContent() {
                 <AlertDialogTitle>¿Eliminar Expediente del Alumno?</AlertDialogTitle>
               </div>
               <AlertDialogDescription className="text-xs mt-2">
-                Estás a punto de eliminar a <strong className="text-zinc-900 dark:text-white">{studentToDelete.user.name}</strong> y su cuenta de acceso del sistema. Esta acción no se puede deshacer.
+                Estás a punto de eliminar a{" "}
+                <strong className="text-zinc-900 dark:text-white">
+                  {studentToDelete.user?.name ||
+                    `${studentToDelete.firstName || ""} ${studentToDelete.lastName || ""}`.trim() ||
+                    "Alumno"}
+                </strong>{" "}
+                y su expediente del sistema. Esta acción no se puede deshacer.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="pt-3">
@@ -1427,7 +1597,10 @@ function StudentsTableContent() {
           <DialogContent className="max-w-2xl rounded-2xl max-h-[85vh] p-0 overflow-hidden flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl">
             <DialogHeader className="p-6 pb-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900">
               <DialogTitle className="text-lg font-bold flex items-center gap-2">
-                <Eye className="h-5 w-5 text-indigo-500" /> Expediente Completo 360°: {expedienteStudent.user.name}
+                <Eye className="h-5 w-5 text-indigo-500" /> Expediente Completo 360°:{" "}
+                {expedienteStudent.user?.name ||
+                  `${expedienteStudent.firstName || ""} ${expedienteStudent.lastName || ""}`.trim() ||
+                  "Alumno"}
               </DialogTitle>
               <DialogDescription className="text-xs">
                 Resumen de cuenta, datos personales, ficha médica, seguro, identificación y
@@ -1439,18 +1612,22 @@ function StudentsTableContent() {
               {/* Header de Foto del Alumno */}
               <div className="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-800/40 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
                 <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-amber-500 shrink-0 shadow-md">
-                  {expedienteStudent.user.image ? (
+                  {getStudentPhotoUrl(expedienteStudent) ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={expedienteStudent.user.image} alt={expedienteStudent.user.name || "Alumno"} className="w-full h-full object-cover" />
+                    <img src={getStudentPhotoUrl(expedienteStudent)!} alt={expedienteStudent.user?.name || `${expedienteStudent.firstName || ''} ${expedienteStudent.lastName || ''}`.trim() || "Alumno"} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-amber-500/20 text-amber-600 font-black text-xl flex items-center justify-center">
-                      {(expedienteStudent.user.name || "Alumno").slice(0, 2).toUpperCase()}
+                      {(expedienteStudent.user?.name || `${expedienteStudent.firstName || ''} ${expedienteStudent.lastName || ''}`.trim() || "Alumno").slice(0, 2).toUpperCase()}
                     </div>
                   )}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-bold text-sm text-zinc-900 dark:text-white">{expedienteStudent.user.name}</h3>
-                  <p className="text-xs text-zinc-500">{expedienteStudent.user.email}</p>
+                  <h3 className="font-bold text-sm text-zinc-900 dark:text-white">
+                    {expedienteStudent.user?.name || `${expedienteStudent.firstName || ''} ${expedienteStudent.lastName || ''}`.trim() || "Alumno"}
+                  </h3>
+                  <p className="text-xs text-zinc-500">
+                    {expedienteStudent.user?.email || expedienteStudent.email || "Sin cuenta de usuario"}
+                  </p>
                   <label className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30 cursor-pointer hover:bg-amber-500/20">
                     <Camera className="h-3.5 w-3.5" />
                     Actualizar Fotografía
@@ -1598,13 +1775,13 @@ function StudentsTableContent() {
       {/* MODAL CREDENCIAL OFICIAL DE ALUMNO (CARNET INDIVIDUAL TAMAÑO TARJETA DE CRÉDITO) */}
       {studentForCredential && (
         <Dialog open={!!studentForCredential} onOpenChange={() => setStudentForCredential(null)}>
-          <DialogContent className="max-w-xl rounded-3xl p-0 overflow-hidden flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl bg-zinc-950 text-white">
-            <DialogHeader className="p-5 pb-3 border-b border-zinc-800 shrink-0 bg-zinc-900/90 flex flex-row items-center justify-between">
+          <DialogContent className="max-w-xl rounded-3xl p-0 overflow-hidden flex flex-col border border-zinc-200 dark:border-zinc-800 shadow-2xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white">
+            <DialogHeader className="p-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0 bg-zinc-50 dark:bg-zinc-800/60 flex flex-row items-center justify-between">
               <div>
-                <DialogTitle className="text-base font-extrabold flex items-center gap-2 text-amber-400">
+                <DialogTitle className="text-base font-extrabold flex items-center gap-2 text-amber-500">
                   <CreditCard className="h-5 w-5" /> Credencial Oficial de Alumno
                 </DialogTitle>
-                <DialogDescription className="text-xs text-zinc-400">
+                <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                   Carnet digital con código QR (Estándar ISO/IEC 7810 ID-1: 85.6mm x 54mm)
                 </DialogDescription>
               </div>
@@ -1644,11 +1821,11 @@ function StudentsTableContent() {
                     {/* Foto del Alumno */}
                     <div className="col-span-3 flex justify-center">
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-amber-400 shadow-md bg-zinc-800 flex items-center justify-center shrink-0">
-                        {studentForCredential.user.image ? (
+                        {getStudentPhotoUrl(studentForCredential) ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
-                            src={studentForCredential.user.image}
-                            alt={studentForCredential.user.name || "Alumno"}
+                            src={getStudentPhotoUrl(studentForCredential)!}
+                            alt={studentForCredential.user?.name || `${studentForCredential.firstName || ''} ${studentForCredential.lastName || ''}`.trim() || "Alumno"}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1659,8 +1836,8 @@ function StudentsTableContent() {
 
                     {/* Datos Principales */}
                     <div className="col-span-5 space-y-0.5 min-w-0">
-                      <h4 className="text-[11px] font-black text-white leading-tight truncate" title={studentForCredential.user.name || "Alumno"}>
-                        {studentForCredential.user.name}
+                      <h4 className="text-[11px] font-black text-white leading-tight truncate" title={studentForCredential.user?.name || `${studentForCredential.firstName || ''} ${studentForCredential.lastName || ''}`.trim() || "Alumno"}>
+                        {studentForCredential.user?.name || `${studentForCredential.firstName || ''} ${studentForCredential.lastName || ''}`.trim() || "Alumno"}
                       </h4>
                       <p className="text-[9px] font-mono font-bold text-amber-400 leading-none">
                         ID: STU-{studentForCredential.id.slice(-6).toUpperCase()}
@@ -1720,7 +1897,7 @@ function StudentsTableContent() {
               </div>
 
               {/* Acciones de Imprimir */}
-              <div className="flex items-center justify-center gap-3 w-full pt-2 border-t border-zinc-800">
+              <div className="flex items-center justify-center gap-3 w-full pt-2 border-t border-zinc-200 dark:border-zinc-800">
                 <Button
                   type="button"
                   onClick={() => printStudentCredentials([studentForCredential])}
@@ -1732,11 +1909,76 @@ function StudentsTableContent() {
                   type="button"
                   variant="outline"
                   onClick={() => setStudentForCredential(null)}
-                  className="rounded-xl text-xs text-zinc-400 hover:text-white"
+                  className="rounded-xl text-xs border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
                 >
                   Cerrar
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* MODAL POST-CREACIÓN PARA GENERAR CUENTA DE USUARIO */}
+      {userAccountStudent && (
+        <Dialog open={!!userAccountStudent} onOpenChange={(open) => !open && setUserAccountStudent(null)}>
+          <DialogContent className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl sm:max-w-[420px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">
+                <UserPlus className="h-5 w-5 text-amber-500" />
+                Generar Acceso de Usuario
+              </DialogTitle>
+              <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                Crea credenciales de inicio de sesión para el alumno{" "}
+                <strong>
+                  {userAccountStudent.user?.name ||
+                    `${userAccountStudent.firstName || ""} ${userAccountStudent.lastName || ""}`.trim() ||
+                    "Alumno"}
+                </strong>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">{t("dojo.userEmailLabel", "Correo Electrónico")}</Label>
+                <Input
+                  type="email"
+                  value={userAccountEmail}
+                  onChange={(e) => setUserAccountEmail(e.target.value)}
+                  placeholder="alumno@ejemplo.com"
+                  className="rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">{t("dojo.userPasswordLabel", "Contraseña")}</Label>
+                <Input
+                  type="password"
+                  value={userAccountPassword}
+                  onChange={(e) => setUserAccountPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="rounded-xl text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setUserAccountStudent(null)}
+                className="rounded-xl text-xs cursor-pointer"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCreateUserAccount}
+                disabled={isUserAccountLoading}
+                className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer"
+              >
+                {isUserAccountLoading ? "Creando..." : "Crear Cuenta"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

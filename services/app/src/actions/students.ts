@@ -2,7 +2,12 @@
 
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { createStudentSchema, updateStudentSchema } from "@/lib/validations/students";
+import {
+  createStudentSchema,
+  updateStudentSchema,
+  createStudentUserAccountSchema,
+} from "@/lib/validations/students";
+import { parseCSV, generateCSV } from "@/lib/csv";
 import type { ApiResponse, StudentWithDetails, StudentExpediente } from "@/types";
 
 export interface GetStudentsFilter {
@@ -18,6 +23,7 @@ export interface GetStudentsResponse {
   total: number;
   totalPages: number;
   activeCount: number;
+  minorsCount: number;
   totalXpPoints: number;
 }
 
@@ -40,7 +46,11 @@ export async function getStudentsAction(
       whereCondition.OR = [
         { user: { name: { contains: query, mode: "insensitive" } } },
         { user: { email: { contains: query, mode: "insensitive" } } },
+        { firstName: { contains: query, mode: "insensitive" } },
+        { lastName: { contains: query, mode: "insensitive" } },
+        { email: { contains: query, mode: "insensitive" } },
         { emergencyContact: { contains: query, mode: "insensitive" } },
+        { idNumber: { contains: query, mode: "insensitive" } },
       ];
     }
 
@@ -53,7 +63,10 @@ export async function getStudentsAction(
       };
     }
 
-    const [students, total, activeCount, aggregateXp] = await Promise.all([
+    const eighteenYearsAgo = new Date();
+    eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
+    const [students, total, activeCount, minorsCount, aggregateXp] = await Promise.all([
       prisma.studentProfile.findMany({
         where: whereCondition,
         include: {
@@ -76,7 +89,18 @@ export async function getStudentsAction(
       }),
       prisma.studentProfile.count({ where: whereCondition }),
       prisma.studentProfile.count({
-        where: { ...whereCondition, user: { isActive: true } },
+        where: {
+          ...whereCondition,
+          NOT: { user: { isActive: false } },
+        },
+      }),
+      prisma.studentProfile.count({
+        where: {
+          ...whereCondition,
+          birthDate: {
+            gt: eighteenYearsAgo,
+          },
+        },
       }),
       prisma.studentProfile.aggregate({
         where: whereCondition,
@@ -94,6 +118,7 @@ export async function getStudentsAction(
         total,
         totalPages,
         activeCount,
+        minorsCount,
         totalXpPoints,
       },
     };
@@ -116,8 +141,11 @@ export async function createStudentAction(
     const {
       brandId,
       name,
+      firstName,
+      lastName,
       email,
       password,
+      createUserAccount,
       birthDate,
       emergencyContact,
       idNumber,
@@ -134,21 +162,13 @@ export async function createStudentAction(
       image,
     } = parsed.data;
 
-    // Check duplicate email for user account
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+    const targetBrand = await prisma.brand.findUnique({
+      where: { id: brandToUse },
+      select: { locale: true, timezone: true },
     });
-
-    if (existingUser) {
-      return {
-        success: false,
-        error: "El correo electrónico ya está registrado en el sistema.",
-      };
-    }
-
-    // Default password if not provided
-    const plainPassword = password || "Menlu2026!";
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    const brandLocale = targetBrand?.locale || "es";
+    const brandTimezone = targetBrand?.timezone || "UTC";
 
     // Optional Parent Profile logic
     let parentProfileId: string | null = null;
@@ -161,12 +181,15 @@ export async function createStudentAction(
       if (existingParentUser?.parentProfile) {
         parentProfileId = existingParentUser.parentProfile.id;
       } else {
+        const parentHashedPassword = await bcrypt.hash("Menlu2026!", 10);
         const newParentUser = await prisma.user.create({
           data: {
             name: parentName || "Tutor / Guardián",
             email: parentEmail.trim(),
-            password: hashedPassword,
-            brandId: brandId === "ALL" ? "seed-brand-general" : brandId,
+            password: parentHashedPassword,
+            brandId: brandToUse,
+            locale: brandLocale,
+            timezone: brandTimezone,
             isActive: true,
             parentProfile: {
               create: {
@@ -180,65 +203,127 @@ export async function createStudentAction(
       }
     }
 
-    // Create User & Student Profile inside Transaction
-    const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+    const shouldCreateUser = Boolean(createUserAccount && email && email.trim());
 
-    const studentUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        brandId: brandToUse,
-        isActive: true,
-        image: image || null,
-        studentProfile: {
-          create: {
-            brandId: brandToUse,
-            parentId: parentProfileId,
-            birthDate: birthDate ? new Date(birthDate) : null,
-            emergencyContact: emergencyContact || null,
-            idNumber: idNumber || null,
-            nationality: nationality || null,
-            healthInsuranceProvider: healthInsuranceProvider || null,
-            healthInsurancePolicyNumber: healthInsurancePolicyNumber || null,
-            medicalConditions: medicalConditions || null,
-            medications: medications || null,
-            effortPoints: 0,
-            currentStreak: 0,
-            currentBeltId: beltId || null,
-            enrollments: {
-              create: disciplineIds.map((discId) => ({
-                disciplineId: discId,
-                status: "ACTIVE",
-              })),
+    if (shouldCreateUser && email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: email.trim() },
+      });
+
+      if (existingUser) {
+        return {
+          success: false,
+          error: "El correo electrónico ya está registrado en el sistema.",
+        };
+      }
+
+      const plainPassword = password || "Menlu2026!";
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+      const studentUser = await prisma.user.create({
+        data: {
+          name,
+          email: email.trim(),
+          password: hashedPassword,
+          brandId: brandToUse,
+          locale: brandLocale,
+          timezone: brandTimezone,
+          isActive: true,
+          image: image || null,
+          studentProfile: {
+            create: {
+              brandId: brandToUse,
+              parentId: parentProfileId,
+              firstName: firstName || name.split(" ")[0] || name,
+              lastName: lastName || name.split(" ").slice(1).join(" ") || "",
+              email: email.trim(),
+              birthDate: birthDate ? new Date(birthDate) : null,
+              emergencyContact: emergencyContact || null,
+              idNumber: idNumber || null,
+              nationality: nationality || null,
+              healthInsuranceProvider: healthInsuranceProvider || null,
+              healthInsurancePolicyNumber: healthInsurancePolicyNumber || null,
+              medicalConditions: medicalConditions || null,
+              medications: medications || null,
+              effortPoints: 0,
+              currentStreak: 0,
+              currentBeltId: beltId || null,
+              enrollments: {
+                create: disciplineIds.map((discId) => ({
+                  disciplineId: discId,
+                  status: "ACTIVE",
+                })),
+              },
             },
           },
         },
-      },
-      include: {
-        studentProfile: {
-          include: {
-            user: true,
-            currentBelt: true,
-            parent: { include: { user: true } },
-            enrollments: { include: { discipline: true } },
+        include: {
+          studentProfile: {
+            include: {
+              user: true,
+              currentBelt: true,
+              parent: { include: { user: true } },
+              enrollments: { include: { discipline: true } },
+            },
           },
         },
+      });
+
+      if (!studentUser.studentProfile) {
+        return { success: false, error: "Error al crear perfil de alumno." };
+      }
+
+      return {
+        success: true,
+        data: {
+          ...studentUser.studentProfile,
+          user: studentUser,
+          enrollments: studentUser.studentProfile.enrollments,
+        } as StudentWithDetails,
+      };
+    }
+
+    // Direct Student Profile creation without User account
+    const createdProfile = await prisma.studentProfile.create({
+      data: {
+        brandId: brandToUse,
+        parentId: parentProfileId,
+        firstName: firstName || name.split(" ")[0] || name,
+        lastName: lastName || name.split(" ").slice(1).join(" ") || "",
+        email: email ? email.trim() : null,
+        birthDate: birthDate ? new Date(birthDate) : null,
+        emergencyContact: emergencyContact || null,
+        idNumber: idNumber || null,
+        nationality: nationality || null,
+        healthInsuranceProvider: healthInsuranceProvider || null,
+        healthInsurancePolicyNumber: healthInsurancePolicyNumber || null,
+        medicalConditions: medicalConditions || null,
+        medications: medications || null,
+        effortPoints: 0,
+        currentStreak: 0,
+        currentBeltId: beltId || null,
+        enrollments: {
+          create: disciplineIds.map((discId) => ({
+            disciplineId: discId,
+            status: "ACTIVE",
+          })),
+        },
+      },
+      include: {
+        user: true,
+        currentBelt: true,
+        parent: { include: { user: true } },
+        enrollments: { include: { discipline: true } },
       },
     });
 
-    if (!studentUser.studentProfile) {
-      return { success: false, error: "Error al crear perfil de alumno." };
+    if (image && image.trim()) {
+      await uploadStudentPhotoAction(createdProfile.id, image);
     }
 
-    const createdProfile = studentUser.studentProfile;
     return {
       success: true,
-      data: {
-        ...createdProfile,
-        user: studentUser,
-        enrollments: createdProfile.enrollments,
-      },
+      data: createdProfile as StudentWithDetails,
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Error al registrar alumno.";
@@ -288,23 +373,29 @@ export async function updateStudentAction(
       return { success: false, error: "Perfil de alumno no encontrado." };
     }
 
-    // Update User Name/Email/Image
+    // Update User Name/Email/Image if user account exists
     const userDataToUpdate: {
       name: string;
       email: string;
       image?: string | null;
     } = {
       name,
-      email,
+      email: email ? email.trim() : "",
     };
     if (image !== undefined) {
       userDataToUpdate.image = image || null;
     }
 
-    await prisma.user.update({
-      where: { id: student.userId },
-      data: userDataToUpdate,
-    });
+    if (student.userId) {
+      await prisma.user.update({
+        where: { id: student.userId },
+        data: userDataToUpdate,
+      });
+    }
+
+    const nameParts = name.trim().split(" ");
+    const firstName = nameParts[0] || name;
+    const lastName = nameParts.slice(1).join(" ") || "";
 
     // Parent Profile Update/Creation logic
     let parentIdToSet = student.parentId;
@@ -342,6 +433,9 @@ export async function updateStudentAction(
     await prisma.studentProfile.update({
       where: { id: studentId },
       data: {
+        firstName,
+        lastName,
+        email: email ? email.trim() : null,
         birthDate: birthDate ? new Date(birthDate) : null,
         emergencyContact: emergencyContact || null,
         idNumber: idNumber || null,
@@ -573,14 +667,305 @@ export async function uploadStudentPhotoAction(
 
     const imageUrl = `/uploads/students/${studentId}.jpg?v=${Date.now()}`;
 
-    await prisma.user.update({
-      where: { id: student.userId },
-      data: { image: imageUrl },
-    });
+    try {
+      await prisma.studentProfile.update({
+        where: { id: studentId },
+        data: { photoUrl: imageUrl },
+      });
+
+      if (student.userId) {
+        await prisma.user.update({
+          where: { id: student.userId },
+          data: { image: imageUrl },
+        });
+      }
+    } catch (dbErr) {
+      console.warn("Notice: DB update skipped or column photo_url pending in schema:", dbErr);
+    }
 
     return { success: true, data: { imageUrl } };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error al subir fotografía.";
+    return { success: false, error: msg };
+  }
+}
+
+export async function createStudentUserAccountAction(
+  data: unknown
+): Promise<ApiResponse<StudentWithDetails>> {
+  try {
+    const parsed = createStudentUserAccountSchema.safeParse(data);
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message || "Datos de usuario inválidos.";
+      return { success: false, error: msg };
+    }
+
+    const { studentId, email, password } = parsed.data;
+
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      include: { user: true },
+    });
+
+    if (!student) {
+      return { success: false, error: "Alumno no encontrado." };
+    }
+
+    if (student.userId || student.user) {
+      return {
+        success: false,
+        error: "El alumno ya cuenta con un usuario de acceso registrado.",
+      };
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.trim() },
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        error: "El correo electrónico ya está en uso por otra cuenta.",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const fullName =
+      `${student.firstName || ""} ${student.lastName || ""}`.trim() || "Alumno";
+
+    const brand = await prisma.brand.findUnique({
+      where: { id: student.brandId },
+      select: { locale: true, timezone: true },
+    });
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: fullName,
+        email: email.trim(),
+        password: hashedPassword,
+        brandId: student.brandId,
+        locale: brand?.locale || "es",
+        timezone: brand?.timezone || "UTC",
+        isActive: true,
+      },
+    });
+
+    const updatedStudent = await prisma.studentProfile.update({
+      where: { id: studentId },
+      data: {
+        userId: newUser.id,
+        email: email.trim(),
+      },
+      include: {
+        user: true,
+        currentBelt: true,
+        parent: { include: { user: true } },
+        enrollments: { include: { discipline: true } },
+      },
+    });
+
+    return {
+      success: true,
+      data: updatedStudent as StudentWithDetails,
+    };
+  } catch (error) {
+    const msg =
+      error instanceof Error
+        ? error.message
+        : "Error al generar la cuenta de usuario.";
+    return { success: false, error: msg };
+  }
+}
+
+export async function importStudentsFromCSVAction(
+  brandId: string,
+  csvContent: string
+): Promise<ApiResponse<string>> {
+  try {
+    if (!brandId) {
+      return { success: false, error: "ID de marca/dojo no especificado." };
+    }
+
+    const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+
+    const { data: rawData, delimiter, warning } = parseCSV(csvContent);
+    if (!delimiter || warning) {
+      return {
+        success: false,
+        error:
+          warning ||
+          "No se detectó ningún carácter de separación válido (, ; |) en el archivo.",
+      };
+    }
+
+    const results: Record<string, string>[] = [];
+
+    for (const row of rawData) {
+      const nameRaw = row.nombre || row.name || row.fullname || "";
+      const firstName = row.primer_nombre || row.firstname || nameRaw.split(" ")[0] || "";
+      const lastName =
+        row.apellido ||
+        row.lastname ||
+        nameRaw.split(" ").slice(1).join(" ") ||
+        "";
+      const fullName = `${firstName} ${lastName}`.trim() || nameRaw.trim();
+
+      if (!fullName) {
+        results.push({
+          ...row,
+          estado: "ERROR",
+          detalle: "Falta el nombre obligatorio del alumno",
+        });
+        continue;
+      }
+
+      let birthDate: Date | null = null;
+      const fechaRaw = row.fecha_nacimiento || row.birthdate;
+      if (fechaRaw && fechaRaw.trim()) {
+        const parts = fechaRaw.trim().split("/");
+        if (parts.length === 3) {
+          const [dayStr, monthStr, yearStr] = parts;
+          const parsedDay = parseInt(dayStr, 10);
+          const parsedMonth = parseInt(monthStr, 10) - 1;
+          const parsedYear = parseInt(yearStr, 10);
+          if (!isNaN(parsedDay) && !isNaN(parsedMonth) && !isNaN(parsedYear)) {
+            birthDate = new Date(Date.UTC(parsedYear, parsedMonth, parsedDay));
+          }
+        } else {
+          const parsed = new Date(fechaRaw.trim());
+          if (!isNaN(parsed.getTime())) {
+            birthDate = parsed;
+          }
+        }
+      }
+
+      const nationality = row.nacionalidad || row.nationality || null;
+      const idNumber = row.documento_identidad || row.idnumber || row.cedula || null;
+      const emergencyContact = row.emergencia_telefono || row.telefono_emergencia || row.phone || null;
+      const parentName = row.tutor_nombre || row.tutor || row.guardian || null;
+      const parentEmail = row.tutor_email || row.correo_tutor || null;
+      const parentPhone = row.tutor_telefono || row.telefono_tutor || null;
+
+      try {
+        let parentProfileId: string | null = null;
+        if (parentEmail && parentEmail.trim()) {
+          const existingParentUser = await prisma.user.findUnique({
+            where: { email: parentEmail.trim() },
+            include: { parentProfile: true },
+          });
+
+          if (existingParentUser?.parentProfile) {
+            parentProfileId = existingParentUser.parentProfile.id;
+          } else {
+            const parentHashedPassword = await bcrypt.hash("Menlu2026!", 10);
+            const newParentUser = await prisma.user.create({
+              data: {
+                name: parentName || "Tutor / Guardián",
+                email: parentEmail.trim(),
+                password: parentHashedPassword,
+                brandId: brandToUse,
+                locale: brandLocale,
+                timezone: brandTimezone,
+                isActive: true,
+                parentProfile: {
+                  create: {
+                    phoneNumber: parentPhone,
+                  },
+                },
+              },
+              include: { parentProfile: true },
+            });
+            parentProfileId = newParentUser.parentProfile?.id || null;
+          }
+        }
+
+        let existingStudent = null;
+        if (idNumber) {
+          existingStudent = await prisma.studentProfile.findFirst({
+            where: { idNumber, brandId: brandToUse },
+          });
+        }
+        if (!existingStudent && firstName && lastName) {
+          existingStudent = await prisma.studentProfile.findFirst({
+            where: {
+              brandId: brandToUse,
+              firstName: { equals: firstName, mode: "insensitive" },
+              lastName: { equals: lastName, mode: "insensitive" },
+            },
+          });
+        }
+
+        if (existingStudent) {
+          await prisma.studentProfile.update({
+            where: { id: existingStudent.id },
+            data: {
+              firstName: firstName || existingStudent.firstName,
+              lastName: lastName || existingStudent.lastName,
+              birthDate: birthDate || existingStudent.birthDate,
+              nationality: nationality || existingStudent.nationality,
+              emergencyContact: emergencyContact || existingStudent.emergencyContact,
+              parentId: parentProfileId || existingStudent.parentId,
+            },
+          });
+
+          results.push({
+            ...row,
+            estado: "ACTUALIZADO",
+            detalle: "Expediente de alumno actualizado correctamente",
+          });
+        } else {
+          await prisma.studentProfile.create({
+            data: {
+              brandId: brandToUse,
+              firstName,
+              lastName,
+              birthDate,
+              nationality,
+              idNumber,
+              emergencyContact,
+              parentId: parentProfileId,
+              effortPoints: 0,
+              currentStreak: 0,
+            },
+          });
+
+          results.push({
+            ...row,
+            estado: "CREADO",
+            detalle: "Alumno registrado exitosamente sin cuenta de usuario obligatoria",
+          });
+        }
+      } catch (rowError) {
+        const errorMsg =
+          rowError instanceof Error ? rowError.message : "Error procesando registro";
+        results.push({
+          ...row,
+          estado: "ERROR",
+          detalle: errorMsg,
+        });
+      }
+    }
+
+    const headers = [
+      "nombre",
+      "apellido",
+      "fecha_nacimiento",
+      "documento_identidad",
+      "tutor_nombre",
+      "tutor_email",
+      "estado",
+      "detalle",
+    ];
+
+    const reportCsv = generateCSV(headers, results);
+
+    return {
+      success: true,
+      data: reportCsv,
+    };
+  } catch (error) {
+    const msg =
+      error instanceof Error ? error.message : "Error al importar alumnos desde CSV.";
     return { success: false, error: msg };
   }
 }

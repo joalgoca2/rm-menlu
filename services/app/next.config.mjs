@@ -2,6 +2,11 @@
 const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["bcryptjs", "@prisma/client"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

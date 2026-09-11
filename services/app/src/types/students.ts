@@ -2,13 +2,13 @@ import type { User } from "./auth";
 import type { StudentProfile, Belt, StudentEnrollment, Discipline, ParentProfile } from "./dojo";
 
 export interface StudentProfileWithUser extends StudentProfile {
-  user: User;
+  user?: User | null;
   currentBelt?: Belt | null;
   enrollments?: (StudentEnrollment & { discipline: Discipline })[];
 }
 
 export interface StudentWithDetails extends StudentProfile {
-  user: User;
+  user?: User | null;
   currentBelt?: Belt | null;
   parent?: (ParentProfile & { user?: User | null }) | null;
   enrollments: (StudentEnrollment & { discipline: Discipline })[];

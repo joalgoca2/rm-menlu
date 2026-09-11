@@ -75,6 +75,13 @@ prod-build: prod-validate ## [LOCAL] Construye la imagen de producción
 	@echo "📦 Construyendo imagen de producción $(PROD_IMAGE_FULL)..."
 	docker build --network=host -f services/app/Dockerfile \
 		--build-arg NEXT_PUBLIC_APP_VERSION=$(PROD_DEPLOY_TAG) \
+		--build-arg NEXT_PUBLIC_ENABLE_INTEGRATIONS=$(NEXT_PUBLIC_ENABLE_INTEGRATIONS) \
+		--build-arg NEXT_PUBLIC_ENABLE_BILLING=$(NEXT_PUBLIC_ENABLE_BILLING) \
+		--build-arg NEXT_PUBLIC_ENABLE_PWA=$(NEXT_PUBLIC_ENABLE_PWA) \
+		--build-arg NEXT_PUBLIC_ENABLE_WALKTHROUGH=$(NEXT_PUBLIC_ENABLE_WALKTHROUGH) \
+		--build-arg NEXT_PUBLIC_ENABLE_SCREEN_LOCK=$(NEXT_PUBLIC_ENABLE_SCREEN_LOCK) \
+		--build-arg NEXT_PUBLIC_ENABLE_OFFLINE=$(NEXT_PUBLIC_ENABLE_OFFLINE) \
+		--build-arg NEXT_PUBLIC_ENABLE_AI_CHAT=$(NEXT_PUBLIC_ENABLE_AI_CHAT) \
 		-t $(PROD_IMAGE_FULL) \
 		-t $(PROD_IMAGE_NAME):latest \
 		--target runner \

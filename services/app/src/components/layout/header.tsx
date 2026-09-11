@@ -82,8 +82,8 @@ export function Header() {
         >
           <div
             className={
-              "h-8 w-8 rounded-lg bg-emerald-600 flex items-center justify-center " +
-              "text-white font-bold text-xs shrink-0 shadow-sm"
+              "h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center " +
+              "text-zinc-950 font-black text-xs shrink-0 shadow-sm"
             }
           >
             {initial}
@@ -101,8 +101,8 @@ export function Header() {
               </span>
               <ChevronDown
                 className={
-                  "h-3 w-3 text-zinc-400 group-hover:text-emerald-600 " +
-                  "dark:text-zinc-500 dark:group-hover:text-emerald-400"
+                  "h-3 w-3 text-zinc-400 group-hover:text-amber-500 " +
+                  "dark:text-zinc-500 dark:group-hover:text-amber-400"
                 }
               />
             </div>

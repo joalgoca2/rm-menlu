@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "./auth";
 import { hasRouteAccess } from "@/lib/permissions";
+import { isFeatureEnabled } from "@/lib/config/entitlements";
 
 const isDev = process.env.NODE_ENV !== "production";
 const scriptSrc = `script-src 'self' 'unsafe-inline' ${
@@ -55,8 +56,7 @@ export async function proxyMiddleware(req: NextRequest) {
   const isDashboardPage = pathname.startsWith("/dashboard");
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isBillingDisabled =
-    process.env.NEXT_PUBLIC_ENABLE_BILLING === "false";
+  const isBillingDisabled = !isFeatureEnabled("billing");
   const isBillingPage =
     pathname.startsWith("/dashboard/billing") ||
     pathname.startsWith("/dashboard/settings/billing");

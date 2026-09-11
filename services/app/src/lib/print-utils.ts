@@ -1,6 +1,7 @@
 "use client";
 
 import type { StudentWithDetails } from "@/types";
+import { getStudentPhotoUrl } from "@/lib/utils";
 
 // Generate high-resolution, scan-ready vector QR Code SVG string for print window
 function generateQRSVGString(value: string, size: number = 48): string {
@@ -111,8 +112,14 @@ export function printStudentCredentials(students: StudentWithDetails[]) {
       const beltName = student.currentBelt?.name || "";
       const beltColor = student.currentBelt?.colorHex || "#e4e4e7";
 
-      const photoHtml = student.user.image
-        ? `<img src="${student.user.image}" style="width:100%; height:100%; object-fit:cover;" />`
+      const studentName =
+        student.user?.name ||
+        `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+        "Alumno";
+
+      const photoUrl = getStudentPhotoUrl(student);
+      const photoHtml = photoUrl
+        ? `<img src="${photoUrl}" style="width:100%; height:100%; object-fit:cover;" />`
         : `<div style="font-size:18px; color:#a1a1aa;">🥋</div>`;
 
       cardsHtml += `
@@ -142,7 +149,7 @@ export function printStudentCredentials(students: StudentWithDetails[]) {
 
             <!-- Student Text -->
             <div style="min-width:0;">
-              <div style="font-size:9pt; font-weight:900; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; leading-tight;">${student.user.name}</div>
+              <div style="font-size:9pt; font-weight:900; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; leading-tight;">${studentName}</div>
               <div style="font-size:6.5pt; font-family:monospace; font-weight:bold; color:#fbbf24; margin-top:1px;">ID: ${studentIdCode}</div>
               <div style="font-size:6pt; color:#e4e4e7; margin-top:2px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${disciplinesText}

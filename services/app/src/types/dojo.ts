@@ -32,9 +32,13 @@ export interface ParentProfile {
 
 export interface StudentProfile {
   id: string;
-  userId: string;
+  userId?: string | null;
   brandId: string;
   parentId?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  photoUrl?: string | null;
   birthDate?: Date | null;
   emergencyContact?: string | null;
   idNumber?: string | null;

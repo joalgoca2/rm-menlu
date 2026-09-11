@@ -33,6 +33,7 @@ import { FEATURES } from "@/lib/config/features";
 import { useBrand } from "@/context/brand-context";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { useSidebar } from "@/context/sidebar-context";
+import { useEntitlements } from "@/hooks/use-entitlements";
 import { hasRouteAccess } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -55,17 +56,17 @@ const mainNavItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    key: "nav.groups",
-    defaultTitle: "Grupos / Clases",
-    href: "/dashboard/groups",
-    icon: UsersRound,
-    adminOnly: true,
-  },
-  {
     key: "nav.students",
     defaultTitle: "Alumnos",
     href: "/dashboard/students",
     icon: Users,
+    adminOnly: true,
+  },
+  {
+    key: "nav.groups",
+    defaultTitle: "Grupos / Clases",
+    href: "/dashboard/groups",
+    icon: UsersRound,
     adminOnly: true,
   },
   {
@@ -189,20 +190,17 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
 
   const isExpanded = isMobileOpen || !isCollapsed;
 
-  const isIntegrationsEnabled =
-    process.env.NEXT_PUBLIC_ENABLE_INTEGRATIONS !== "false";
-  const isBillingEnabled =
-    process.env.NEXT_PUBLIC_ENABLE_BILLING !== "false";
+  const { isFeatureEnabled } = useEntitlements();
 
   const visibleAdminNavItems = adminNavItems.filter((item) => {
     if (!hasRouteAccess(item.href, userRoles ?? [])) {
       return false;
     }
     if (item.key === "nav.integrations") {
-      return isIntegrationsEnabled;
+      return isFeatureEnabled("integrations");
     }
     if (item.key === "nav.billing") {
-      return isBillingEnabled;
+      return isFeatureEnabled("billing");
     }
     return true;
   });
@@ -315,7 +313,7 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   }
                 >
                   <span className="flex items-center gap-1.5">
-                    <Building2 size={13} className="text-emerald-500" />
+                    <Building2 size={13} className="text-amber-500" />
                     {t("nav.adminSection", "SaaS Admin")}
                   </span>
                   {isSaaSAdminOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
@@ -360,8 +358,8 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   className={cn(
                     "p-1 rounded-md transition-all cursor-pointer",
                     theme === "light"
-                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                          "dark:text-emerald-400 shadow-xs font-bold"
+                      ? "bg-white text-amber-600 dark:bg-zinc-800 " +
+                          "dark:text-amber-400 shadow-xs font-bold"
                       : "text-zinc-500 hover:text-zinc-900 " +
                           "dark:text-zinc-400 dark:hover:text-zinc-200"
                   )}
@@ -375,8 +373,8 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   className={cn(
                     "p-1 rounded-md transition-all cursor-pointer",
                     theme === "dark"
-                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                          "dark:text-emerald-400 shadow-xs font-bold"
+                      ? "bg-white text-amber-600 dark:bg-zinc-800 " +
+                          "dark:text-amber-400 shadow-xs font-bold"
                       : "text-zinc-500 hover:text-zinc-900 " +
                           "dark:text-zinc-400 dark:hover:text-zinc-200"
                   )}
@@ -390,8 +388,8 @@ export function Sidebar({ userRoles }: { userRoles?: string[] }) {
                   className={cn(
                     "p-1 rounded-md transition-all cursor-pointer",
                     theme === "system"
-                      ? "bg-white text-emerald-600 dark:bg-zinc-800 " +
-                          "dark:text-emerald-400 shadow-xs font-bold"
+                      ? "bg-white text-amber-600 dark:bg-zinc-800 " +
+                          "dark:text-amber-400 shadow-xs font-bold"
                       : "text-zinc-500 hover:text-zinc-900 " +
                           "dark:text-zinc-400 dark:hover:text-zinc-200"
                   )}
@@ -479,8 +477,8 @@ function SidebarNavLink({
         "relative flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg " +
           "transition-all duration-200 border group",
         isActive
-          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 " +
-              "dark:text-emerald-400 font-bold shadow-xs"
+          ? "bg-amber-500/10 border-amber-500/20 text-amber-600 " +
+              "dark:text-amber-400 font-bold shadow-xs"
           : "text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900 border-transparent " +
               "dark:text-zinc-400 dark:hover:bg-zinc-900/80 dark:hover:text-white",
         !isExpanded && "justify-center px-0 py-2"
@@ -490,7 +488,7 @@ function SidebarNavLink({
       {isActive && (
         <span
           className={cn(
-            "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-emerald-500 rounded-r-full",
+            "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-4 bg-amber-500 rounded-r-full",
             !isExpanded && "left-0.5"
           )}
         />
@@ -499,7 +497,7 @@ function SidebarNavLink({
         className={cn(
           "h-4 w-4 shrink-0 transition-colors",
           isActive
-            ? "text-emerald-600 dark:text-emerald-400"
+            ? "text-amber-600 dark:text-amber-400"
             : "text-zinc-400 group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-300"
         )}
       />
@@ -520,8 +518,8 @@ function BrandSwitcherHeader({
 
   if (!isExpanded) {
     return (
-      <div className="bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 shrink-0">
-        <Layers className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
+      <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 shrink-0">
+        <Layers className="h-5 w-5 text-amber-500 dark:text-amber-400" />
       </div>
     );
   }
@@ -556,7 +554,7 @@ function BrandSwitcherHeader({
               "w-full text-[11px] font-semibold rounded-lg px-2 py-1 border " +
                 "transition-all cursor-pointer outline-none h-7",
               isGlobalMode
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 font-bold"
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 font-bold"
                 : "bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200"
             )}
           >

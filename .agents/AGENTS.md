@@ -48,8 +48,9 @@
 
 - **Mandatory i18n Preparedness**: ALL UI pages, components, layouts, headings, descriptions, field labels, input placeholders, toast notifications, and modal dialogs MUST be prepared for multi-language support. NEVER leave hardcoded static UI text strings without adding their corresponding translation keys.
 - **`useTranslation()` Standard**: In client components, ALWAYS use the `useTranslation()` hook from `@/components/providers/i18n-provider` and consume strings via `t("domain.key", "Fallback Text")`.
-- **Synchronized Translation Dictionaries**: Whenever a new UI key is created or modified in `services/app/src/locales/es.json`, ALWAYS add its corresponding translation to `services/app/src/locales/en.json` to guarantee 100% key parity across locales.
+- **Synchronized Translation Dictionaries**: Whenever a new UI key is created or modified in `services/app/src/locales/es.json`, ALWAYS add its corresponding translation to `services/app/src/locales/en.json` and `services/app/src/locales/pt.json` to guarantee 100% key parity across locales.
 - **Dual Persistence i18n Strategy**: Persist language preference to `User.locale` in the database for logged-in users, AND store in `localStorage` (`NEXT_LOCALE`) + HTTP cookies for unauthenticated guest visitors.
+- **Single Domain Block JSON Standard**: In locale dictionary files (`es.json`, `en.json`, `pt.json`), NEVER append duplicate top-level domain keys (e.g. creating a second `"dojo"` or `"dashboard"` block at the bottom of the file). ALWAYS merge new translation keys into the existing top-level domain block to prevent keys from being overwritten during JSON parsing.
 
 ## Architecture & CLI Shortcuts
 
@@ -82,3 +83,9 @@
 
 - **UI Input to UTC Conversion**: Always parse localized date inputs from forms/pickers using `toUtcDate(input, userTimezone)` from `@/lib/date` to produce a valid UTC `Date` object before persisting to Prisma.
 - **UI DatePicker Initialization**: Format UTC dates from the database for HTML date inputs using `formatDateForPicker(utcDate, userTimezone, includeTime)` in `@/lib/date`.
+
+## Feature Flags, Entitlements & Permissions Rules
+
+- **Centralized Entitlements Engine**: ALL feature flag checks (`NEXT_PUBLIC_ENABLE_*`), plan tier limits/capabilities, and feature gating MUST be registered in and consumed through `@/lib/config/entitlements.ts`.
+- **No Ad-Hoc Page Environment Checks**: NEVER perform direct inline environment variable parsing (`process.env.NEXT_PUBLIC_ENABLE_*`) or duplicate hardcoded plan checks inside individual page files or components. ALWAYS use the `useEntitlements()` hook in client components or `isFeatureEnabled()` / `assertFeatureEnabled()` / `assertBrandPlanLimit()` in Server Actions, proxy, and backend endpoints.
+

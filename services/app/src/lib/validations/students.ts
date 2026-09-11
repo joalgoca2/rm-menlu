@@ -3,8 +3,11 @@ import { z } from "zod";
 export const createStudentSchema = z.object({
   brandId: z.string().min(1, "La marca/dojo es requerida."),
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
-  email: z.string().trim().email("Formato de correo electrónico inválido."),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres.").optional(),
+  firstName: z.string().trim().max(100).optional().nullable(),
+  lastName: z.string().trim().max(100).optional().nullable(),
+  email: z.string().trim().email("Formato de correo electrónico inválido.").optional().or(z.literal("")),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres.").optional().or(z.literal("")),
+  createUserAccount: z.boolean().optional().default(false),
   birthDate: z.string().optional().nullable(),
   emergencyContact: z.string().trim().max(100).optional().nullable(),
   idNumber: z.string().trim().max(50).optional().nullable(),
@@ -24,7 +27,7 @@ export const createStudentSchema = z.object({
 export const updateStudentSchema = z.object({
   studentId: z.string().min(1, "ID de alumno requerido."),
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
-  email: z.string().trim().email("Formato de correo electrónico inválido."),
+  email: z.string().trim().email("Formato de correo electrónico inválido.").optional().or(z.literal("")),
   birthDate: z.string().optional().nullable(),
   emergencyContact: z.string().trim().max(100).optional().nullable(),
   idNumber: z.string().trim().max(50).optional().nullable(),
@@ -44,5 +47,12 @@ export const updateStudentSchema = z.object({
   image: z.string().optional().nullable(),
 });
 
+export const createStudentUserAccountSchema = z.object({
+  studentId: z.string().min(1, "ID de alumno requerido."),
+  email: z.string().trim().email("Correo electrónico obligatorio para el acceso."),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres."),
+});
+
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;
+export type CreateStudentUserAccountInput = z.infer<typeof createStudentUserAccountSchema>;
