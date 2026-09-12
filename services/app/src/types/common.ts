@@ -2,6 +2,8 @@ export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
+  errorKey?: string;
+  errorParams?: Record<string, string | number>;
   message?: string;
 }
 

@@ -156,6 +156,7 @@ export async function applyDisciplineTemplateAction(
     includeBelts?: boolean;
     includeChallenges?: boolean;
     includeRubrics?: boolean;
+    replaceExistingBelts?: boolean;
   }
 ): Promise<ApiResponse<boolean>> {
   try {
@@ -171,11 +172,40 @@ export async function applyDisciplineTemplateAction(
       return { success: false, error: "Disciplina no encontrada." };
     }
 
+    // 0. Replace existing belts if requested
+    if (options?.replaceExistingBelts) {
+      const existingBeltIds = await prisma.belt.findMany({
+        where: { disciplineId },
+        select: { id: true },
+      });
+      const ids = existingBeltIds.map((b) => b.id);
+      if (ids.length > 0) {
+        const assignedStudents = await prisma.studentProfile.count({
+          where: { currentBeltId: { in: ids } },
+        });
+
+        if (assignedStudents > 0) {
+          return {
+            success: false,
+            error: `No se pueden reemplazar los cinturones existentes porque ${assignedStudents} alumno(s) tienen asignado un cinturón de esta disciplina. Reasigna sus cinturones primero.`,
+            errorKey: "dojo.cannotReplaceBeltsWithStudents",
+            errorParams: { count: assignedStudents },
+          };
+        }
+
+        await prisma.belt.deleteMany({
+          where: { id: { in: ids } },
+        });
+      }
+    }
+
     // 1. Create Belts if requested
     if (options?.includeBelts !== false && template.belts && template.belts.length > 0) {
-      const existingBeltsCount = await prisma.belt.count({
-        where: { disciplineId },
-      });
+      const existingBeltsCount = options?.replaceExistingBelts
+        ? 0
+        : await prisma.belt.count({
+            where: { disciplineId },
+          });
 
       for (let i = 0; i < template.belts.length; i++) {
         const b = template.belts[i];
@@ -364,6 +394,19 @@ export async function deleteDisciplineAction(
   id: string
 ): Promise<ApiResponse<boolean>> {
   try {
+    const activeEnrollments = await prisma.studentEnrollment.count({
+      where: { disciplineId: id, status: "ACTIVE" },
+    });
+
+    if (activeEnrollments > 0) {
+      return {
+        success: false,
+        error: `No se puede eliminar la disciplina porque tiene ${activeEnrollments} alumno(s) activo(s) inscritos. Te recomendamos desactivarla (marcarla Inactiva) en su lugar.`,
+        errorKey: "dojo.cannotDeleteDisciplineWithStudents",
+        errorParams: { count: activeEnrollments },
+      };
+    }
+
     await prisma.discipline.delete({
       where: { id },
     });
@@ -404,6 +447,19 @@ export async function deleteBeltAction(
   id: string
 ): Promise<ApiResponse<boolean>> {
   try {
+    const assignedStudents = await prisma.studentProfile.count({
+      where: { currentBeltId: id },
+    });
+
+    if (assignedStudents > 0) {
+      return {
+        success: false,
+        error: `No se puede eliminar el cinturón porque está asignado a ${assignedStudents} alumno(s) activo(s). Reasigna su cinturón antes de eliminar.`,
+        errorKey: "dojo.cannotDeleteBeltWithStudents",
+        errorParams: { count: assignedStudents },
+      };
+    }
+
     await prisma.belt.delete({
       where: { id },
     });
@@ -454,6 +510,38 @@ export async function reorderBeltsAction(
     return { success: true, data: true };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Error al reordenar cinturones.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function deleteBeltsBulkAction(
+  ids: string[]
+): Promise<ApiResponse<boolean>> {
+  try {
+    if (!ids || ids.length === 0) {
+      return { success: false, error: "No se seleccionaron cinturones." };
+    }
+
+    const assignedStudents = await prisma.studentProfile.count({
+      where: { currentBeltId: { in: ids } },
+    });
+
+    if (assignedStudents > 0) {
+      return {
+        success: false,
+        error: `No se pueden eliminar los cinturones seleccionados porque ${assignedStudents} alumno(s) tienen asignado uno de estos grados. Reasigna sus cinturones antes de eliminar.`,
+        errorKey: "dojo.cannotDeleteBeltsBulkWithStudents",
+        errorParams: { count: assignedStudents },
+      };
+    }
+
+    await prisma.belt.deleteMany({
+      where: { id: { in: ids } },
+    });
+
+    return { success: true, data: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al eliminar cinturones seleccionados.";
     return { success: false, error: errorMsg };
   }
 }

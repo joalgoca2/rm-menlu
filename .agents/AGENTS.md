@@ -38,6 +38,7 @@
 - **Server-Side URL Query Sync**: For all paginated tables/lists, pagination (`page`) and filtering parameters (`search`, `role`) MUST be synchronized with URL search parameters (`searchParams` / `useSearchParams`) to support deep-linking, browser history navigation, and link sharing.
 - **Tailwind CSS v4 Dark Mode**: Ensure `@custom-variant dark (&:where(.dark, .dark *));` is declared at the top of `globals.css` so `next-themes` class-based dark mode works seamlessly.
 - **Dual Light/Dark Theme Support**: All layout shells, navigation components, UI elements, and dashboard subpages MUST support both Light and Dark modes seamlessly using responsive Tailwind `dark:` variants instead of hardcoded static background or text colors.
+- **Strict UI Consistency & Pattern Parity**: Whenever the user references an existing page, screenshot, or feature design (e.g. bulk action floating toolbars, modals, card layouts), ALWAYS inspect the referenced file/implementation first (e.g. `users/page.tsx`) and replicate the exact layout, CSS styling, visual hierarchy, and interaction pattern. NEVER create ad-hoc or non-standard UI implementations that break system-wide visual homogeneity.
 
 ## Next.js 16 & Authentication Rules
 

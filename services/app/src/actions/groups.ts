@@ -126,6 +126,19 @@ export async function deleteStudentGroupAction(
   groupId: string
 ): Promise<ApiResponse<boolean>> {
   try {
+    const studentCount = await prisma.groupStudent.count({
+      where: { groupId },
+    });
+
+    if (studentCount > 0) {
+      return {
+        success: false,
+        error: `No se puede eliminar el grupo porque tiene ${studentCount} alumno(s) inscrito(s). Reasigna o desinscribe a sus alumnos primero.`,
+        errorKey: "groups.cannotDeleteHasStudents",
+        errorParams: { count: studentCount },
+      };
+    }
+
     await prisma.studentGroup.delete({
       where: { id: groupId },
     });
@@ -267,6 +280,111 @@ export async function assignStudentsToGroupAction(
     return { success: true, data: true };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Error al asignar alumnos al grupo.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function enrollStudentToGroupAction(
+  groupId: string,
+  studentId: string
+): Promise<ApiResponse<boolean>> {
+  try {
+    await prisma.groupStudent.upsert({
+      where: {
+        groupId_studentId: { groupId, studentId },
+      },
+      create: { groupId, studentId },
+      update: {},
+    });
+    return { success: true, data: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al inscribir alumno.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function removeStudentFromGroupAction(
+  groupId: string,
+  studentId: string
+): Promise<ApiResponse<boolean>> {
+  try {
+    await prisma.groupStudent.deleteMany({
+      where: { groupId, studentId },
+    });
+    return { success: true, data: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al desvincular alumno.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function toggleStudentGroupActiveAction(
+  groupId: string,
+  isActive: boolean
+): Promise<ApiResponse<boolean>> {
+  try {
+    await prisma.studentGroup.update({
+      where: { id: groupId },
+      data: { isActive },
+    });
+    return { success: true, data: true };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al cambiar estado del grupo.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function bulkDeleteStudentGroupsAction(
+  groupIds: string[]
+): Promise<ApiResponse<number>> {
+  try {
+    if (!groupIds.length) return { success: true, data: 0 };
+
+    const groupsWithStudents = await prisma.groupStudent.groupBy({
+      by: ["groupId"],
+      where: { groupId: { in: groupIds } },
+      _count: { studentId: true },
+    });
+
+    if (groupsWithStudents.length > 0) {
+      const totalStudentsCount = groupsWithStudents.reduce(
+        (acc, curr) => acc + curr._count.studentId,
+        0
+      );
+      return {
+        success: false,
+        error: `No se pueden eliminar los grupos seleccionados porque ${groupsWithStudents.length} grupo(s) tienen ${totalStudentsCount} alumno(s) inscrito(s). Reasigna o desinscribe a sus alumnos primero.`,
+        errorKey: "groups.cannotBulkDeleteHasStudents",
+        errorParams: {
+          groupsCount: groupsWithStudents.length,
+          studentsCount: totalStudentsCount,
+        },
+      };
+    }
+
+    const res = await prisma.studentGroup.deleteMany({
+      where: { id: { in: groupIds } },
+    });
+    return { success: true, data: res.count };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al eliminar grupos en lote.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function bulkToggleStudentGroupsActiveAction(
+  groupIds: string[],
+  isActive: boolean
+): Promise<ApiResponse<number>> {
+  try {
+    if (!groupIds.length) return { success: true, data: 0 };
+    const res = await prisma.studentGroup.updateMany({
+      where: { id: { in: groupIds } },
+      data: { isActive },
+    });
+    return { success: true, data: res.count };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al cambiar estado en lote.";
     return { success: false, error: errorMsg };
   }
 }

@@ -283,12 +283,29 @@
     "academyDisciplines": "Academy Disciplines",
     "searchDisciplinePlaceholder": "Search discipline...",
     "registerNewDiscipline": "+ Register New Discipline",
+    "registerNewDisciplineBtn": "Register Discipline",
+    "registerNewDisciplineDesc": "Create a custom martial discipline or based on a standardized template.",
+    "includeAutoPresets": "Include Automatic Presets:",
+    "presetBelts": "Belt Hierarchy",
+    "presetChallenges": "Gamification Challenges",
+    "presetRubrics": "Evaluation Rubrics",
+    "customEmptyForm": "✏️ Custom (Empty Form)",
     "disciplineNamePlaceholder": "Name (e.g. Sanda, Wing Chun)",
     "disciplineCodePlaceholder": "Short Code (e.g. SND)",
     "createBtn": "Create Discipline",
     "loadingDisciplines": "Loading disciplines...",
     "noDisciplinesRegistered": "No disciplines registered.",
+    "activeBadge": "Active",
     "inactiveBadge": "Inactive",
+    "editBtn": "Edit",
+    "deleteBtn": "Delete",
+    "activateDiscipline": "Activate discipline",
+    "deactivateDiscipline": "Deactivate discipline",
+    "editDisciplineTooltip": "Edit discipline",
+    "deleteDisciplineTooltip": "Delete discipline",
+    "editBeltTooltip": "Edit belt",
+    "deleteBeltTooltip": "Delete belt",
+    "confirmDeleteBtn": "Yes, Delete",
     "addNewBeltTitle": "+ Add New Belt Rank",
     "beltNameLabel": "Rank Name",
     "beltNamePlaceholder": "e.g. Yellow Belt",
@@ -319,6 +336,16 @@
     "applyTemplateModalDesc": "Select a template to load its belts, challenges, and rubrics into ",
     "selectTemplateLabel": "Select Standard Discipline:",
     "applyTemplateConfirmBtn": "Load into Discipline",
+    "selectAll": "Select all",
+    "deleteSelectedBelts": "Delete Selected",
+    "confirmBulkDeleteBeltsTitle": "Delete selected belts?",
+    "confirmBulkDeleteBeltsDesc": "You are about to delete {count} selected belt(s) from this discipline. This action cannot be undone.",
+    "replaceExistingBeltsHint": "Replace / clear existing belts before importing",
+    "selectedCount": "SELECTED",
+    "cannotDeleteDisciplineWithStudents": "Cannot delete discipline because it has {count} active enrolled student(s). We recommend setting it as Inactive instead.",
+    "cannotDeleteBeltWithStudents": "Cannot delete belt because it is assigned to {count} active student(s). Reassign their belt before deleting.",
+    "cannotDeleteBeltsBulkWithStudents": "Cannot delete selected belts because {count} student(s) are assigned to one of these ranks. Reassign their belts first.",
+    "cannotReplaceBeltsWithStudents": "Cannot replace existing belts because {count} student(s) are assigned to a belt in this discipline. Reassign their belts first.",
     "noUserAccount": "No user account"
   },
   "notifications": {
@@ -1142,20 +1169,166 @@
     "groupsTitle": "💡 Sensei Guide: How do groups work?",
     "groupsDesc": "You can create groups like 'Adult Beginners' or 'Adult Advanced'. Each group can train Tai Chi on Tuesdays and Sanda on Thursdays. Assign your students to their group to automatically track attendance and exams.",
     "rubricsTitle": "💡 Sensei Guide: Evaluation without typing numbers",
-    "rubricsDesc": "These templates allow you to score your students during the exam by tapping just 3 buttons on your tablet or phone. The system automatically calculates the average and suggests approval."
+    "rubricsDesc": "These templates allow you to grade your students during exams by touching just 3 buttons on your tablet or phone. The system automatically calculates averages and suggests pass status."
+  },
+  "tour": {
+    "dashboard": {
+      "title": "Dojo Dashboard",
+      "step1": {
+        "title": "Welcome to Menlu Dojo!",
+        "desc": "This dashboard offers a comprehensive, intelligent view of your martial arts academy status."
+      },
+      "step2": {
+        "title": "Key Metrics",
+        "desc": "Monitor active students, upcoming belt exams, and effort streak metrics in real time."
+      },
+      "step3": {
+        "title": "Navigation & Management",
+        "desc": "Use the sidebar menu to manage groups, belt promotions, tournaments, and billing."
+      }
+    },
+    "groups": {
+      "title": "Groups & Classes",
+      "step1": {
+        "title": "Group & Level Management",
+        "desc": "Organize students into training groups by schedule or age range (e.g. Adults or Juniors)."
+      },
+      "step2": {
+        "title": "Multi-Discipline Combination",
+        "desc": "A single group can practice multiple disciplines! Check (☑) the martial arts taught in this class (e.g. Tai Chi on Tue and Sanda on Thu)."
+      },
+      "step3": {
+        "title": "Student Enrollment",
+        "desc": "Use the 'Manage Students' button to enroll or unenroll martial artists in the group easily."
+      },
+      "step4": {
+        "title": "Bulk Actions & Views",
+        "desc": "Switch between Table and Card views. Select multiple groups to activate, deactivate, or delete them in bulk."
+      }
+    },
+    "students": {
+      "title": "Student Roster",
+      "step1": {
+        "title": "Student Profile & Medical File",
+        "desc": "Register students with profile photo, emergency medical file, guardian contact, and insurance."
+      },
+      "step2": {
+        "title": "Bulk Import (CSV)",
+        "desc": "Upload your full roster from Excel or CSV in one click (the Sensei Virtual Assistant guides you)."
+      },
+      "step3": {
+        "title": "Portal Access Accounts",
+        "desc": "Create digital login accounts for students and guardians to track progress and streaks in their app."
+      },
+      "step4": {
+        "title": "Quick Search & Discipline Filters",
+        "desc": "Find martial artists instantly by filtering by active discipline or searching by name, email, or insurance."
+      },
+      "step5": {
+        "title": "Official Tatami ID Card",
+        "desc": "Print official ID cards with QR and barcode directly from the student's profile file."
+      },
+      "step6": {
+        "title": "Gamification & Belt Promotion",
+        "desc": "Monitor Path of Effort XP points, attendance streak, and promote student belt ranks."
+      }
+    },
+    "exams": {
+      "title": "Belt Exams",
+      "step1": {
+        "title": "Belt Exam Events",
+        "desc": "Schedule belt test events and assign examiners responsible for grading."
+      },
+      "step2": {
+        "title": "Grading & Rubrics",
+        "desc": "Grade students using standardized rubrics configured for their discipline."
+      }
+    },
+    "tournaments": {
+      "title": "Internal Tournaments",
+      "step1": {
+        "title": "Dojo Competitions",
+        "desc": "Create Kumite, Kata/Taolu forms, or Sanda competitions to foster martial spirit."
+      },
+      "step2": {
+        "title": "Tournament Brackets",
+        "desc": "Automatically generate elimination brackets and record winners for each match."
+      }
+    },
+    "disciplines": {
+      "title": "Disciplines & Belts",
+      "step1": {
+        "title": "Martial Arts Setup",
+        "desc": "Define your martial arts disciplines (Tai Chi, Karate, Taekwondo, BJJ) and rank hierarchy."
+      },
+      "step2": {
+        "title": "Belt Rank Hierarchy",
+        "desc": "Assign belt colors, attendance requirements, and minimum tenure needed to graduate."
+      },
+      "step3": {
+        "title": "Pre-configured Templates",
+        "desc": "Use the 'Load Template' button to 1-click import standard belt structures for traditional martial arts."
+      },
+      "step4": {
+        "title": "Rank Hierarchy & Status",
+        "desc": "Use the arrows (▲/▼) on each belt to adjust the graduation rank hierarchy, or toggle the discipline as Inactive."
+      }
+    },
+    "rubrics": {
+      "title": "Evaluation Rubrics",
+      "step1": {
+        "title": "Rubrics & Templates",
+        "desc": "Design standardized rubrics to evaluate forms, technique, and physical conditioning."
+      },
+      "step2": {
+        "title": "Custom Criteria",
+        "desc": "Create evaluation criteria with custom scoring tailored for each belt rank."
+      }
+    },
+    "effortPath": {
+      "title": "The Path of Effort",
+      "step1": {
+        "title": "Dojo-Style Gamification",
+        "desc": "Students complete technical and theoretical lessons to maintain their practice streak."
+      },
+      "step2": {
+        "title": "Streaks & Achievements",
+        "desc": "Reward consistency with virtual badges and level promotions on the Dojo leaderboard."
+      }
+    }
   },
   "groups": {
     "title": "Multi-Discipline Groups & Classes",
     "subtitle": "Organize students by schedules/levels and combine multiple disciplines per week.",
     "createButton": "New Group",
-    "searchPlaceholder": "Search group by name...",
+    "searchPlaceholder": "Search group by name, code or description...",
     "emptyTitle": "No groups registered",
-    "emptyDesc": "Create your first group to associate disciplines and schedules.",
+    "emptyDesc": "Create your first group (e.g. Adult Beginners) to associate disciplines and schedules.",
+    "kpiRegistered": "Registered Groups",
+    "kpiRegisteredSub": "Active classes in the dojo",
+    "kpiStudents": "Grouped Students",
+    "kpiStudentsSub": "Assigned to training groups",
+    "kpiDisciplines": "Active Disciplines",
+    "kpiDisciplinesSub": "Dojo martial disciplines",
+    "kpiEnabled": "Enabled Groups",
+    "kpiEnabledSub": "Active schedule classes",
+    "tableView": "Table",
+    "gridView": "Cards",
+    "colGroup": "Group",
+    "colSchedules": "Disciplines & Schedules",
+    "colAgeRange": "Age Range",
+    "colStudents": "Assigned Students",
+    "colStudentsAndAge": "Students & Age Range",
+    "colActions": "Actions",
+    "manage": "Manage",
+    "noSchedules": "No schedules",
+    "yearsOld": "years old",
+    "studentsCount": "students",
     "ageRange": "Age Range",
     "disciplinesTitle": "Disciplines & Schedules",
     "noDisciplinesAssigned": "No schedules assigned",
     "studentsEnrolled": "students assigned",
-    "manageStudents": "Manage",
+    "manageStudents": "Manage Students",
     "createModalTitle": "New Level / Schedule Group",
     "editModalTitle": "Edit Student Group",
     "modalDesc": "Define a group (e.g. Adult Beginners) and assign training days for each discipline.",
@@ -1165,19 +1338,59 @@
     "minAgeLabel": "Min Age",
     "maxAgeLabel": "Max Age",
     "assignSchedules": "Disciplines & Daily Schedules",
+    "assignSchedulesHelp": "Select the disciplines taught in this class and enter their training schedule:",
+    "schedulePlaceholder": "e.g. Tue & Thu 6:00 PM - 7:30 PM",
+    "namePlaceholder": "e.g. Adult Beginners",
+    "descPlaceholder": "e.g. Train Tai Chi and Sanda on alternate days",
+    "noDisciplinesFound": "No disciplines registered in the school.",
     "assignModalTitle": "Assign Students to Group",
+    "assignModalDesc": "Select students belonging to this class.",
     "noStudentsRegistered": "No students registered in the dojo.",
     "saveAssignment": "Save Assignment",
     "nameRequired": "Group name is required.",
     "createdSuccess": "Group created successfully.",
     "updatedSuccess": "Group updated successfully.",
-    "confirmDelete": "Do you want to delete this group?",
+    "confirmDelete": "Delete Group?",
+    "confirmDeleteDesc": "You are about to delete group \"{name}\". This action will unbind assigned schedules and students.",
+    "deleteConfirmBtn": "Yes, Delete",
     "deleteSuccess": "Group deleted.",
     "assignSuccess": "Students assigned to group.",
     "loadError": "Error loading group information.",
     "saveError": "Error saving group.",
     "deleteError": "Error deleting group.",
-    "assignError": "Error assigning students to group."
+    "assignError": "Error assigning students to group.",
+    "selectedCount": "sel.",
+    "bulkActivate": "Activate",
+    "bulkDeactivate": "Deactivate",
+    "bulkDelete": "Delete",
+    "bulkActivateSuccess": "Activated {count} groups.",
+    "bulkDeactivateSuccess": "Deactivated {count} groups.",
+    "bulkDeleteSuccess": "Deleted {count} selected groups.",
+    "bulkDeleteModalTitle": "Delete {count} selected groups?",
+    "bulkDeleteModalDesc": "This action will permanently delete selected groups and unbind their students. Do you wish to continue?",
+    "cannotDeleteHasStudents": "Cannot delete group because it has {count} enrolled student(s). Reassign or unenroll its students first.",
+    "cannotBulkDeleteHasStudents": "Cannot delete selected groups because {groupsCount} group(s) have {studentsCount} enrolled student(s). Reassign or unenroll their students first.",
+    "searchStudentPlaceholder": "Search student by name or email...",
+    "quickAddStudent": "Quick Student Registration",
+    "quickAddStudentDesc": "Register a new martial artist and enroll them directly in this class.",
+    "registerAndEnroll": "Register & Enroll",
+    "firstNameRequired": "Student first name is required.",
+    "quickStudentCreated": "Student \"{name}\" registered and enrolled in class.",
+    "tabEnrolled": "Enrolled Students",
+    "tabSearch": "Search Existing",
+    "tabQuickAdd": "New Registration",
+    "enrollBtn": "Enroll",
+    "enrolledBadge": "Enrolled",
+    "unenrollBtn": "Remove",
+    "unenrollSuccess": "Student removed from group.",
+    "enrollSuccessSingle": "Student enrolled in group.",
+    "noEnrolledStudents": "No students enrolled in this group yet.",
+    "searchEnrolledPlaceholder": "Filter enrolled students by name...",
+    "searchInitialHelp": "Type student name or email and click 'Search' to query the dojo database.",
+    "searchMinChars": "Enter at least 2 characters to search.",
+    "searchingServer": "Searching students in database...",
+    "searchError": "Error searching students on server.",
+    "studentSingle": "student"
   },
   "rubrics": {
     "title": "Evaluation Templates (3 Visual Levels)",

@@ -282,12 +282,29 @@
     "academyDisciplines": "Disciplinas da Academia",
     "searchDisciplinePlaceholder": "Buscar disciplina...",
     "registerNewDiscipline": "+ Cadastrar Nova Disciplina",
+    "registerNewDisciplineBtn": "Cadastrar Disciplina",
+    "registerNewDisciplineDesc": "Crie uma disciplina marcial personalizada ou baseada em um modelo padronizado.",
+    "includeAutoPresets": "Incluir Pré-configurações Automáticas:",
+    "presetBelts": "Hierarquia de Faixas",
+    "presetChallenges": "Desafios de Gamificação",
+    "presetRubrics": "Rubricas de Avaliação",
+    "customEmptyForm": "✏️ Personalizado (Formulário Vazio)",
     "disciplineNamePlaceholder": "Nome (ex. Sanda, Wing Chun)",
     "disciplineCodePlaceholder": "Código Abreviado (ex. SND)",
     "createBtn": "Criar",
     "loadingDisciplines": "Carregando disciplinas...",
     "noDisciplinesRegistered": "Nenhuma disciplina cadastrada.",
+    "activeBadge": "Ativa",
     "inactiveBadge": "Inativa",
+    "editBtn": "Editar",
+    "deleteBtn": "Excluir",
+    "activateDiscipline": "Ativar disciplina",
+    "deactivateDiscipline": "Desativar disciplina",
+    "editDisciplineTooltip": "Editar disciplina",
+    "deleteDisciplineTooltip": "Excluir disciplina",
+    "editBeltTooltip": "Editar faixa",
+    "deleteBeltTooltip": "Excluir faixa",
+    "confirmDeleteBtn": "Sim, Excluir",
     "addNewBeltTitle": "+ Adicionar Nova Faixa / Graduação",
     "beltNameLabel": "Nome da Faixa",
     "beltNamePlaceholder": "ex. Faixa Amarela",
@@ -317,7 +334,17 @@
     "applyTemplateModalTitle": "Carregar Modelo Pré-configurado",
     "applyTemplateModalDesc": "Selecione um modelo para carregar suas faixas, desafios e rubricas em ",
     "selectTemplateLabel": "Selecione a Disciplina Padrão:",
-    "applyTemplateConfirmBtn": "Carregar na Disciplina"
+    "applyTemplateConfirmBtn": "Carregar na Disciplina",
+    "selectAll": "Selecionar todos",
+    "deleteSelectedBelts": "Excluir Selecionados",
+    "confirmBulkDeleteBeltsTitle": "Excluir faixas selecionadas?",
+    "confirmBulkDeleteBeltsDesc": "Você está prestes a excluir {count} faixa(s) selecionada(s) desta disciplina. Esta ação não pode ser desfeita.",
+    "replaceExistingBeltsHint": "Substituir / limpar faixas existentes antes de importar",
+    "selectedCount": "SELECIONADOS",
+    "cannotDeleteDisciplineWithStudents": "Não é possível excluir a disciplina porque ela possui {count} aluno(s) ativo(s) inscritos. Recomendamos marcá-la como Inativa em seu lugar.",
+    "cannotDeleteBeltWithStudents": "Não é possível excluir a faixa porque ela está atribuída a {count} aluno(s) ativo(s). Reatribua a faixa antes de excluir.",
+    "cannotDeleteBeltsBulkWithStudents": "Não é possível excluir as faixas selecionadas porque {count} aluno(s) possuem uma dessas graduações. Reatribua as faixas primeiro.",
+    "cannotReplaceBeltsWithStudents": "Não é possível substituir as faixas existentes porque {count} aluno(s) possuem uma faixa nesta disciplina. Reatribua as faixas primeiro."
   },
   "notifications": {
     "title": "Notificações",
@@ -1131,20 +1158,166 @@
     "rubricsTitle": "💡 Guia Sensei: Avaliação sem digitar números",
     "rubricsDesc": "Avalie os alunos durante os exames tocando em apenas 3 botões no seu tablet ou celular. O sistema calcula a média automaticamente."
   },
+  "tour": {
+    "dashboard": {
+      "title": "Painel do Dojo",
+      "step1": {
+        "title": "Bem-vindo ao Menlu Dojo!",
+        "desc": "Este painel oferece uma visão global e inteligente do estado da sua escola de artes marciais."
+      },
+      "step2": {
+        "title": "Métricas Principais",
+        "desc": "Monitore em tempo real o total de alunos ativos, exames vigentes e sequências de esforço."
+      },
+      "step3": {
+        "title": "Navegação e Gestão",
+        "desc": "Use o menu lateral para gerenciar grupos, graduações, torneios e cobranças do seu Dojo."
+      }
+    },
+    "groups": {
+      "title": "Grupos e Aulas",
+      "step1": {
+        "title": "Gestão de Grupos e Nível",
+        "desc": "Organize seus alunos por horários ou faixa etária (ex. Adultos ou Infantis) em grupos de treino."
+      },
+      "step2": {
+        "title": "Combinação Multi-Disciplina",
+        "desc": "Um mesmo grupo pode praticar várias disciplinas! Ative com a caixa (☑) as artes marciais treinadas pela turma (ex. Tai Chi nas Terças e Sanda nas Quintas)."
+      },
+      "step3": {
+        "title": "Atribuição de Alunos",
+        "desc": "Use o botão 'Gerenciar Alunos' para inscrever ou cancelar a inscrição de alunos facilmente no grupo."
+      },
+      "step4": {
+        "title": "Ações em Massa e Visualizações",
+        "desc": "Alterne entre a visualização em Tabela e Cartões. Selecione múltiplos grupos para ativá-los, desativá-los ou excluí-los em massa."
+      }
+    },
+    "students": {
+      "title": "Cadastro de Alunos",
+      "step1": {
+        "title": "Cadastro e Ficha Digital",
+        "desc": "Registre alunos com foto de perfil, ficha médica de emergência, contato de responsável e seguro."
+      },
+      "step2": {
+        "title": "Importação em Massa (CSV)",
+        "desc": "Carregue sua lista completa de alunos do Excel ou CSV em um clique (o Assistente Virtual Sensei guia você)."
+      },
+      "step3": {
+        "title": "Contas de Acesso ao Portal",
+        "desc": "Crie contas de acesso digital para que alunos e responsáveis acompanhem o progresso no aplicativo."
+      },
+      "step4": {
+        "title": "Busca e Filtros Rápidos",
+        "desc": "Encontre praticantes instantaneamente filtrando por disciplina ativa ou buscando por nome, e-mail ou seguro."
+      },
+      "step5": {
+        "title": "Carteira Oficial do Tatami",
+        "desc": "Imprima credenciais oficiais com código QR e código de barras diretamente do perfil do aluno."
+      },
+      "step6": {
+        "title": "Gamificação e Graduação",
+        "desc": "Monitore os Pontos XP do Caminho do Esforço, sequência de frequência e promova faixas do aluno."
+      }
+    },
+    "exams": {
+      "title": "Exames de Graduação",
+      "step1": {
+        "title": "Convocatórias de Exame",
+        "desc": "Agende convocatórias de graduação e atribua os examinadores responsáveis pela avaliação."
+      },
+      "step2": {
+        "title": "Avaliação e Rubricas",
+        "desc": "Avalie os alunos usando os modelos de rubricas configurados para sua disciplina."
+      }
+    },
+    "tournaments": {
+      "title": "Torneios Internos",
+      "step1": {
+        "title": "Competições do Dojo",
+        "desc": "Crie torneios de Kumite, Formas (Kata/Taolu) ou Sanda para motivar o espírito competitivo."
+      },
+      "step2": {
+        "title": "Chaves de Combate",
+        "desc": "Gere automaticamente as chaves de eliminação e registre os vencedores de cada rodada."
+      }
+    },
+    "disciplines": {
+      "title": "Disciplinas e Faixas",
+      "step1": {
+        "title": "Configuração de Artes Marciais",
+        "desc": "Defina suas artes marciais (Tai Chi, Karate, Taekwondo, BJJ) e sua hierarquia de graduações."
+      },
+      "step2": {
+        "title": "Escala de Faixas",
+        "desc": "Atribua as cores das faixas, requisitos de tempo e presença para se graduar."
+      },
+      "step3": {
+        "title": "Modelos Pré-configurados",
+        "desc": "Use o botão 'Carregar Modelo' para importar em 1-clique a estrutura de faixas tradicionais."
+      },
+      "step4": {
+        "title": "Hierarquia e Status",
+        "desc": "Use as setas (▲/▼) de cada faixa para ajustar a ordem de graduação, ou marque a disciplina como Inativa."
+      }
+    },
+    "rubrics": {
+      "title": "Modelos e Rubricas",
+      "step1": {
+        "title": "Modelos e Rubricas",
+        "desc": "Desenhe rubricas padronizadas para avaliar formas, técnica e condicionamento físico."
+      },
+      "step2": {
+        "title": "Critérios Personalizados",
+        "desc": "Crie critérios de avaliação com pontuações específicas para cada faixa."
+      }
+    },
+    "effortPath": {
+      "title": "O Caminho do Esforço",
+      "step1": {
+        "title": "Gamificação Estilo Dojo",
+        "desc": "Os alunos completam lições teóricas e técnicas para manter sua sequência de treinos."
+      },
+      "step2": {
+        "title": "Sequências e Conquistas",
+        "desc": "Recompense a dedicação com medalhas virtuais e subidas de nível no ranking del Dojo."
+      }
+    }
+  },
   "groups": {
     "title": "Grupos e Aulas Multi-Disciplina",
     "subtitle": "Organize seus alunos por horários/níveis e combine múltiplas disciplinas por semana.",
     "createButton": "Novo Grupo",
-    "searchPlaceholder": "Buscar grupo por nome...",
+    "searchPlaceholder": "Buscar grupo por nome, código ou descrição...",
     "emptyTitle": "Nenhum grupo registrado",
-    "emptyDesc": "Crie seu primeiro grupo para associar disciplinas e horários.",
+    "emptyDesc": "Crie seu primeiro grupo (ex. Adultos Iniciantes) para associar disciplinas e horários.",
+    "kpiRegistered": "Grupos Registrados",
+    "kpiRegisteredSub": "Aulas ativas no dojo",
+    "kpiStudents": "Alunos Agrupados",
+    "kpiStudentsSub": "Atribuídos a grupos de treino",
+    "kpiDisciplines": "Disciplinas Ativas",
+    "kpiDisciplinesSub": "Disciplinas marciais do dojo",
+    "kpiEnabled": "Grupos Habilitados",
+    "kpiEnabledSub": "Horários em andamento",
+    "tableView": "Tabela",
+    "gridView": "Cartões",
+    "colGroup": "Grupo",
+    "colSchedules": "Disciplinas & Horários",
+    "colAgeRange": "Faixa Etária",
+    "colStudents": "Alunos Atribuídos",
+    "colStudentsAndAge": "Alunos & Idade",
+    "colActions": "Ações",
+    "manage": "Gerenciar",
+    "noSchedules": "Sem horários",
+    "yearsOld": "anos",
+    "studentsCount": "alunos",
     "ageRange": "Faixa Etária",
     "disciplinesTitle": "Disciplinas & Horários",
     "noDisciplinesAssigned": "Sem horários atribuídos",
     "studentsEnrolled": "alunos atribuídos",
-    "manageStudents": "Gerenciar",
+    "manageStudents": "Gerenciar Alunos",
     "createModalTitle": "Novo Grupo por Nível / Horário",
-    "editModalTitle": "Editar Grupo de Alunos",
+    "editModalTitle": "Editar Grupo de Alumnos",
     "modalDesc": "Defina um grupo (ex. Adultos Iniciantes) e atribua os dias de treino de cada disciplina.",
     "nameLabel": "Nome do Grupo *",
     "codeLabel": "Código",
@@ -1152,19 +1325,59 @@
     "minAgeLabel": "Idade Mínima",
     "maxAgeLabel": "Idade Máxima",
     "assignSchedules": "Disciplinas & Horários Diários",
+    "assignSchedulesHelp": "Selecione as disciplinas ministradas nesta turma e insira o horário de treino:",
+    "schedulePlaceholder": "ex. Terça e Quinta 18:00 - 19:30",
+    "namePlaceholder": "ex. Adultos Iniciantes",
+    "descPlaceholder": "ex. Treinam Tai Chi e Sanda em dias alternados",
+    "noDisciplinesFound": "Nenhuma disciplina registrada na escola.",
     "assignModalTitle": "Atribuir Alunos ao Grupo",
+    "assignModalDesc": "Selecione os alunos pertencentes a esta turma.",
     "noStudentsRegistered": "Nenhum aluno registrado no dojo.",
     "saveAssignment": "Salvar Atribuição",
     "nameRequired": "O nome do grupo é obrigatório.",
     "createdSuccess": "Grupo criado com sucesso.",
     "updatedSuccess": "Grupo atualizado com sucesso.",
-    "confirmDelete": "Deseja excluir este grupo?",
+    "confirmDelete": "Excluir Grupo?",
+    "confirmDeleteDesc": "Você está prestes a excluir o grupo \"{name}\". Esta ação desvinculará os horários e alunos atribuídos.",
+    "deleteConfirmBtn": "Sim, Excluir",
     "deleteSuccess": "Grupo excluído.",
     "assignSuccess": "Alunos atribuídos ao grupo.",
     "loadError": "Erro ao carregar informações dos grupos.",
     "saveError": "Erro ao salvar o grupo.",
     "deleteError": "Erro ao excluir o grupo.",
-    "assignError": "Erro ao atribuir alunos ao grupo."
+    "assignError": "Erro ao atribuir alunos ao grupo.",
+    "selectedCount": "selec.",
+    "bulkActivate": "Ativar",
+    "bulkDeactivate": "Desativar",
+    "bulkDelete": "Excluir",
+    "bulkActivateSuccess": "Ativados {count} grupos.",
+    "bulkDeactivateSuccess": "Desativados {count} grupos.",
+    "bulkDeleteSuccess": "Excluídos {count} grupos selecionados.",
+    "bulkDeleteModalTitle": "Excluir {count} grupos selecionados?",
+    "bulkDeleteModalDesc": "Esta ação excluirá permanentemente os grupos selecionados e desvinculará seus alunos. Deseja continuar?",
+    "cannotDeleteHasStudents": "Não é possível excluir o grupo pois possui {count} aluno(s) inscrito(s). Reatribua ou cancele a inscrição de seus alunos primeiro.",
+    "cannotBulkDeleteHasStudents": "Não é possível excluir os grupos selecionados pois {groupsCount} grupo(s) possuem {studentsCount} aluno(s) inscrito(s). Reatribua ou cancele a inscrição de seus alunos primeiro.",
+    "searchStudentPlaceholder": "Buscar aluno por nome ou e-mail...",
+    "quickAddStudent": "Cadastro Rápido de Aluno",
+    "quickAddStudentDesc": "Registre um novo aluno e inscreva-o diretamente nesta turma.",
+    "registerAndEnroll": "Cadastrar e Inscrever",
+    "firstNameRequired": "O nome do aluno é obrigatório.",
+    "quickStudentCreated": "Aluno \"{name}\" cadastrado e inscrito na turma.",
+    "tabEnrolled": "Alunos Inscritos",
+    "tabSearch": "Buscar Existente",
+    "tabQuickAdd": "Novo Registro",
+    "enrollBtn": "Inscrever",
+    "enrolledBadge": "Inscrito",
+    "unenrollBtn": "Desvincular",
+    "unenrollSuccess": "Aluno desvinculado do grupo.",
+    "enrollSuccessSingle": "Aluno inscrito no grupo.",
+    "noEnrolledStudents": "Nenhum aluno inscrito neste grupo ainda.",
+    "searchEnrolledPlaceholder": "Filtrar alunos inscritos por nome...",
+    "searchInitialHelp": "Digite o nome ou e-mail do aluno e clique em 'Buscar' para consultar o banco do dojo.",
+    "searchMinChars": "Digite pelo menos 2 caracteres para buscar.",
+    "searchingServer": "Buscando alunos no banco de dados...",
+    "searchError": "Erro ao buscar alunos no servidor.",
+    "studentSingle": "aluno"
   },
   "rubrics": {
     "title": "Modelos de Avaliação (3 Níveis Visual)",

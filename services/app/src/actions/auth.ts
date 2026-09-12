@@ -298,9 +298,9 @@ export async function createUser(data: {
     if (finalBrandId) {
       const brand = await prisma.brand.findUnique({
         where: { id: finalBrandId },
-        select: { locale: true, timezone: true },
+        select: { defaultLocale: true, timezone: true },
       });
-      if (brand?.locale) brandLocale = brand.locale;
+      if (brand?.defaultLocale) brandLocale = brand.defaultLocale;
       if (brand?.timezone) brandTimezone = brand.timezone;
     }
 

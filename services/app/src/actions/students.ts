@@ -969,3 +969,43 @@ export async function importStudentsFromCSVAction(
     return { success: false, error: msg };
   }
 }
+
+export async function searchStudentsAction(
+  brandId: string,
+  query: string
+): Promise<ApiResponse<StudentProfileWithUser[]>> {
+  try {
+    if (!query || query.trim().length < 2) {
+      return { success: true, data: [] };
+    }
+
+    const trimmed = query.trim();
+
+    const students = await prisma.studentProfile.findMany({
+      where: {
+        brandId,
+        OR: [
+          { user: { name: { contains: trimmed, mode: "insensitive" } } },
+          { user: { email: { contains: trimmed, mode: "insensitive" } } },
+          { firstName: { contains: trimmed, mode: "insensitive" } },
+          { lastName: { contains: trimmed, mode: "insensitive" } },
+          { email: { contains: trimmed, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        user: true,
+        currentBelt: true,
+      },
+      take: 20,
+    });
+
+    return {
+      success: true,
+      data: students as unknown as StudentProfileWithUser[],
+    };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Error al buscar alumnos.";
+    return { success: false, error: errorMsg };
+  }
+}
+

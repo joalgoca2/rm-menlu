@@ -19,6 +19,7 @@ import {
   Loader2,
   UserCheck,
   UserX,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBrand } from "@/context/brand-context";
@@ -51,6 +52,7 @@ import {
   createBeltAction,
   updateBeltAction,
   deleteBeltAction,
+  deleteBeltsBulkAction,
   reorderBeltsAction,
 } from "@/actions/disciplines";
 import type { Discipline, Belt } from "@/types";
@@ -74,6 +76,7 @@ export default function DisciplinesPage() {
   const [includeChallenges, setIncludeChallenges] = useState(true);
   const [includeRubrics, setIncludeRubrics] = useState(true);
   const [isCreatingDiscipline, setIsCreatingDiscipline] = useState(false);
+  const [isCreateDisciplineModalOpen, setIsCreateDisciplineModalOpen] = useState(false);
 
   // Apply Template Modal State
   const [isApplyTemplateModalOpen, setIsApplyTemplateModalOpen] = useState(false);
@@ -81,7 +84,13 @@ export default function DisciplinesPage() {
   const [applyIncludeBelts, setApplyIncludeBelts] = useState(true);
   const [applyIncludeChallenges, setApplyIncludeChallenges] = useState(true);
   const [applyIncludeRubrics, setApplyIncludeRubrics] = useState(true);
+  const [applyReplaceExistingBelts, setApplyReplaceExistingBelts] = useState(false);
   const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+
+  // Bulk Selection State for Belts
+  const [selectedBeltIds, setSelectedBeltIds] = useState<string[]>([]);
+  const [isDeletingBeltsBulk, setIsDeletingBeltsBulk] = useState(false);
+  const [isConfirmBulkDeleteModalOpen, setIsConfirmBulkDeleteModalOpen] = useState(false);
 
 
   // Form states for Create Belt
@@ -108,8 +117,14 @@ export default function DisciplinesPage() {
       const res = await getDisciplinesByBrandAction(selectedBrandId);
       if (res.success && res.data) {
         setDisciplines(res.data);
-        if (res.data.length > 0 && !selectedDiscipline) {
-          setSelectedDiscipline(res.data[0]);
+        if (res.data.length > 0) {
+          setSelectedDiscipline((prev) => {
+            if (!prev) return res.data![0];
+            const updated = res.data!.find((d) => d.id === prev.id);
+            return updated || res.data![0];
+          });
+        } else {
+          setSelectedDiscipline(null);
         }
       } else if (res.error) {
         toast.error(res.error);
@@ -143,6 +158,7 @@ export default function DisciplinesPage() {
   }, [selectedBrandId]);
 
   useEffect(() => {
+    setSelectedBeltIds([]);
     if (selectedDiscipline) {
       fetchBelts(selectedDiscipline.id);
     }
@@ -187,6 +203,7 @@ export default function DisciplinesPage() {
         setNewDisciplineCode("");
         setSelectedTemplateId("CUSTOM");
         setSelectedDiscipline(res.data);
+        setIsCreateDisciplineModalOpen(false);
         fetchDisciplines();
       } else {
         toast.error(res.error || "No se pudo crear la disciplina.");
@@ -212,20 +229,47 @@ export default function DisciplinesPage() {
           includeBelts: applyIncludeBelts,
           includeChallenges: applyIncludeChallenges,
           includeRubrics: applyIncludeRubrics,
+          replaceExistingBelts: applyReplaceExistingBelts,
         }
       );
 
       if (res.success) {
         toast.success("Plantilla preconfigurada aplicada exitosamente.");
         setIsApplyTemplateModalOpen(false);
+        setSelectedBeltIds([]);
         fetchBelts(selectedDiscipline.id);
       } else {
-        toast.error(res.error || "Error al aplicar la plantilla.");
+        const errorMsg = res.errorKey ? t(res.errorKey, res.error, res.errorParams) : (res.error || "Error al aplicar la plantilla.");
+        toast.error(errorMsg);
       }
     } catch {
       toast.error("Error al aplicar plantilla preconfigurada.");
     } finally {
       setIsApplyingTemplate(false);
+    }
+  };
+
+  // Bulk Delete Belts Handler
+  const handleBulkDeleteBelts = async () => {
+    if (selectedBeltIds.length === 0) return;
+    setIsDeletingBeltsBulk(true);
+    try {
+      const res = await deleteBeltsBulkAction(selectedBeltIds);
+      if (res.success) {
+        toast.success(`${selectedBeltIds.length} cinturón(es) eliminado(s) exitosamente.`);
+        setSelectedBeltIds([]);
+        setIsConfirmBulkDeleteModalOpen(false);
+        if (selectedDiscipline) {
+          fetchBelts(selectedDiscipline.id);
+        }
+      } else {
+        const errorMsg = res.errorKey ? t(res.errorKey, res.error, res.errorParams) : (res.error || "No se pudieron eliminar los cinturones.");
+        toast.error(errorMsg);
+      }
+    } catch {
+      toast.error("Error al eliminar cinturones seleccionados.");
+    } finally {
+      setIsDeletingBeltsBulk(false);
     }
   };
 
@@ -305,7 +349,8 @@ export default function DisciplinesPage() {
           setBelts([]);
         }
       } else {
-        toast.error(res.error || "No se pudo eliminar la disciplina.");
+        const errorMsg = res.errorKey ? t(res.errorKey, res.error, res.errorParams) : (res.error || "No se pudo eliminar la disciplina.");
+        toast.error(errorMsg);
       }
     } catch {
       toast.error("Error al eliminar la disciplina.");
@@ -323,6 +368,9 @@ export default function DisciplinesPage() {
           nextState
             ? `Disciplina "${disc.name}" activada correctamente.`
             : `Disciplina "${disc.name}" desactivada correctamente.`
+        );
+        setSelectedDiscipline((prev) =>
+          prev && prev.id === disc.id ? { ...prev, isActive: nextState } : prev
         );
         fetchDisciplines();
       } else {
@@ -410,7 +458,8 @@ export default function DisciplinesPage() {
         setDeletingBelt(null);
         fetchBelts(selectedDiscipline.id);
       } else {
-        toast.error(res.error || "No se pudo eliminar el cinturón.");
+        const errorMsg = res.errorKey ? t(res.errorKey, res.error, res.errorParams) : (res.error || "No se pudo eliminar el cinturón.");
+        toast.error(errorMsg);
       }
     } catch {
       toast.error("Error al eliminar cinturón.");
@@ -512,270 +561,186 @@ export default function DisciplinesPage() {
         </Card>
       </div>
 
-      {/* MAIN TWO-COLUMN LAYOUT */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* LEFT COLUMN: LIST & REGISTRATION OF DISCIPLINES */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <Layers className="h-5 w-5 text-indigo-500" />
-              {t("dojo.academyDisciplines", "Disciplinas de la Academia")}
+      {/* MAIN TABS & FULL-WIDTH STAGE LAYOUT */}
+      <div className="space-y-6">
+      {/* DISCIPLINE TABS HEADER & ACTIONS BAR */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Search Filter + Label */}
+          <div className="flex items-center gap-3">
+            <h2 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2 shrink-0">
+              <Layers className="h-4 w-4 text-indigo-500" />
+              {t("dojo.academyDisciplines", "Disciplinas:")}
             </h2>
-          </div>
-          {/* Quick Filter Search Bar */}
-          <div className="relative h-10 flex items-center">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={t("dojo.searchDisciplinePlaceholder", "Buscar disciplina...")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-9 pr-8 text-xs border border-zinc-200 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-base font-bold"
-              >
-                ×
-              </button>
-            )}
-          </div>
-
-          {/* Form Create Discipline Card */}
-          <form
-            onSubmit={handleCreateDiscipline}
-            className="p-3.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
-                {t("dojo.registerNewDiscipline", "+ Registrar Nueva Disciplina")}
-              </span>
-            </div>
-
-            {/* Template Selector Dropdown */}
-            <div className="space-y-1">
-              <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">
-                {t("dojo.templateLabel", "Plantilla Preconfigurada")}
-              </Label>
-              <select
-                value={selectedTemplateId}
-                onChange={(e) => handleTemplateSelect(e.target.value)}
-                className="w-full h-9 text-xs font-semibold rounded-xl px-2.5 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer truncate"
-              >
-                <option value="CUSTOM">✏️ Personalizado (Formulario Vacío)</option>
-                {DISCIPLINE_TEMPLATE_LIST.map((tpl) => (
-                  <option key={tpl.id} value={tpl.id}>
-                    🥋 {tpl.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Input
-              placeholder={t("dojo.disciplineNamePlaceholder", "Nombre (ej. Sanda, Wing Chun)")}
-              value={newDisciplineName}
-              onChange={(e) => setNewDisciplineName(e.target.value)}
-              className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
-            />
-
-            <Input
-              placeholder={t("dojo.disciplineCodePlaceholder", "Código Abreviado (ej. SND)")}
-              value={newDisciplineCode}
-              onChange={(e) => setNewDisciplineCode(e.target.value)}
-              className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-9"
-            />
-
-            {selectedTemplateId !== "CUSTOM" && (
-              <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1.5">
-                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 block">
-                  Incluir Preconfiguraciones:
-                </span>
-                <div className="flex flex-col gap-1 text-[11px] text-zinc-700 dark:text-zinc-300 font-medium">
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeBelts}
-                      onChange={(e) => setIncludeBelts(e.target.checked)}
-                      className="rounded text-amber-500 focus:ring-amber-500"
-                    />
-                    <span>
-                      🥋 Jerarquía de Cinturones (
-                      {getDisciplineTemplateById(selectedTemplateId)?.belts.length || 0})
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeChallenges}
-                      onChange={(e) => setIncludeChallenges(e.target.checked)}
-                      className="rounded text-amber-500 focus:ring-amber-500"
-                    />
-                    <span>
-                      🔥 Retos de Gamificación (
-                      {getDisciplineTemplateById(selectedTemplateId)?.challenges.length || 0})
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeRubrics}
-                      onChange={(e) => setIncludeRubrics(e.target.checked)}
-                      className="rounded text-amber-500 focus:ring-amber-500"
-                    />
-                    <span>
-                      📋 Rúbricas de Evaluación (
-                      {getDisciplineTemplateById(selectedTemplateId)?.rubrics.length || 0})
-                    </span>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={isCreatingDiscipline}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs h-9"
-            >
-              {isCreatingDiscipline ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-1" /> {t("dojo.createBtn", "Crear Disciplina")}
-                </>
+            <div className="relative h-8 flex items-center min-w-[200px]">
+              <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder={t("dojo.searchDisciplinePlaceholder", "Buscar...")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-8 pl-8 pr-7 text-xs border border-zinc-200 dark:border-zinc-700 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs font-bold"
+                >
+                  ×
+                </button>
               )}
-            </Button>
-          </form>
-
-
-          {/* Discipline Cards List */}
-          <div className="space-y-2 pt-1 max-h-[500px] overflow-y-auto pr-1">
-            {isLoading ? (
-              <div className="p-6 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-amber-500" />{" "}
-                {t("dojo.loadingDisciplines", "Cargando disciplinas...")}
-              </div>
-            ) : filteredDisciplines.length === 0 ? (
-              <div className="p-6 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                {t("dojo.noDisciplinesRegistered", "No hay disciplinas registradas.")}
-              </div>
-            ) : (
-              filteredDisciplines.map((disc) => {
-                const isSelected = selectedDiscipline?.id === disc.id;
-                const isDiscActive = disc.isActive !== false;
-                return (
-                  <div
-                    key={disc.id}
-                    className={`flex items-center justify-between p-3.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                      isSelected
-                        ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs"
-                        : "border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
-                    } ${!isDiscActive ? "opacity-75" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDiscipline(disc)}
-                      className="flex-1 text-left flex justify-between items-center mr-2 cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Swords className={`h-4 w-4 ${isSelected ? "text-amber-500" : "text-zinc-400"}`} />
-                        <span className="font-bold text-sm">{disc.name}</span>
-                        {!isDiscActive && (
-                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30 uppercase">
-                            {t("dojo.inactiveBadge", "Inactiva")}
-                          </span>
-                        )}
-                      </div>
-                      {disc.code && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-extrabold uppercase">
-                          {disc.code}
-                        </span>
-                      )}
-                    </button>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleDisciplineActive(disc);
-                        }}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                          isDiscActive
-                            ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
-                            : "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
-                        }`}
-                        title={isDiscActive ? "Desactivar disciplina" : "Activar disciplina"}
-                      >
-                        {isDiscActive ? (
-                          <UserCheck className="h-3.5 w-3.5" />
-                        ) : (
-                          <UserX className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingDiscipline(disc);
-                        }}
-                        className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-                        title="Editar disciplina"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingDiscipline(disc);
-                        }}
-                        className="p-1.5 text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        title="Eliminar disciplina"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+            </div>
           </div>
+
+          {/* New Discipline Button (Opens Modal) */}
+          <Button
+            type="button"
+            onClick={() => setIsCreateDisciplineModalOpen(true)}
+            className="h-8 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-3 shadow-xs cursor-pointer gap-1.5 shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{t("dojo.registerNewDisciplineBtn", "Registrar Disciplina")}</span>
+          </Button>
         </div>
 
-        {/* RIGHT COLUMN: BELT RANK HIERARCHY & PROGRESSION TIMELINE */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
-          {selectedDiscipline ? (
-            <>
-              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Award className="h-5 w-5 text-amber-500 shrink-0" />
-                    <h2 className="text-base font-extrabold text-zinc-900 dark:text-white tracking-tight">
-                      {t("dojo.beltHierarchyTitle", "Jerarquía y Progresión de Grados")}:
-                    </h2>
-                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-extrabold text-sm">
-                      {selectedDiscipline.name}
+        {/* Scrollable Discipline Tabs Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-1 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-200 dark:[&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full">
+          {isLoading ? (
+            <div className="py-2 text-xs text-zinc-400 flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
+              {t("dojo.loadingDisciplines", "Cargando disciplinas...")}
+            </div>
+          ) : filteredDisciplines.length === 0 ? (
+            <div className="py-2 text-xs text-zinc-400 italic">
+              {t("dojo.noDisciplinesRegistered", "No hay disciplinas registradas.")}
+            </div>
+          ) : (
+            filteredDisciplines.map((disc) => {
+              const isSelected = selectedDiscipline?.id === disc.id;
+              const isDiscActive = disc.isActive !== false;
+              return (
+                <div
+                  key={disc.id}
+                  onClick={() => setSelectedDiscipline(disc)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                    isSelected
+                      ? "border-amber-500 bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs ring-1 ring-amber-500/30"
+                      : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 bg-zinc-50/60 dark:bg-zinc-800/30 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  } ${!isDiscActive ? "opacity-70" : ""}`}
+                >
+                  <Swords className={`h-3.5 w-3.5 ${isSelected ? "text-amber-500" : "text-zinc-400"}`} />
+                  <span>{disc.name}</span>
+
+                  {disc.code && (
+                    <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-extrabold ${
+                      isSelected
+                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-300"
+                        : "bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+                    }`}>
+                      {disc.code}
                     </span>
-                  </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {t("dojo.beltHierarchySub", "Requisitos mínimos de asistencia y permanencia por grado.")}
-                  </p>
+                  )}
+
+                  {!isDiscActive && (
+                    <span className="text-[9px] font-extrabold px-1 rounded bg-amber-500/20 text-amber-500 uppercase">
+                      Off
+                    </span>
+                  )}
                 </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* FULL-WIDTH STAGE: BELT RANK HIERARCHY & PROGRESSION TIMELINE */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+        {selectedDiscipline ? (
+          <>
+            <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <Award className="h-5 w-5 text-amber-500 shrink-0" />
+                  <h2 className="text-base font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                    {t("dojo.beltHierarchyTitle", "Jerarquía y Progresión de Grados")}:
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-extrabold text-sm">
+                    {selectedDiscipline.name}
+                  </span>
+                  {selectedDiscipline.code && (
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                      {selectedDiscipline.code}
+                    </span>
+                  )}
+                  {selectedDiscipline.isActive === false && (
+                    <Badge className="bg-amber-500/15 text-amber-500 border border-amber-500/30 text-[10px] uppercase font-bold">
+                      {t("dojo.inactiveBadge", "Inactiva")}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {t("dojo.beltHierarchySub", "Requisitos mínimos de asistencia y permanencia por grado.")}
+                </p>
+              </div>
+
+              {/* Action Toolbar for Active Discipline */}
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleToggleDisciplineActive(selectedDiscipline)}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors flex items-center gap-1 cursor-pointer ${
+                    selectedDiscipline.isActive !== false
+                      ? "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20"
+                      : "text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20"
+                  }`}
+                  title={
+                    selectedDiscipline.isActive !== false
+                      ? t("dojo.deactivateDiscipline", "Desactivar disciplina")
+                      : t("dojo.activateDiscipline", "Activar disciplina")
+                  }
+                >
+                  {selectedDiscipline.isActive !== false ? (
+                    <>
+                      <UserCheck className="h-3.5 w-3.5" /> {t("dojo.activeBadge", "Activa")}
+                    </>
+                  ) : (
+                    <>
+                      <UserX className="h-3.5 w-3.5" /> {t("dojo.inactiveBadge", "Inactiva")}
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEditingDiscipline(selectedDiscipline)}
+                  className="px-2.5 py-1 text-xs font-bold rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1 cursor-pointer"
+                  title={t("dojo.editDisciplineTooltip", "Editar disciplina")}
+                >
+                  <Edit2 className="h-3.5 w-3.5" /> {t("dojo.editBtn", "Editar")}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeletingDiscipline(selectedDiscipline)}
+                  className="px-2.5 py-1 text-xs font-bold rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 transition-colors flex items-center gap-1 cursor-pointer"
+                  title={t("dojo.deleteDisciplineTooltip", "Eliminar disciplina")}
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> {t("dojo.deleteBtn", "Eliminar")}
+                </button>
 
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsApplyTemplateModalOpen(true)}
-                  className="h-8 text-[11px] font-medium gap-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg shrink-0 transition-colors"
+                  className="h-8 text-[11px] font-medium gap-1.5 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg shrink-0 transition-colors ml-1"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-zinc-400" />
                   <span>{t("dojo.applyTemplateBtn", "Cargar Plantilla")}</span>
                 </Button>
               </div>
+            </div>
 
               {/* Form Add Belt Card */}
               <form
@@ -847,6 +812,31 @@ export default function DisciplinesPage() {
 
               {/* Belt Rank Hierarchy Progression Timeline */}
               <div className="space-y-3 pt-1">
+                {belts.length > 0 && !isLoadingBelts && (
+                  <div className="flex items-center justify-between px-1 py-1 text-xs">
+                    <label className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 font-semibold cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={selectedBeltIds.length === belts.length && belts.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedBeltIds(belts.map((b) => b.id));
+                          } else {
+                            setSelectedBeltIds([]);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 text-amber-500 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <span>{t("dojo.selectAll", "Seleccionar todos")}</span>
+                      {selectedBeltIds.length > 0 && (
+                        <span className="text-[11px] text-amber-600 dark:text-amber-400 font-mono font-bold">
+                          ({selectedBeltIds.length} / {belts.length})
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                )}
+
                 {isLoadingBelts ? (
                   <div className="p-8 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> {t("dojo.loadingBelts", "Cargando grados...")}
@@ -861,9 +851,27 @@ export default function DisciplinesPage() {
                   belts.map((belt, idx) => (
                     <div
                       key={belt.id}
-                      className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 shadow-2xs hover:border-amber-500/40 transition-all group"
+                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all group ${
+                        selectedBeltIds.includes(belt.id)
+                          ? "border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/10 shadow-xs"
+                          : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 shadow-2xs hover:border-amber-500/40"
+                      }`}
                     >
                       <div className="flex items-center gap-3.5 min-w-0">
+                        {/* Checkbox for Bulk Selection */}
+                        <input
+                          type="checkbox"
+                          checked={selectedBeltIds.includes(belt.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedBeltIds((prev) => [...prev, belt.id]);
+                            } else {
+                              setSelectedBeltIds((prev) => prev.filter((id) => id !== belt.id));
+                            }
+                          }}
+                          className="h-4 w-4 rounded border-zinc-300 dark:border-zinc-700 text-amber-500 focus:ring-amber-500 cursor-pointer shrink-0"
+                        />
+
                         {/* Rank Position Badge */}
                         <span className="text-xs font-black text-amber-500/80 bg-amber-500/10 border border-amber-500/20 rounded-lg w-7 h-7 flex items-center justify-center shrink-0">
                           #{idx + 1}
@@ -931,7 +939,7 @@ export default function DisciplinesPage() {
                             type="button"
                             onClick={() => setEditingBelt(belt)}
                             className="p-1.5 text-zinc-400 hover:text-amber-500 rounded-lg hover:bg-amber-500/10 transition-colors cursor-pointer"
-                            title="Editar cinturón"
+                            title={t("dojo.editBeltTooltip", "Editar cinturón")}
                           >
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
@@ -939,7 +947,7 @@ export default function DisciplinesPage() {
                             type="button"
                             onClick={() => setDeletingBelt(belt)}
                             className="p-1.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
-                            title="Eliminar cinturón"
+                            title={t("dojo.deleteBeltTooltip", "Eliminar cinturón")}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -967,10 +975,10 @@ export default function DisciplinesPage() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <Edit2 className="h-5 w-5 text-amber-500" /> Editar Disciplina
+              <Edit2 className="h-5 w-5 text-amber-500" /> {t("dojo.editDisciplineTitle", "Editar Disciplina")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500">
-              Modifica el nombre o código abreviado de la disciplina marcial.
+              {t("dojo.editDisciplineSub", "Modifica el nombre o código abreviado de la disciplina marcial.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -978,7 +986,7 @@ export default function DisciplinesPage() {
             <form onSubmit={handleUpdateDiscipline} className="space-y-4 pt-2">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Nombre de la Disciplina
+                  {t("dojo.disciplineNameLabel", "Nombre de la Disciplina")}
                 </Label>
                 <Input
                   value={editingDiscipline.name}
@@ -991,7 +999,7 @@ export default function DisciplinesPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Código Abreviado (Opcional)
+                  {t("dojo.disciplineCodeLabel", "Código Abreviado (Opcional)")}
                 </Label>
                 <Input
                   value={editingDiscipline.code || ""}
@@ -1009,14 +1017,14 @@ export default function DisciplinesPage() {
                   onClick={() => setEditingDiscipline(null)}
                   className="rounded-xl text-xs"
                 >
-                  Cancelar
+                  {t("dojo.cancelBtn", "Cancelar")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSavingEditDiscipline}
                   className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer"
                 >
-                  {isSavingEditDiscipline ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Cambios"}
+                  {isSavingEditDiscipline ? <Loader2 className="h-4 w-4 animate-spin" /> : t("dojo.saveChangesBtn", "Guardar Cambios")}
                 </Button>
               </DialogFooter>
             </form>
@@ -1032,12 +1040,12 @@ export default function DisciplinesPage() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 shrink-0" /> ¿Eliminar Disciplina?
+              <AlertTriangle className="h-5 w-5 shrink-0" /> {t("dojo.deleteDisciplineTitle", "¿Eliminar Disciplina?")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1">
-              Estás a punto de eliminar la disciplina{" "}
-              <strong className="text-zinc-900 dark:text-white">"{deletingDiscipline?.name}"</strong>.
-              Esta acción eliminará permanentemente sus cinturones y configuraciones asociadas.
+              {t("dojo.deleteDisciplineSub", "Estás a punto de eliminar la disciplina")}{" "}
+              <strong className="text-zinc-900 dark:text-white">"{deletingDiscipline?.name}"</strong>.{" "}
+              {t("dojo.deleteDisciplineWarning", "Esta acción eliminará permanentemente sus cinturones y configuraciones asociadas.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1048,14 +1056,14 @@ export default function DisciplinesPage() {
               onClick={() => setDeletingDiscipline(null)}
               className="rounded-xl text-xs"
             >
-              Cancelar
+              {t("dojo.cancelBtn", "Cancelar")}
             </Button>
             <Button
               type="button"
               onClick={handleDeleteDiscipline}
               className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs cursor-pointer"
             >
-              Sí, Eliminar
+              {t("dojo.confirmDeleteBtn", "Sí, Eliminar")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1066,10 +1074,10 @@ export default function DisciplinesPage() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <Edit2 className="h-5 w-5 text-amber-500" /> Editar Cinturón / Grado
+              <Edit2 className="h-5 w-5 text-amber-500" /> {t("dojo.editBeltTitle", "Editar Cinturón / Grado")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500">
-              Ajusta el nombre, color hexadecimal y los requisitos mínimos de clases y permanencia.
+              {t("dojo.editBeltSub", "Ajusta el nombre, color hexadecimal y los requisitos mínimos de clases y permanencia.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -1077,7 +1085,7 @@ export default function DisciplinesPage() {
             <form onSubmit={handleUpdateBelt} className="space-y-3 pt-2">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Nombre del Cinturón
+                  {t("dojo.beltNameInputLabel", "Nombre del Cinturón")}
                 </Label>
                 <Input
                   value={editingBelt.name}
@@ -1088,7 +1096,7 @@ export default function DisciplinesPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Color Hexadecimal
+                  {t("dojo.hexColorLabel", "Color Hexadecimal")}
                 </Label>
                 <div className="flex items-center gap-3">
                   <input
@@ -1108,7 +1116,7 @@ export default function DisciplinesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Mín. Clases
+                    {t("dojo.minClassesLabel", "Mín. Clases")}
                   </Label>
                   <Input
                     type="number"
@@ -1122,7 +1130,7 @@ export default function DisciplinesPage() {
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Mín. Meses
+                    {t("dojo.minMonthsLabel", "Mín. Meses")}
                   </Label>
                   <Input
                     type="number"
@@ -1142,14 +1150,14 @@ export default function DisciplinesPage() {
                   onClick={() => setEditingBelt(null)}
                   className="rounded-xl text-xs"
                 >
-                  Cancelar
+                  {t("dojo.cancelBtn", "Cancelar")}
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSavingEditBelt}
                   className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer"
                 >
-                  {isSavingEditBelt ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar Cambios"}
+                  {isSavingEditBelt ? <Loader2 className="h-4 w-4 animate-spin" /> : t("dojo.saveChangesBtn", "Guardar Cambios")}
                 </Button>
               </DialogFooter>
             </form>
@@ -1162,10 +1170,10 @@ export default function DisciplinesPage() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 shrink-0" /> ¿Eliminar Cinturón?
+              <AlertTriangle className="h-5 w-5 shrink-0" /> {t("dojo.deleteBeltTitle", "¿Eliminar Cinturón?")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1">
-              Estás a punto de eliminar el cinturón{" "}
+              {t("dojo.deleteBeltSub", "Estás a punto de eliminar el cinturón")}{" "}
               <strong className="text-zinc-900 dark:text-white">"{deletingBelt?.name}"</strong>.
             </DialogDescription>
           </DialogHeader>
@@ -1177,14 +1185,55 @@ export default function DisciplinesPage() {
               onClick={() => setDeletingBelt(null)}
               className="rounded-xl text-xs"
             >
-              Cancelar
+              {t("dojo.cancelBtn", "Cancelar")}
             </Button>
             <Button
               type="button"
               onClick={handleDeleteBelt}
               className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs cursor-pointer"
             >
-              Sí, Eliminar
+              {t("dojo.confirmDeleteBtn", "Sí, Eliminar")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: CONFIRM BULK DELETE BELTS */}
+      <Dialog open={isConfirmBulkDeleteModalOpen} onOpenChange={setIsConfirmBulkDeleteModalOpen}>
+        <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              {t("dojo.confirmBulkDeleteBeltsTitle", "¿Eliminar cinturones seleccionados?")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1">
+              {t("dojo.confirmBulkDeleteBeltsDesc", "Estás a punto de eliminar {count} cinturón(es) seleccionado(s) de esta disciplina. Esta acción no se puede deshacer.", { count: selectedBeltIds.length })}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="pt-4 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsConfirmBulkDeleteModalOpen(false)}
+              className="rounded-xl text-xs"
+            >
+              {t("dojo.cancelBtn", "Cancelar")}
+            </Button>
+            <Button
+              type="button"
+              disabled={isDeletingBeltsBulk}
+              onClick={handleBulkDeleteBelts}
+              className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs cursor-pointer"
+            >
+              {isDeletingBeltsBulk ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                  {t("dojo.deleteSelectedBelts", "Eliminar Seleccionados")} ({selectedBeltIds.length})
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1240,6 +1289,17 @@ export default function DisciplinesPage() {
                     {getDisciplineTemplateById(applyTemplateId)?.belts.length || 0})
                   </span>
                 </label>
+                {applyIncludeBelts && (
+                  <label className="flex items-center gap-2 cursor-pointer ml-5 text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={applyReplaceExistingBelts}
+                      onChange={(e) => setApplyReplaceExistingBelts(e.target.checked)}
+                      className="rounded text-rose-500 focus:ring-rose-500"
+                    />
+                    <span>⚠️ {t("dojo.replaceExistingBeltsHint", "Reemplazar / limpiar cinturones existentes antes de importar")}</span>
+                  </label>
+                )}
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1293,6 +1353,172 @@ export default function DisciplinesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL: REGISTER NEW DISCIPLINE */}
+      <Dialog open={isCreateDisciplineModalOpen} onOpenChange={setIsCreateDisciplineModalOpen}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+              <Plus className="h-5 w-5 text-amber-500" />
+              {t("dojo.registerNewDiscipline", "+ Registrar Nueva Disciplina")}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+              {t("dojo.registerNewDisciplineDesc", "Crea una disciplina marcial personalizada o basada en una plantilla estandarizada.")}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateDiscipline} className="space-y-3.5 py-2">
+            {/* Template Selector Dropdown */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
+                {t("dojo.templateLabel", "Plantilla Preconfigurada:")}
+              </Label>
+              <select
+                value={selectedTemplateId}
+                onChange={(e) => handleTemplateSelect(e.target.value)}
+                className="w-full h-10 text-xs font-semibold rounded-xl px-3 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              >
+                <option value="CUSTOM">{t("dojo.customEmptyForm", "✏️ Personalizado (Formulario Vacío)")}</option>
+                {DISCIPLINE_TEMPLATE_LIST.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    🥋 {tpl.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
+                {t("dojo.disciplineNameLabel", "Nombre de la Disciplina:")}
+              </Label>
+              <Input
+                placeholder={t("dojo.disciplineNamePlaceholder", "ej. Sanda, Wing Chun, Taekwondo")}
+                value={newDisciplineName}
+                onChange={(e) => setNewDisciplineName(e.target.value)}
+                className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-10"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
+                {t("dojo.disciplineCodeLabel", "Código Abreviado (Opcional):")}
+              </Label>
+              <Input
+                placeholder={t("dojo.disciplineCodePlaceholder", "ej. SND, TKD, BJJ")}
+                value={newDisciplineCode}
+                onChange={(e) => setNewDisciplineCode(e.target.value)}
+                className="bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white h-10"
+              />
+            </div>
+
+            {selectedTemplateId !== "CUSTOM" && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 block">
+                  {t("dojo.includeAutoPresets", "Incluir Preconfiguraciones Automáticas:")}
+                </span>
+                <div className="flex flex-col gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-medium">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeBelts}
+                      onChange={(e) => setIncludeBelts(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      🥋 {t("dojo.presetBelts", "Jerarquía de Cinturones")} (
+                      {getDisciplineTemplateById(selectedTemplateId)?.belts.length || 0})
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeChallenges}
+                      onChange={(e) => setIncludeChallenges(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      🔥 {t("dojo.presetChallenges", "Retos de Gamificación")} (
+                      {getDisciplineTemplateById(selectedTemplateId)?.challenges.length || 0})
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeRubrics}
+                      onChange={(e) => setIncludeRubrics(e.target.checked)}
+                      className="rounded text-amber-500 focus:ring-amber-500"
+                    />
+                    <span>
+                      📋 {t("dojo.presetRubrics", "Rúbricas de Evaluación")} (
+                      {getDisciplineTemplateById(selectedTemplateId)?.rubrics.length || 0})
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateDisciplineModalOpen(false)}
+                className="border-zinc-300 dark:border-zinc-700 text-xs font-bold rounded-xl h-10"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isCreatingDiscipline}
+                className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs h-10 px-5"
+              >
+                {isCreatingDiscipline ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1" /> {t("dojo.createBtn", "Crear Disciplina")}
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      {/* Floating Bulk Action Bar (Matching /dashboard/users) */}
+      {selectedBeltIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2.5 px-4 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge className="bg-amber-500 text-zinc-950 font-extrabold text-[10px] uppercase rounded-lg px-2.5 h-6">
+              {selectedBeltIds.length} {t("dojo.selectedCount", "SELECCIONADOS")}
+            </Badge>
+          </div>
+
+          <div className="h-6 w-[1px] bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              onClick={() => setIsConfirmBulkDeleteModalOpen(true)}
+              variant="outline"
+              size="sm"
+              className="text-xs font-bold rounded-xl h-9 px-3 gap-1.5 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>{t("dojo.deleteSelectedBelts", "Eliminar Seleccionados")}</span>
+            </Button>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setSelectedBeltIds([])}
+            className="h-8 w-8 text-zinc-400 hover:text-zinc-600 dark:hover:text-white rounded-xl shrink-0 cursor-pointer"
+            title={t("dojo.cancelBtn", "Cancelar")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

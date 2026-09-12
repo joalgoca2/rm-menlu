@@ -49,24 +49,31 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
     steps: [
       {
         titleKey: "tour.groups.step1.title",
-        defaultTitle: "Gestión de Grupos",
+        defaultTitle: "Gestión de Grupos y Nivel",
         descKey: "tour.groups.step1.desc",
         defaultDesc:
-          "Organiza a tus alumnos por disciplinas, edades u horarios en grupos de entrenamiento.",
+          "Organiza a tus alumnos por horarios o rango de edad (ej. Adultos o Infantiles) en grupos de entrenamiento.",
       },
       {
         titleKey: "tour.groups.step2.title",
-        defaultTitle: "Crear Nuevo Grupo",
+        defaultTitle: "Combinación Multi-Disciplina",
         descKey: "tour.groups.step2.desc",
         defaultDesc:
-          "Haz clic en '+ Nuevo Grupo' para registrar una nueva clase asignando su disciplina y cupos.",
+          "¡Un mismo grupo puede practicar varias disciplinas! Activa con la casilla (☑) las artes marciales que entrena la clase (ej. Tai Chi los Martes y Sanda los Jueves).",
       },
       {
         titleKey: "tour.groups.step3.title",
         defaultTitle: "Asignación de Alumnos",
         descKey: "tour.groups.step3.desc",
         defaultDesc:
-          "Desde la tabla o vista en tarjetas, puedes inscribir alumnos y consultar la asistencia.",
+          "Usa el botón 'Gestionar Alumnos' para inscribir o desinscribir practicantes en el grupo fácilmente.",
+      },
+      {
+        titleKey: "tour.groups.step4.title",
+        defaultTitle: "Acciones en Lote y Vistas",
+        descKey: "tour.groups.step4.desc",
+        defaultDesc:
+          "Alterna entre vista en Tabla y Tarjetas. Selecciona múltiples grupos para activarlos, desactivarlos o eliminarlos en masa.",
       },
     ],
   },
@@ -77,17 +84,45 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
     steps: [
       {
         titleKey: "tour.students.step1.title",
-        defaultTitle: "Directorio de Alumnos",
+        defaultTitle: "Alta y Expediente Digital",
         descKey: "tour.students.step1.desc",
         defaultDesc:
-          "Visualiza la lista completa de practicantes, sus cintas actuales y estado de inscripción.",
+          "Registra alumnos con su fotografía de perfil, ficha médica de emergencia, contacto de tutor y seguro.",
       },
       {
         titleKey: "tour.students.step2.title",
-        defaultTitle: "Ficha & Credenciales",
+        defaultTitle: "Importación Masiva (CSV)",
         descKey: "tour.students.step2.desc",
         defaultDesc:
-          "Accede al perfil de cada alumno para imprimir su credencial oficial o promover su rango.",
+          "Carga tu lista completa de practicantes desde Excel o CSV en un solo clic (el Asistente Virtual Sensei te guía).",
+      },
+      {
+        titleKey: "tour.students.step3.title",
+        defaultTitle: "Cuentas de Acceso al Portal",
+        descKey: "tour.students.step3.desc",
+        defaultDesc:
+          "Crea accesos digitales para que alumnos y tutores consulten sus avances y rachas desde su aplicación.",
+      },
+      {
+        titleKey: "tour.students.step4.title",
+        defaultTitle: "Búsqueda y Filtros Rápidos",
+        descKey: "tour.students.step4.desc",
+        defaultDesc:
+          "Encuentra practicantes al instante filtrando por disciplina activa o buscando por nombre, email o seguro.",
+      },
+      {
+        titleKey: "tour.students.step5.title",
+        defaultTitle: "Credencial Oficial del Tatami",
+        descKey: "tour.students.step5.desc",
+        defaultDesc:
+          "Imprime credenciales oficiales con código QR y código de barras directamente desde el expediente del alumno.",
+      },
+      {
+        titleKey: "tour.students.step6.title",
+        defaultTitle: "Gamificación & Promoción",
+        descKey: "tour.students.step6.desc",
+        defaultDesc:
+          "Monitorea los Puntos XP del Camino del Esfuerzo, racha de clases y promueve de grado o cinturón al alumno.",
       },
     ],
   },
@@ -150,7 +185,21 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
         defaultTitle: "Escala de Cinturones",
         descKey: "tour.disciplines.step2.desc",
         defaultDesc:
-          "Asigna los colores de cintas, requisitos de tiempo y conocimientos para graduarse.",
+          "Asigna los colores de cintas, requisitos de tiempo y clases mínimas para graduarse.",
+      },
+      {
+        titleKey: "tour.disciplines.step3.title",
+        defaultTitle: "Plantillas Estándar",
+        descKey: "tour.disciplines.step3.desc",
+        defaultDesc:
+          "Usa el botón 'Cargar Plantilla' para importar en 1-clic la estructura de cinturones de artes marciales conocidas.",
+      },
+      {
+        titleKey: "tour.disciplines.step4.title",
+        defaultTitle: "Jerarquía y Estado",
+        descKey: "tour.disciplines.step4.desc",
+        defaultDesc:
+          "Usa las flechas (▲/▼) de cada cinturón para ajustar el orden jerárquico de graduación, o marca la disciplina como Inactiva.",
       },
     ],
   },

@@ -110,23 +110,25 @@ export function GuidedTourOverlay() {
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {!isFirstStep && (
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={prevStep}
-              className="h-8 px-2.5 text-xs border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl"
+              className="h-8 px-3 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-100 border border-zinc-700/80 rounded-xl transition-colors shadow-sm cursor-pointer"
             >
-              <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
               {t("guidedTour.prev", "Anterior")}
             </Button>
           )}
 
           <Button
+            type="button"
             size="sm"
             onClick={nextStep}
-            className="h-8 px-3 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-md shadow-amber-500/20"
+            className="h-8 px-3.5 text-xs bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold rounded-xl shadow-lg shadow-amber-500/20 cursor-pointer transition-colors"
           >
             {isLastStep ? (
               <>
@@ -136,7 +138,7 @@ export function GuidedTourOverlay() {
             ) : (
               <>
                 <span>{t("guidedTour.next", "Siguiente")}</span>
-                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
               </>
             )}
           </Button>

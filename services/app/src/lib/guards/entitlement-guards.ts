@@ -29,8 +29,9 @@ export async function assertBrandPlanLimit(
   currentCount: number
 ): Promise<ApiResponse<null> | null> {
   try {
-    const subscription = await prisma.brandSubscription.findUnique({
+    const subscription = await prisma.subscription.findFirst({
       where: { brandId },
+      orderBy: { createdAt: "desc" },
       select: { planName: true },
     });
 
