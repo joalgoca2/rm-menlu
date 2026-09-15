@@ -46,6 +46,8 @@ interface NavItem {
   adminOnly?: boolean;
   superAdminOnly?: boolean;
   userOnly?: boolean;
+  badgeKey?: string;
+  defaultBadge?: string;
 }
 
 const mainNavItems: NavItem[] = [
@@ -75,6 +77,8 @@ const mainNavItems: NavItem[] = [
     href: "/dashboard/exams",
     icon: Award,
     adminOnly: true,
+    badgeKey: "nav.soon",
+    defaultBadge: "Pronto",
   },
   {
     key: "nav.tournaments",
@@ -82,12 +86,16 @@ const mainNavItems: NavItem[] = [
     href: "/dashboard/tournaments",
     icon: Trophy,
     adminOnly: true,
+    badgeKey: "nav.soon",
+    defaultBadge: "Pronto",
   },
   {
     key: "nav.effortPath",
     defaultTitle: "El Camino del Esfuerzo",
     href: "/student/effort-path",
     icon: Gamepad2,
+    badgeKey: "nav.soon",
+    defaultBadge: "Pronto",
   },
   {
     key: "nav.myPayments",
@@ -112,6 +120,8 @@ const dojoSettingsNavItems: NavItem[] = [
     href: "/dashboard/gamification",
     icon: Dumbbell,
     adminOnly: true,
+    badgeKey: "nav.soon",
+    defaultBadge: "Pronto",
   },
   {
     key: "nav.rubrics",
@@ -119,6 +129,8 @@ const dojoSettingsNavItems: NavItem[] = [
     href: "/dashboard/evaluations/templates",
     icon: ClipboardCheck,
     adminOnly: true,
+    badgeKey: "nav.soon",
+    defaultBadge: "Pronto",
   },
 ];
 
@@ -501,7 +513,16 @@ function SidebarNavLink({
             : "text-zinc-400 group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-300"
         )}
       />
-      {isExpanded && <span className="truncate">{title}</span>}
+      {isExpanded && (
+        <span className="truncate flex-1 flex items-center justify-between">
+          <span>{title}</span>
+          {item.badgeKey && (
+            <span className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0 ml-1 shadow-2xs">
+              {t(item.badgeKey, item.defaultBadge ?? "Pronto")}
+            </span>
+          )}
+        </span>
+      )}
     </Link>
   );
 }

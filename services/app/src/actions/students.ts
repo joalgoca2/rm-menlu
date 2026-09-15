@@ -7,13 +7,22 @@ import {
   updateStudentSchema,
   createStudentUserAccountSchema,
 } from "@/lib/validations/students";
+import { recordManualStudentPaymentSchema } from "@/lib/validations/brand-portal";
+import { triggerOutboundWebhook } from "@/lib/webhook";
 import { parseCSV, generateCSV } from "@/lib/csv";
-import type { ApiResponse, StudentWithDetails, StudentExpediente, StudentProfileWithUser } from "@/types";
+import type {
+  ApiResponse,
+  StudentWithDetails,
+  StudentExpediente,
+  StudentExpedientePayment,
+  StudentProfileWithUser,
+} from "@/types";
 
 export interface GetStudentsFilter {
   brandId?: string;
   search?: string;
   disciplineId?: string;
+  paymentStatus?: "ALL" | "PAID" | "DUE_SOON" | "UNPAID";
   page?: number;
   limit?: number;
 }
@@ -66,7 +75,10 @@ export async function getStudentsAction(
     const eighteenYearsAgo = new Date();
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
 
-    const [students, total, activeCount, minorsCount, aggregateXp] = await Promise.all([
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [rawStudents, total, activeCount, minorsCount, aggregateXp] = await Promise.all([
       prisma.studentProfile.findMany({
         where: whereCondition,
         include: {
@@ -82,10 +94,21 @@ export async function getStudentsAction(
               discipline: true,
             },
           },
+          payments: {
+            where: { status: "SUCCESS" },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              amount: true,
+              concept: true,
+              createdAt: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
+        skip: filter.paymentStatus && filter.paymentStatus !== "ALL" ? 0 : skip,
+        take: filter.paymentStatus && filter.paymentStatus !== "ALL" ? 500 : limit,
       }),
       prisma.studentProfile.count({ where: whereCondition }),
       prisma.studentProfile.count({
@@ -108,15 +131,52 @@ export async function getStudentsAction(
       }),
     ]);
 
-    const totalPages = Math.max(1, Math.ceil(total / limit));
+    let mappedStudents: StudentWithDetails[] = rawStudents.map((s) => {
+      const lastPayment = s.payments[0];
+      let paymentStatus: "PAID" | "DUE_SOON" | "UNPAID" = "UNPAID";
+
+      if (lastPayment?.createdAt) {
+        const lastDate = new Date(lastPayment.createdAt);
+        const daysDiff = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
+
+        if (lastDate >= startOfCurrentMonth) {
+          paymentStatus = "PAID";
+        } else if (daysDiff >= 25 && daysDiff <= 30) {
+          paymentStatus = "DUE_SOON";
+        } else {
+          paymentStatus = "UNPAID";
+        }
+      }
+
+      return {
+        ...s,
+        paymentStatus,
+        lastPaymentDate: lastPayment ? lastPayment.createdAt : null,
+        lastPaymentAmount: lastPayment ? lastPayment.amount : null,
+      };
+    });
+
+    if (filter.paymentStatus && filter.paymentStatus !== "ALL") {
+      mappedStudents = mappedStudents.filter((s) => s.paymentStatus === filter.paymentStatus);
+    }
+
+    const finalTotal = filter.paymentStatus && filter.paymentStatus !== "ALL" ? mappedStudents.length : total;
+    const finalTotalPages = filter.paymentStatus && filter.paymentStatus !== "ALL"
+      ? Math.max(1, Math.ceil(finalTotal / limit))
+      : Math.max(1, Math.ceil(total / limit));
+
+    const paginatedStudents = filter.paymentStatus && filter.paymentStatus !== "ALL"
+      ? mappedStudents.slice(skip, skip + limit)
+      : mappedStudents;
+
     const totalXpPoints = aggregateXp._sum.effortPoints || 0;
 
     return {
       success: true,
       data: {
-        students: students as StudentWithDetails[],
-        total,
-        totalPages,
+        students: paginatedStudents,
+        total: finalTotal,
+        totalPages: finalTotalPages,
         activeCount,
         minorsCount,
         totalXpPoints,
@@ -497,19 +557,47 @@ export async function deleteStudentAction(
   try {
     const student = await prisma.studentProfile.findUnique({
       where: { id: studentId },
+      include: {
+        _count: {
+          select: {
+            groupMemberships: true,
+            payments: true,
+            enrollments: true,
+            examEvaluations: true,
+            challengeProgress: true,
+          },
+        },
+      },
     });
 
     if (!student) {
       return { success: false, error: "Alumno no encontrado." };
     }
 
-    if (!student.userId) {
-      return { success: false, error: "El alumno no tiene un usuario de acceso registrado." };
+    const linkedRecordsCount =
+      student._count.groupMemberships +
+      student._count.payments +
+      student._count.enrollments +
+      student._count.examEvaluations +
+      student._count.challengeProgress;
+
+    if (linkedRecordsCount > 0) {
+      return {
+        success: false,
+        error:
+          "No es posible eliminar el alumno porque cuenta con registros vinculados (grupos, inscripciones, pagos o evaluaciones). Únicamente se permite su desactivación.",
+      };
     }
 
-    await prisma.user.delete({
-      where: { id: student.userId },
-    });
+    if (student.userId) {
+      await prisma.user.delete({
+        where: { id: student.userId },
+      });
+    } else {
+      await prisma.studentProfile.delete({
+        where: { id: studentId },
+      });
+    }
 
     return { success: true, data: true };
   } catch (error) {
@@ -524,16 +612,63 @@ export async function bulkDeleteStudentsAction(
   try {
     const students = await prisma.studentProfile.findMany({
       where: { id: { in: studentIds } },
-      select: { userId: true },
+      select: {
+        id: true,
+        userId: true,
+        _count: {
+          select: {
+            groupMemberships: true,
+            payments: true,
+            enrollments: true,
+            examEvaluations: true,
+            challengeProgress: true,
+          },
+        },
+      },
     });
 
-    const userIds = students.map((s) => s.userId).filter((id): id is string => Boolean(id));
-
-    const deleted = await prisma.user.deleteMany({
-      where: { id: { in: userIds } },
+    const deletableStudents = students.filter((s) => {
+      const count =
+        s._count.groupMemberships +
+        s._count.payments +
+        s._count.enrollments +
+        s._count.examEvaluations +
+        s._count.challengeProgress;
+      return count === 0;
     });
 
-    return { success: true, data: deleted.count };
+    if (deletableStudents.length === 0) {
+      return {
+        success: false,
+        error:
+          "No es posible eliminar ninguno de los alumnos seleccionados porque cuentan con registros vinculados (grupos, inscripciones o pagos). Por favor desactívalos.",
+      };
+    }
+
+    const userIds = deletableStudents
+      .map((s) => s.userId)
+      .filter((id): id is string => Boolean(id));
+    const profileIdsWithoutUser = deletableStudents
+      .filter((s) => !s.userId)
+      .map((s) => s.id);
+
+    let deletedCount = 0;
+
+    if (userIds.length > 0) {
+      const deletedUsers = await prisma.user.deleteMany({
+        where: { id: { in: userIds } },
+      });
+      deletedCount += deletedUsers.count;
+    }
+
+    if (profileIdsWithoutUser.length > 0) {
+      const deletedProfiles = await prisma.studentProfile.deleteMany({
+        where: { id: { in: profileIdsWithoutUser } },
+      });
+      deletedCount += deletedProfiles.count;
+    }
+
+    return { success: true, data: deletedCount };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error al eliminar alumnos masivamente.";
     return { success: false, error: msg };
@@ -553,14 +688,17 @@ export async function toggleStudentActiveAction(
       return { success: false, error: "Alumno no encontrado." };
     }
 
-    if (!student.userId) {
-      return { success: false, error: "El alumno no tiene un usuario de acceso registrado." };
+    if (student.userId) {
+      await prisma.user.update({
+        where: { id: student.userId },
+        data: { isActive },
+      });
+    } else {
+      await prisma.studentEnrollment.updateMany({
+        where: { studentId },
+        data: { status: isActive ? "ACTIVE" : "INACTIVE" },
+      });
     }
-
-    await prisma.user.update({
-      where: { id: student.userId },
-      data: { isActive },
-    });
 
     return { success: true, data: isActive };
   } catch (error) {
@@ -576,17 +714,33 @@ export async function bulkToggleStudentsActiveAction(
   try {
     const students = await prisma.studentProfile.findMany({
       where: { id: { in: studentIds } },
-      select: { userId: true },
+      select: { id: true, userId: true },
     });
 
     const userIds = students.map((s) => s.userId).filter((id): id is string => Boolean(id));
+    const profileIdsWithoutUser = students
+      .filter((s) => !s.userId)
+      .map((s) => s.id);
 
-    const updated = await prisma.user.updateMany({
-      where: { id: { in: userIds } },
-      data: { isActive },
-    });
+    let updatedCount = 0;
 
-    return { success: true, data: updated.count };
+    if (userIds.length > 0) {
+      const updated = await prisma.user.updateMany({
+        where: { id: { in: userIds } },
+        data: { isActive },
+      });
+      updatedCount += updated.count;
+    }
+
+    if (profileIdsWithoutUser.length > 0) {
+      await prisma.studentEnrollment.updateMany({
+        where: { studentId: { in: profileIdsWithoutUser } },
+        data: { status: isActive ? "ACTIVE" : "INACTIVE" },
+      });
+      updatedCount += profileIdsWithoutUser.length;
+    }
+
+    return { success: true, data: updatedCount };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error al cambiar estado masivo de alumnos.";
     return { success: false, error: msg };
@@ -610,6 +764,9 @@ export async function getStudentExpedienteAction(
         },
         examEvaluations: {
           include: { exam: true, targetBelt: true },
+          orderBy: { createdAt: "desc" },
+        },
+        payments: {
           orderBy: { createdAt: "desc" },
         },
       },
@@ -636,12 +793,117 @@ export async function getStudentExpedienteAction(
         status: ee.status,
         certifiedAt: ee.certifiedAt,
       })),
+      payments: student.payments.map((p) => ({
+        id: p.id,
+        concept: p.concept,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        gatewayProvider: p.gatewayProvider,
+        description: p.notes,
+        createdAt: p.createdAt,
+      })),
     };
 
     return { success: true, data: expediente };
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Error al consultar expediente.";
     return { success: false, error: msg };
+  }
+}
+
+export interface GetStudentPaymentsInput {
+  studentId: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetStudentPaymentsResponse {
+  payments: StudentExpedientePayment[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  totalPaidAmount: number;
+  currency: string;
+}
+
+export async function getStudentPaymentsPaginatedAction(
+  input: GetStudentPaymentsInput
+): Promise<ApiResponse<GetStudentPaymentsResponse>> {
+  try {
+    const { studentId, search, page = 1, limit = 10 } = input;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const skip = (safePage - 1) * safeLimit;
+
+    // Build Prisma query condition
+    const whereClause: {
+      studentId: string;
+      OR?: {
+        concept?: { contains: string; mode: "insensitive" };
+        gatewayProvider?: { contains: string; mode: "insensitive" };
+        notes?: { contains: string; mode: "insensitive" };
+      }[];
+    } = {
+      studentId,
+    };
+
+    if (search && search.trim().length > 0) {
+      const q = search.trim();
+      whereClause.OR = [
+        { concept: { contains: q, mode: "insensitive" } },
+        { gatewayProvider: { contains: q, mode: "insensitive" } },
+        { notes: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [payments, total, totalSum] = await Promise.all([
+      prisma.brandCustomerPayment.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: safeLimit,
+      }),
+      prisma.brandCustomerPayment.count({
+        where: whereClause,
+      }),
+      prisma.brandCustomerPayment.aggregate({
+        where: { studentId },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / safeLimit));
+    const currency = payments[0]?.currency || "COP";
+    const totalPaidAmount = totalSum._sum.amount || 0;
+
+    return {
+      success: true,
+      data: {
+        payments: payments.map((p) => ({
+          id: p.id,
+          concept: p.concept,
+          amount: p.amount,
+          currency: p.currency,
+          status: p.status,
+          gatewayProvider: p.gatewayProvider,
+          description: p.notes,
+          createdAt: p.createdAt,
+        })),
+        total,
+        totalPages,
+        currentPage: safePage,
+        totalPaidAmount,
+        currency,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getStudentPaymentsPaginatedAction:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al obtener historial de pagos del alumno.",
+    };
   }
 }
 
@@ -1022,6 +1284,84 @@ export async function searchStudentsAction(
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Error al buscar alumnos.";
     return { success: false, error: errorMsg };
+  }
+}
+
+export async function recordStudentManualPaymentAction(
+  data: unknown
+): Promise<ApiResponse<{ id: string; amount: number; concept: string }>> {
+  try {
+    const parsed = recordManualStudentPaymentSchema.safeParse(data);
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message || "Datos de cobro inválidos.";
+      return { success: false, error: msg };
+    }
+
+    const { studentId, concept, amount, paymentMethod, notes } = parsed.data;
+
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      include: { user: true, brand: true },
+    });
+
+    if (!student) {
+      return { success: false, error: "Alumno no encontrado." };
+    }
+
+    const customerName =
+      student.user?.name ||
+      `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+      "Alumno";
+    const customerEmail = student.user?.email || student.email || "sin-email@dojo.app";
+    const transactionRef = `MANUAL-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase()}`;
+
+    const payment = await prisma.brandCustomerPayment.create({
+      data: {
+        brandId: student.brandId,
+        studentId: student.id,
+        customerName,
+        customerEmail,
+        concept,
+        amount,
+        currency: student.brand.currency || "MXN",
+        status: "SUCCESS",
+        gatewayProvider: paymentMethod,
+        transactionRef,
+        notes: notes
+          ? `[${paymentMethod}] ${notes}`
+          : `Cobro manual registrado en ${paymentMethod}`,
+      },
+    });
+
+    try {
+      triggerOutboundWebhook(student.brandId, "payment.customer_paid", {
+        paymentId: payment.id,
+        studentId: student.id,
+        customerName,
+        customerEmail,
+        concept,
+        amount,
+        currency: payment.currency,
+        gatewayProvider: paymentMethod,
+        transactionRef,
+        paidAt: payment.createdAt.toISOString(),
+      }).catch(() => {});
+    } catch (_err) {}
+
+    return {
+      success: true,
+      data: {
+        id: payment.id,
+        amount: payment.amount,
+        concept: payment.concept,
+      },
+    };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "Error al registrar pago manual.";
+    return { success: false, error: msg };
   }
 }
 

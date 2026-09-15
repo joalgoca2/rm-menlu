@@ -12,6 +12,20 @@ export interface StudentWithDetails extends StudentProfile {
   currentBelt?: Belt | null;
   parent?: (ParentProfile & { user?: User | null }) | null;
   enrollments: (StudentEnrollment & { discipline: Discipline })[];
+  paymentStatus?: "PAID" | "DUE_SOON" | "UNPAID";
+  lastPaymentDate?: string | Date | null;
+  lastPaymentAmount?: number | null;
+}
+
+export interface StudentExpedientePayment {
+  id: string;
+  concept: string;
+  amount: number;
+  currency: string;
+  status: string;
+  gatewayProvider?: string | null;
+  description?: string | null;
+  createdAt: Date | string;
 }
 
 export interface StudentExpediente extends StudentWithDetails {
@@ -30,4 +44,5 @@ export interface StudentExpediente extends StudentWithDetails {
     status: string;
     certifiedAt?: Date | null;
   }[];
+  payments?: StudentExpedientePayment[];
 }

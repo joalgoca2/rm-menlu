@@ -243,6 +243,8 @@ model BrandCustomerPayment {
   brand           Brand            @relation(fields: [brandId], references: [id], onDelete: Cascade)
   brandPlanId     String?          @map("brand_plan_id")
   brandPlan       BrandPlanConfig? @relation(fields: [brandPlanId], references: [id], onDelete: SetNull)
+  studentId       String?          @map("student_id")
+  student         StudentProfile?  @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   customerName    String?          @map("customer_name")
   customerEmail   String?          @map("customer_email")
@@ -260,6 +262,7 @@ model BrandCustomerPayment {
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
   @@index([brandId])
+  @@index([studentId])
   @@index([status])
   @@index([createdAt])
   @@map("brand_customer_payments")
@@ -679,6 +682,7 @@ model StudentProfile {
   challengeProgress  StudentChallengeProgress[]
   examEvaluations    ExamEvaluation[]
   groupMemberships   GroupStudent[]
+  payments           BrandCustomerPayment[]
 
   matchesAsRed       TournamentMatch[]   @relation("RedCompetitor")
   matchesAsBlue      TournamentMatch[]   @relation("BlueCompetitor")

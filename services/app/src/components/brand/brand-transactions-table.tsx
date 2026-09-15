@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import { FormattedDate } from "@/components/ui/formatted-date";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -31,21 +32,36 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
   const currentSearch = searchParams.get("search") || "";
   const currentStatus = searchParams.get("status") || "ALL";
 
-  const updateQueryParams = (key: string, value: string) => {
+  // Local state for search input to prevent reloading on every keystroke
+  const [searchInput, setSearchInput] = useState(currentSearch);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "ALL") {
-      params.set(key, value);
+    if (searchInput.trim()) {
+      params.set("search", searchInput.trim());
     } else {
-      params.delete(key);
+      params.delete("search");
     }
     params.set("page", "1");
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (newStatus && newStatus !== "ALL") {
+      params.set("status", newStatus);
+    } else {
+      params.delete("status");
+    }
+    params.set("page", "1");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const getStatusBadge = (status: string) => {
@@ -54,50 +70,64 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
         return (
           <Badge className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 gap-1 rounded-lg">
             <CheckCircle2 className="h-3 w-3" />
-            <span>Exitoso</span>
+            <span>{t("brandAdminPayments.statusSuccess", "Exitoso")}</span>
           </Badge>
         );
       case "PENDING":
         return (
           <Badge className="bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border-amber-200 dark:border-amber-800 gap-1 rounded-lg">
             <Clock className="h-3 w-3" />
-            <span>Pendiente</span>
+            <span>{t("brandAdminPayments.statusPending", "Pendiente")}</span>
           </Badge>
         );
       default:
         return (
           <Badge className="bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border-rose-200 dark:border-rose-800 gap-1 rounded-lg">
             <AlertCircle className="h-3 w-3" />
-            <span>Fallido</span>
+            <span>{t("brandAdminPayments.statusFailed", "Fallido")}</span>
           </Badge>
         );
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pt-4">
+      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+        {t("brandAdminPayments.historyTitle", "Historial Transaccional de Cobros")}
+      </h3>
       {/* Controls Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
-          <Input
-            id="search-transactions-input"
-            placeholder={t("brandAdminPayments.searchPlaceholder", "Buscar por cliente o concepto...")}
-            defaultValue={currentSearch}
-            onChange={(e) => updateQueryParams("search", e.target.value)}
-            className="pl-9 rounded-xl text-xs"
-          />
-        </div>
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 w-full sm:w-auto flex-1 max-w-md">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+            <Input
+              id="search-transactions-input"
+              placeholder={t("brandAdminPayments.searchPlaceholder", "Buscar por alumno o concepto...")}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9 rounded-xl text-xs"
+            />
+          </div>
+          <Button
+            id="search-transactions-submit-btn"
+            type="submit"
+            variant="secondary"
+            className="rounded-xl text-xs font-bold gap-1 cursor-pointer"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>{t("common.search", "Buscar")}</span>
+          </Button>
+        </form>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <label htmlFor="filter-status-select" className="text-xs font-medium text-zinc-500">
+          <label htmlFor="filter-status-select" className="text-xs font-medium text-zinc-500 shrink-0">
             {t("brandAdminPayments.statusFilterLabel", "Estado:")}
           </label>
           <select
             id="filter-status-select"
             value={currentStatus}
-            onChange={(e) => updateQueryParams("status", e.target.value)}
-            className="text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100"
+            onChange={(e) => handleStatusChange(e.target.value)}
+            className="text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-zinc-900 dark:text-zinc-100 cursor-pointer outline-none"
           >
             <option value="ALL">{t("brandAdminPayments.statusAll", "Todos los estados")}</option>
             <option value="SUCCESS">{t("brandAdminPayments.statusSuccess", "Exitoso")}</option>
@@ -112,7 +142,7 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
         <Table>
           <TableHeader className="bg-zinc-50 dark:bg-zinc-800/50">
             <TableRow>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colCustomer", "Cliente")}</TableHead>
+              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colCustomer", "Alumno / Cliente")}</TableHead>
               <TableHead className="text-xs font-bold">{t("brandAdminPayments.colConcept", "Concepto")}</TableHead>
               <TableHead className="text-xs font-bold">{t("brandAdminPayments.colAmount", "Monto")}</TableHead>
               <TableHead className="text-xs font-bold">{t("brandAdminPayments.colGateway", "Pasarela")}</TableHead>
@@ -131,10 +161,17 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                          {payment.customerName || "Cliente anónimo"}
+                          {payment.student
+                            ? `${payment.student.firstName || ""} ${payment.student.lastName || ""}`.trim()
+                            : payment.customerName || "Cliente anónimo"}
                         </p>
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                          {payment.customerEmail || "Sin email"}
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 flex flex-col gap-0.5">
+                          <span>{payment.student?.email || payment.customerEmail || "Sin email"}</span>
+                          {payment.student && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 w-fit mt-0.5">
+                              🎓 Alumno Registrado
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>

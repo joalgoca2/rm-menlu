@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getBrandAdminPaymentsAction, getPublicBrandPortalAction } from "@/actions/brand-portal";
+import { BrandPaymentsHeader } from "@/components/brand/brand-payments-header";
 import { BrandPaymentStats } from "@/components/brand/brand-payment-stats";
 import { BrandTransactionsTable } from "@/components/brand/brand-transactions-table";
 import { BrandPlanManager } from "@/components/brand/brand-plan-manager";
-import { CreditCard, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Cobros de Marca & Membresías | Dashboard",
@@ -19,6 +20,7 @@ interface BrandPaymentsDashboardPageProps {
     limit?: string;
     search?: string;
     status?: string;
+    period?: "MONTH" | "QUARTER" | "YEAR" | "ALL";
   }>;
 }
 
@@ -35,12 +37,14 @@ export default async function BrandPaymentsDashboardPage({
   const limit = sParams.limit ? parseInt(sParams.limit, 10) : 10;
   const search = sParams.search || "";
   const status = sParams.status || "ALL";
+  const period = sParams.period || "ALL";
 
   const res = await getBrandAdminPaymentsAction({
     page,
     limit,
     search,
     status,
+    period,
   });
 
   if (!res.success || !res.data) {
@@ -59,32 +63,20 @@ export default async function BrandPaymentsDashboardPage({
 
   const { payments, stats } = res.data;
 
-  // Also fetch Brand Portal Data for plans & slug control
+  // Also fetch Brand Portal Data for plans & brand name
   const brandRes = await getPublicBrandPortalAction(payments.items[0]?.brandId || "brand-general");
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
-        <div>
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-semibold mb-2"
-          >
-            <CreditCard className="h-3.5 w-3.5" />
-            <span>Cobranza & Membresías de Marca</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">
-            Seguimiento de Cobros a Clientes
-          </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Monitorea los ingresos recibidos por tus membresías, administra tarifas y audita
-            transacciones.
-          </p>
-        </div>
-      </div>
+      <BrandPaymentsHeader />
 
-      {/* KPI Stats Cards */}
-      <BrandPaymentStats stats={stats} />
+      {/* KPI Stats Cards & Export Toolbar */}
+      <BrandPaymentStats
+        stats={stats}
+        brandName={brandRes.data?.name}
+        paymentsData={payments}
+      />
 
       {/* Brand Plans & Portal Public Link Manager */}
       {brandRes.success && brandRes.data && (
@@ -92,12 +84,7 @@ export default async function BrandPaymentsDashboardPage({
       )}
 
       {/* Transactions Table with mandatory PaginationControl */}
-      <div className="space-y-3 pt-4">
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-          Historial Transaccional de Cobros
-        </h3>
-        <BrandTransactionsTable data={payments} />
-      </div>
+      <BrandTransactionsTable data={payments} />
     </div>
   );
 }

@@ -5,17 +5,14 @@ import { toast } from "sonner";
 import {
   Palette,
   Megaphone,
-  MessageSquare,
   MapPin,
   HelpCircle,
-  Star,
   Plus,
   Trash2,
   Save,
   Loader2,
   Sparkles,
   Layout,
-  ExternalLink,
   Upload,
   Image as ImageIcon,
 } from "lucide-react";

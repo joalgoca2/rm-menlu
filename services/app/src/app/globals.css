@@ -183,10 +183,13 @@ html[data-theme-style="modern"] button[class*="bg-emerald-500"]:hover {
     visibility: hidden !important;
   }
   .credential-print-area,
-  .credential-print-area * {
+  .credential-print-area *,
+  .financial-extract-print-area,
+  .financial-extract-print-area * {
     visibility: visible !important;
   }
-  .credential-print-area {
+  .credential-print-area,
+  .financial-extract-print-area {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;

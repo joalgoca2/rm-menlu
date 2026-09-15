@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import {
-  Building2,
   Shield,
   Lock,
   ArrowRight,

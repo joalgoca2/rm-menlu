@@ -281,7 +281,7 @@ export function PaymentTransactionsTable({
                     </td>
                     <td className="p-4">{getProviderBadge(tx.gatewayType)}</td>
                     <td className="p-4 font-extrabold text-zinc-900 dark:text-white">
-                      ${tx.amount.toLocaleString()} {tx.currency}
+                      ${tx.amount.toLocaleString("en-US")} {tx.currency}
                     </td>
                     <td className="p-4">{getStatusBadge(tx.status)}</td>
                     <td className="p-4 text-zinc-500 font-mono text-[11px]">
@@ -366,7 +366,7 @@ export function PaymentTransactionsTable({
                     {t("paymentEngineDetails.auditAmount", "Monto Total")}
                   </span>
                   <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                    ${selectedTxForModal.amount.toLocaleString()} {selectedTxForModal.currency}
+                    ${selectedTxForModal.amount.toLocaleString("en-US")} {selectedTxForModal.currency}
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-t border-zinc-200/60 dark:border-zinc-800/60 pt-2">

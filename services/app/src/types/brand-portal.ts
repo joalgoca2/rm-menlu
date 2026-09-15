@@ -15,6 +15,7 @@ export interface BrandCustomerPayment {
   id: string;
   brandId: string;
   brandPlanId?: string | null;
+  studentId?: string | null;
   customerName?: string | null;
   customerEmail?: string | null;
   concept: string;
@@ -27,6 +28,12 @@ export interface BrandCustomerPayment {
   notes?: string | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
+  student?: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+  } | null;
 }
 
 export interface BrandFaqItem {
@@ -89,6 +96,7 @@ export interface BrandPortalData {
 export interface CheckoutCustomerInput {
   brandId: string;
   brandPlanId?: string;
+  studentId?: string;
   customerName: string;
   customerEmail: string;
   concept: string;
@@ -103,4 +111,5 @@ export interface BrandPaymentStats {
   pendingTransactions: number;
   activeGatewaysCount: number;
   currency: string;
+  period?: "MONTH" | "QUARTER" | "YEAR" | "ALL";
 }

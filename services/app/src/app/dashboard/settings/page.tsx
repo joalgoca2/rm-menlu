@@ -47,6 +47,7 @@ import { formatConvertedPrice } from "@/lib/currency";
 import { getBrandById, updateBrandSettings } from "@/actions/brand";
 import { getPublicBrandPortalAction } from "@/actions/brand-portal";
 import { BrandLandingSettingsForm } from "@/components/brand/brand-landing-settings-form";
+import { BrandPublicLinkCard } from "@/components/brand/brand-public-link-card";
 import {
   getPlanConfigs,
   getBrandActiveSubscriptionAction,
@@ -914,7 +915,16 @@ function SettingsContent() {
 
             {/* Brand Public Landing Customization Form */}
             {brandId && (
-              <div className="pt-2">
+              <div className="pt-2 space-y-6">
+                {brandPortalData && (
+                  <BrandPublicLinkCard
+                    brand={{
+                      id: brandPortalData.id,
+                      slug: brandPortalData.slug,
+                      isSlugLocked: brandPortalData.isSlugLocked,
+                    }}
+                  />
+                )}
                 <BrandLandingSettingsForm
                   brandId={brandId}
                   initialConfig={brandPortalData?.landingConfig}

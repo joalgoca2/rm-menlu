@@ -199,6 +199,7 @@ export async function executeCustomerCheckoutAction(
     const {
       brandId,
       brandPlanId,
+      studentId,
       customerName,
       customerEmail,
       concept,
@@ -221,6 +222,7 @@ export async function executeCustomerCheckoutAction(
       data: {
         brandId,
         brandPlanId: brandPlanId || null,
+        studentId: studentId || null,
         customerName,
         customerEmail,
         concept,
@@ -236,6 +238,7 @@ export async function executeCustomerCheckoutAction(
     // Trigger async outbound brand webhook to n8n / CRM / external brand endpoint
     triggerOutboundWebhook(brandId, "payment.customer_paid", {
       paymentId: createdPayment.id,
+      studentId: createdPayment.studentId,
       customerName,
       customerEmail,
       concept,
@@ -252,6 +255,7 @@ export async function executeCustomerCheckoutAction(
         id: createdPayment.id,
         brandId: createdPayment.brandId,
         brandPlanId: createdPayment.brandPlanId,
+        studentId: createdPayment.studentId,
         customerName: createdPayment.customerName,
         customerEmail: createdPayment.customerEmail,
         concept: createdPayment.concept,
@@ -396,6 +400,7 @@ export async function getBrandAdminPaymentsAction(params: {
   limit?: number;
   search?: string;
   status?: string;
+  period?: "MONTH" | "QUARTER" | "YEAR" | "ALL";
 }): Promise<
   ApiResponse<{
     payments: PaginatedResult<BrandCustomerPayment>;
@@ -422,13 +427,28 @@ export async function getBrandAdminPaymentsAction(params: {
     const limit = Math.min(50, Math.max(1, params.limit || 10));
     const skip = (page - 1) * limit;
 
+    const period = params.period || "ALL";
+    const now = new Date();
+    let startDate: Date | undefined = undefined;
+
+    if (period === "MONTH") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (period === "QUARTER") {
+      const currentQuarter = Math.floor(now.getMonth() / 3);
+      startDate = new Date(now.getFullYear(), currentQuarter * 3, 1);
+    } else if (period === "YEAR") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+
     const where: {
       brandId: string;
       status?: string;
+      createdAt?: { gte: Date };
       OR?: Array<{
         customerName?: { contains: string; mode: "insensitive" };
         customerEmail?: { contains: string; mode: "insensitive" };
         concept?: { contains: string; mode: "insensitive" };
+        student?: { firstName?: { contains: string; mode: "insensitive" }; lastName?: { contains: string; mode: "insensitive" }; email?: { contains: string; mode: "insensitive" } };
       }>;
     } = { brandId };
 
@@ -442,13 +462,31 @@ export async function getBrandAdminPaymentsAction(params: {
         { customerName: { contains: q, mode: "insensitive" } },
         { customerEmail: { contains: q, mode: "insensitive" } },
         { concept: { contains: q, mode: "insensitive" } },
+        { student: { firstName: { contains: q, mode: "insensitive" } } },
+        { student: { lastName: { contains: q, mode: "insensitive" } } },
+        { student: { email: { contains: q, mode: "insensitive" } } },
       ];
     }
 
-    const [total, rawPayments, activeGatewaysCount, successAgg] = await Promise.all([
+    const statsWhere = {
+      brandId,
+      ...(startDate ? { createdAt: { gte: startDate } } : {}),
+    };
+
+    const [total, rawPayments, activeGatewaysCount, successAgg, pendingCount] = await Promise.all([
       prisma.brandCustomerPayment.count({ where }),
       prisma.brandCustomerPayment.findMany({
         where,
+        include: {
+          student: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
         skip,
         take: limit,
@@ -457,15 +495,14 @@ export async function getBrandAdminPaymentsAction(params: {
         where: { brandId, isActive: true },
       }),
       prisma.brandCustomerPayment.aggregate({
-        where: { brandId, status: "SUCCESS" },
+        where: { ...statsWhere, status: "SUCCESS" },
         _sum: { amount: true },
         _count: { id: true },
       }),
+      prisma.brandCustomerPayment.count({
+        where: { ...statsWhere, status: "PENDING" },
+      }),
     ]);
-
-    const pendingCount = await prisma.brandCustomerPayment.count({
-      where: { brandId, status: "PENDING" },
-    });
 
     const totalPages = Math.ceil(total / limit) || 1;
 
@@ -474,6 +511,7 @@ export async function getBrandAdminPaymentsAction(params: {
         id: p.id,
         brandId: p.brandId,
         brandPlanId: p.brandPlanId,
+        studentId: p.studentId,
         customerName: p.customerName,
         customerEmail: p.customerEmail,
         concept: p.concept,
@@ -485,6 +523,14 @@ export async function getBrandAdminPaymentsAction(params: {
         checkoutUrl: p.checkoutUrl,
         notes: p.notes,
         createdAt: p.createdAt.toISOString(),
+        student: p.student
+          ? {
+              id: p.student.id,
+              firstName: p.student.firstName,
+              lastName: p.student.lastName,
+              email: p.student.email,
+            }
+          : null,
       })),
       total,
       page,
@@ -498,6 +544,7 @@ export async function getBrandAdminPaymentsAction(params: {
       pendingTransactions: pendingCount,
       activeGatewaysCount,
       currency: user.brand?.currency || "MXN",
+      period,
     };
 
     return {
@@ -619,7 +666,7 @@ export async function updateBrandLandingConfigAction(
     const updated = await prisma.brand.update({
       where: { id: brandId },
       data: {
-        landingConfig: validation.data as unknown as Record<string, unknown>,
+        landingConfig: JSON.parse(JSON.stringify(validation.data)),
       },
     });
 

@@ -1,7 +1,282 @@
 "use client";
 
-import type { StudentWithDetails } from "@/types";
+import type { StudentWithDetails, BrandPaymentStats, PaginatedResult, BrandCustomerPayment } from "@/types";
 import { getStudentPhotoUrl } from "@/lib/utils";
+
+export interface PrintFinancialExtractOptions {
+  brandName?: string;
+  stats: BrandPaymentStats;
+  paymentsData: PaginatedResult<BrandCustomerPayment>;
+  periodLabel: string;
+}
+
+/**
+ * Print financial statement and tuition report in a dedicated clean print window
+ */
+export function printFinancialExtract({
+  brandName = "Academia Menlu",
+  stats,
+  paymentsData,
+  periodLabel,
+}: PrintFinancialExtractOptions) {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert(
+      "Por favor, permite las ventanas emergentes en tu navegador para abrir la ventana de impresión del extracto."
+    );
+    return;
+  }
+
+  const currentDateStr = new Date().toLocaleDateString("es-ES", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const transactionsRowsHtml =
+    paymentsData.items.length === 0
+      ? `<tr><td colspan="6" style="text-align:center; padding:16px; color:#666; font-size:12px;">No se registraron transacciones en este período.</td></tr>`
+      : paymentsData.items
+          .map((item, idx) => {
+            const customerName = item.student
+              ? `${item.student.firstName || ""} ${item.student.lastName || ""}`.trim() || item.student.email
+              : item.customerName || item.customerEmail || "Cliente";
+            const concept = item.concept || "Mensualidad / Colegiatura";
+            const amountStr = `$${item.amount.toLocaleString("en-US")} ${item.currency || "USD"}`;
+            const gateway = (item as unknown as Record<string, string>).paymentMethod || item.gatewayProvider || "EFECTIVO";
+            const status =
+              item.status === "SUCCESS"
+                ? "Exitoso"
+                : item.status === "PENDING"
+                ? "Pendiente"
+                : "Fallido";
+            const statusColor =
+              item.status === "SUCCESS"
+                ? "#059669"
+                : item.status === "PENDING"
+                ? "#d97706"
+                : "#dc2626";
+            const statusBg =
+              item.status === "SUCCESS"
+                ? "#ecfdf5"
+                : item.status === "PENDING"
+                ? "#fffbeb"
+                : "#fef2f2";
+            const dateStr = item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString("es-ES")
+              : "-";
+
+            return `
+          <tr style="border-bottom: 1px solid #e5e7eb; background-color: ${
+            idx % 2 === 0 ? "#ffffff" : "#f9fafb"
+          };">
+            <td style="padding: 10px 12px; font-weight: bold; color: #111827; font-size: 12px;">${customerName}</td>
+            <td style="padding: 10px 12px; color: #4b5563; font-size: 12px;">${concept}</td>
+            <td style="padding: 10px 12px; font-weight: bold; font-family: monospace; color: #059669; font-size: 13px;">${amountStr}</td>
+            <td style="padding: 10px 12px; color: #6b7280; font-size: 11px; font-weight: bold;">${gateway}</td>
+            <td style="padding: 10px 12px;">
+              <span style="display:inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: ${statusColor}; background-color: ${statusBg}; border: 1px solid ${statusColor}30;">
+                ${status}
+              </span>
+            </td>
+            <td style="padding: 10px 12px; color: #6b7280; font-size: 11px; font-family: monospace;">${dateStr}</td>
+          </tr>
+        `;
+          })
+          .join("");
+
+  const htmlDoc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Extracto Financiero - ${brandName} (${periodLabel})</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #111827;
+      padding: 20px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #111827;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #111827;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #4b5563;
+      margin-top: 4px;
+    }
+    .meta-box {
+      text-align: right;
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .meta-badge {
+      display: inline-block;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #374151;
+      margin-top: 4px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .kpi-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b7280;
+    }
+    .kpi-value {
+      font-size: 18px;
+      font-weight: 900;
+      font-family: monospace;
+      margin-top: 4px;
+    }
+    .table-container {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand-title">${brandName}</div>
+      <div class="subtitle">Extracto Financiero & Reporte de Cobranza de Colegiaturas</div>
+    </div>
+    <div class="meta-box">
+      <div>Fecha de Emisión: <strong>${currentDateStr}</strong></div>
+      <div class="meta-badge">Período: ${periodLabel}</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Ingresos Totales</div>
+      <div class="kpi-value" style="color:#059669;">$${stats.totalRevenue.toLocaleString("en-US")} ${stats.currency}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Cobros Exitosos</div>
+      <div class="kpi-value" style="color:#111827;">${stats.successfulTransactions}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pagos Pendientes</div>
+      <div class="kpi-value" style="color:#d97706;">${stats.pendingTransactions}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pasarelas Activas</div>
+      <div class="kpi-value" style="color:#7c3aed;">${stats.activeGatewaysCount}</div>
+    </div>
+  </div>
+
+  <div style="font-size:12px; font-weight:bold; color:#374151; margin-bottom: 6px;">
+    Detalle Transaccional de Cobros (${paymentsData.items.length} registros)
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Alumno / Cliente</th>
+          <th>Concepto</th>
+          <th>Monto</th>
+          <th>Pasarela</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${transactionsRowsHtml}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>Generado automáticamente por Menlu SaaS • Menlu Dojos B2B Platform</span>
+    <span>Documento de Control Administrativo Interno</span>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    };
+    window.onafterprint = function() {
+      setTimeout(function() {
+        window.close();
+      }, 500);
+    };
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(htmlDoc);
+  printWindow.document.close();
+}
 
 // Generate high-resolution, scan-ready vector QR Code SVG string for print window
 function generateQRSVGString(value: string, size: number = 48): string {

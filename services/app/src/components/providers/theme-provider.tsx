@@ -14,7 +14,6 @@ export function ThemeProvider({
       enableSystem={false}
       enableColorScheme={false}
       disableTransitionOnChange
-      scriptProps={{ id: "next-themes-script" }}
       {...props}
     >
       {children}

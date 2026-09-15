@@ -15,12 +15,21 @@ export const validateSlugSchema = z.object({
 export const customerCheckoutSchema = z.object({
   brandId: z.string().trim().min(1, "ID de marca requerido."),
   brandPlanId: z.string().trim().optional(),
+  studentId: z.string().trim().optional(),
   customerName: z.string().trim().min(2, "Ingresa un nombre válido.").max(100),
   customerEmail: z.string().trim().email("Ingresa un correo electrónico válido."),
   concept: z.string().trim().min(2, "Concepto requerido.").max(150),
   amount: z.number().positive("El monto debe ser mayor a 0."),
   currency: z.string().trim().min(3).max(5).default("MXN"),
   gatewayProvider: z.string().trim().min(1, "Selecciona una pasarela de pago."),
+});
+
+export const recordManualStudentPaymentSchema = z.object({
+  studentId: z.string().trim().min(1, "Selecciona un alumno."),
+  concept: z.string().trim().min(2, "Ingresa el concepto del cobro.").max(150),
+  amount: z.number().positive("El monto debe ser mayor a 0."),
+  paymentMethod: z.enum(["EFECTIVO", "TRANSFERENCIA", "TARJETA", "OTRO"]),
+  notes: z.string().trim().max(500).optional(),
 });
 
 export const createBrandPlanSchema = z.object({

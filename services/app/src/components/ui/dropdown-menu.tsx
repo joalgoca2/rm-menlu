@@ -1,37 +1,48 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface DropdownMenuContextType {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const DropdownMenuContext = React.createContext<DropdownMenuContextType>({
   open: false,
   setOpen: () => null,
+  triggerRef: { current: null },
+  menuRef: { current: null },
 });
 
 export function DropdownMenu({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(event.target as Node)
+      ) {
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [open]);
 
   return (
-    <DropdownMenuContext.Provider value={{ open, setOpen }}>
-      <div ref={menuRef} className="relative inline-block text-left">
-        {children}
-      </div>
+    <DropdownMenuContext.Provider value={{ open, setOpen, triggerRef, menuRef }}>
+      <div className="inline-block text-left">{children}</div>
     </DropdownMenuContext.Provider>
   );
 }
@@ -41,11 +52,15 @@ export function DropdownMenuTrigger({
   children,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }) {
-  const { open, setOpen } = React.useContext(DropdownMenuContext);
+  const { open, setOpen, triggerRef } = React.useContext(DropdownMenuContext);
 
   if (asChild && React.isValidElement(children)) {
-    const childElement = children as React.ReactElement<{ onClick?: React.MouseEventHandler }>;
+    const childElement = children as React.ReactElement<{
+      onClick?: React.MouseEventHandler;
+      ref?: React.Ref<HTMLButtonElement>;
+    }>;
     return React.cloneElement(childElement, {
+      ref: triggerRef,
       onClick: (e: React.MouseEvent) => {
         childElement.props.onClick?.(e);
         setOpen(!open);
@@ -54,7 +69,7 @@ export function DropdownMenuTrigger({
   }
 
   return (
-    <button type="button" onClick={() => setOpen(!open)} {...props}>
+    <button ref={triggerRef} type="button" onClick={() => setOpen(!open)} {...props}>
       {children}
     </button>
   );
@@ -69,27 +84,92 @@ export function DropdownMenuContent({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { open } = React.useContext(DropdownMenuContext);
+  const { open, triggerRef, menuRef } = React.useContext(DropdownMenuContext);
+  const [mounted, setMounted] = React.useState(false);
+  const [coords, setCoords] = React.useState<{ top: number; left: number } | null>(null);
 
-  if (!open) return null;
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const alignStyles =
-    align === "end"
-      ? "right-0"
-      : align === "center"
-      ? "left-1/2 -translate-x-1/2"
-      : "left-0";
+  const updatePosition = React.useCallback(() => {
+    if (!triggerRef?.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const menuEl = menuRef.current;
+    
+    const menuWidth = menuEl ? menuEl.offsetWidth : 224;
+    const menuHeight = menuEl ? menuEl.offsetHeight : 240;
 
-  return (
+    let left = rect.right - menuWidth;
+    if (align === "start") {
+      left = rect.left;
+    } else if (align === "center") {
+      left = rect.left + (rect.width - menuWidth) / 2;
+    }
+
+    // Keep within horizontal viewport boundaries
+    if (left < 12) left = 12;
+    if (left + menuWidth > window.innerWidth - 12) {
+      left = window.innerWidth - menuWidth - 12;
+    }
+
+    // Smart vertical flip: check space below vs above
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    
+    let top = rect.bottom + window.scrollY + 6;
+    if (spaceBelow < menuHeight + 16 && spaceAbove > spaceBelow) {
+      // Flip upward
+      top = rect.top + window.scrollY - menuHeight - 6;
+    }
+
+    setCoords({
+      top: Math.max(12 + window.scrollY, top),
+      left: left + window.scrollX,
+    });
+  }, [align, triggerRef, menuRef]);
+
+  React.useLayoutEffect(() => {
+    if (open) {
+      updatePosition();
+      // Double check after DOM render for exact menu dimensions
+      const timer = setTimeout(updatePosition, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [open, updatePosition]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const handleScrollOrResize = () => {
+      updatePosition();
+    };
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
+    };
+  }, [open, updatePosition]);
+
+  if (!open || !mounted || !coords) return null;
+
+  return createPortal(
     <div
+      ref={menuRef}
+      style={{
+        position: "absolute",
+        top: `${coords.top}px`,
+        left: `${coords.left}px`,
+        zIndex: 99999,
+      }}
       className={cn(
-        "absolute z-50 mt-2 min-w-[12rem] overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1 text-zinc-950 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 animate-in fade-in-0 zoom-in-95 duration-100",
-        alignStyles,
+        "min-w-[14rem] overflow-hidden rounded-2xl border border-zinc-200 bg-white p-1.5 text-zinc-950 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50 animate-in fade-in-0 zoom-in-95 duration-100",
         className
       )}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   );
 }
 
