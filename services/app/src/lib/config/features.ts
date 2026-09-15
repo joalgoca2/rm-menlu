@@ -1,4 +1,5 @@
-import { getEnvironmentFeatures, SystemFeature } from "./entitlements";
+import type { SystemFeature } from "./entitlements";
+import { getEnvironmentFeatures } from "./entitlements";
 
 export type FeatureFlags = Record<SystemFeature, boolean>;
 

@@ -188,6 +188,7 @@ model Brand {
   billingWebhookUrl   String?  @db.Text
   generalWebhookUrl   String?  @db.Text
   isWebhookEnabled    Boolean  @default(true)
+  landingConfig       Json?    @default("{}") @map("landing_config")
 
   users               User[]
   subscriptions       Subscription[]

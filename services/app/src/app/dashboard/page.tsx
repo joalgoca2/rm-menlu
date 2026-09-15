@@ -22,6 +22,7 @@ import {
   Settings,
 } from "lucide-react";
 import { useTranslation } from "@/components/providers/i18n-provider";
+import { useEntitlements } from "@/hooks/use-entitlements";
 import { useBrand } from "@/context/brand-context";
 import { getAdminMetrics, type AdminMetrics } from "@/actions/brand";
 import { recordLoginAuditAction } from "@/actions/auth";
@@ -35,6 +36,9 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const { t } = useTranslation();
   const { selectedBrandId } = useBrand();
+  const { isFeatureEnabled } = useEntitlements();
+
+  const isBillingEnabled = isFeatureEnabled("billing");
 
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
@@ -121,7 +125,10 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-2 shrink-0">
           {user.roles?.map((role) => (
-            <Badge key={role} variant="success" className="font-bold px-3 py-1">
+            <Badge
+              key={role}
+              className="bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40 font-black px-3 py-1 text-xs uppercase shadow-sm"
+            >
               {role}
             </Badge>
           ))}
@@ -129,7 +136,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Metric Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+      <div
+        className={`grid grid-cols-2 ${
+          isBillingEnabled ? "lg:grid-cols-4" : "lg:grid-cols-3"
+        } gap-3 sm:gap-5`}
+      >
         {/* CARD 1: Total Users (Admins) / Member Status (Users) */}
         <Card className="border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -160,7 +171,7 @@ export default function DashboardPage() {
                   <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                     ACTIVO
                   </span>
-                  <Badge variant="success" className="text-[9px] uppercase font-bold px-1.5 py-0">
+                  <Badge className="bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 border border-emerald-500/40 text-[9px] uppercase font-black px-1.5 py-0.5 shadow-sm">
                     OK
                   </Badge>
                 </div>
@@ -173,57 +184,59 @@ export default function DashboardPage() {
         </Card>
 
         {/* CARD 2: Subscription Card (Admins) / My Brand Card (Users) */}
-        <Card className="border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur hover:shadow-md transition-all">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-              {isSuperAdmin
-                ? t("dashboard.activeSubscriptions", "Suscripciones Activas")
-                : isBrandAdmin
-                ? t("dashboard.mySubscriptionPlan", "Mi Plan de Suscripción")
-                : t("dashboard.myAssignedBrand", "Mi Marca / Gimnasio")}
-            </CardTitle>
-            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500">
-              {isSuperAdmin ? <CreditCard className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoadingMetrics ? (
-              <Skeleton className="h-8 w-24" />
-            ) : isSuperAdmin ? (
-              <>
-                <div className="text-3xl font-extrabold text-zinc-900 dark:text-white font-mono">
-                  {metrics?.activeSubscriptions ?? 0}
-                </div>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  {t("dashboard.plansActiveInSystem", "Planes globales contratados")}
-                </p>
-              </>
-            ) : isBrandAdmin ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-black text-zinc-900 dark:text-white truncate">
-                    {activePlanName}
-                  </span>
-                  <Badge variant="success" className="text-[9px] uppercase font-bold px-1.5 py-0">
-                    {metrics?.brandSubscription?.status ?? "ACTIVO"}
-                  </Badge>
-                </div>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  {t("dashboard.currentPlan", "Plan Actual")}
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="text-2xl font-black text-zinc-900 dark:text-white truncate">
-                  {user.brandId ?? "General"}
-                </div>
-                <p className="text-[11px] text-zinc-500 mt-1">
-                  {t("dashboard.assignedBrandSub", "Marca asignada a tu perfil")}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {isBillingEnabled && (
+          <Card className="border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur hover:shadow-md transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                {isSuperAdmin
+                  ? t("dashboard.activeSubscriptions", "Suscripciones Activas")
+                  : isBrandAdmin
+                  ? t("dashboard.mySubscriptionPlan", "Mi Plan de Suscripción")
+                  : t("dashboard.myAssignedBrand", "Mi Marca / Gimnasio")}
+              </CardTitle>
+              <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500">
+                {isSuperAdmin ? <CreditCard className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingMetrics ? (
+                <Skeleton className="h-8 w-24" />
+              ) : isSuperAdmin ? (
+                <>
+                  <div className="text-3xl font-extrabold text-zinc-900 dark:text-white font-mono">
+                    {metrics?.activeSubscriptions ?? 0}
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    {t("dashboard.plansActiveInSystem", "Planes globales contratados")}
+                  </p>
+                </>
+              ) : isBrandAdmin ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-black text-zinc-900 dark:text-white truncate">
+                      {activePlanName}
+                    </span>
+                    <Badge className="bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/40 text-[9px] uppercase font-black px-1.5 py-0.5 shadow-sm">
+                      {metrics?.brandSubscription?.status ?? "ACTIVO"}
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    {t("dashboard.currentPlan", "Plan Actual")}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-black text-zinc-900 dark:text-white truncate">
+                    {user.brandId ?? "General"}
+                  </div>
+                  <p className="text-[11px] text-zinc-500 mt-1">
+                    {t("dashboard.assignedBrandSub", "Marca asignada a tu perfil")}
+                  </p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* CARD 3: Recent Logins Count */}
         <Card className="border-zinc-200 bg-white/90 dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur hover:shadow-md transition-all">
@@ -290,12 +303,12 @@ export default function DashboardPage() {
                 <Terminal className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 <span>{t("dashboard.activityMonitorTitle", "Monitor de Actividad & Inicios de Sesión")}</span>
               </span>
-              <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1">
+              <div className="flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 rounded-full px-3 py-1 shadow-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                <span className="text-emerald-900 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider">
                   {t("dashboard.dbOnlineBadge", "Sistema En Línea")}
                 </span>
               </div>

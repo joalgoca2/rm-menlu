@@ -33,6 +33,7 @@ import {
 import { Plus, Edit2, Trash2, Globe, Copy, Check, Lock, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { BrandPlanConfig, BrandPortalData } from "@/types";
+import { BrandLandingSettingsForm } from "@/components/brand/brand-landing-settings-form";
 
 interface BrandPlanManagerProps {
   brand: BrandPortalData;

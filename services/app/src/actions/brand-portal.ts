@@ -8,12 +8,14 @@ import {
   validateSlugSchema,
   customerCheckoutSchema,
   createBrandPlanSchema,
+  updateBrandLandingSchema,
 } from "@/lib/validations/brand-portal";
 import type {
   ApiResponse,
   BrandPortalData,
   BrandCustomerPayment,
   BrandPlanConfig,
+  BrandLandingConfig,
   BrandPaymentStats,
   PaginatedResult,
 } from "@/types";
@@ -160,6 +162,7 @@ export async function getPublicBrandPortalAction(
       defaultLocale: brand.defaultLocale || "es",
       timezone: brand.timezone || "UTC",
       isSlugLocked: brand.isSlugLocked,
+      landingConfig: (brand.landingConfig as unknown as BrandLandingConfig) || null,
       plans: brand.brandPlans.map((p) => ({
         id: p.id,
         brandId: p.brandId,
@@ -588,3 +591,43 @@ export async function getCustomerMemberDataAction(): Promise<
     return { success: false, error: msg };
   }
 }
+
+export async function updateBrandLandingConfigAction(
+  brandId: string,
+  input: BrandLandingConfig
+): Promise<ApiResponse<BrandLandingConfig>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "No autorizado. Inicia sesión." };
+    }
+
+    const validation = updateBrandLandingSchema.safeParse(input);
+    if (!validation.success) {
+      const issue = validation.error.issues[0]?.message || "Configuración no válida.";
+      return { success: false, error: issue };
+    }
+
+    const brand = await prisma.brand.findUnique({
+      where: { id: brandId },
+    });
+
+    if (!brand) {
+      return { success: false, error: "Marca no encontrada." };
+    }
+
+    const updated = await prisma.brand.update({
+      where: { id: brandId },
+      data: {
+        landingConfig: validation.data as unknown as Record<string, unknown>,
+      },
+    });
+
+    const resultConfig = (updated.landingConfig as unknown as BrandLandingConfig) || {};
+    return { success: true, data: resultConfig };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Error al actualizar configuración.";
+    return { success: false, error: msg };
+  }
+}
+

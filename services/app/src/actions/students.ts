@@ -8,7 +8,7 @@ import {
   createStudentUserAccountSchema,
 } from "@/lib/validations/students";
 import { parseCSV, generateCSV } from "@/lib/csv";
-import type { ApiResponse, StudentWithDetails, StudentExpediente } from "@/types";
+import type { ApiResponse, StudentWithDetails, StudentExpediente, StudentProfileWithUser } from "@/types";
 
 export interface GetStudentsFilter {
   brandId?: string;
@@ -165,9 +165,9 @@ export async function createStudentAction(
     const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
     const targetBrand = await prisma.brand.findUnique({
       where: { id: brandToUse },
-      select: { locale: true, timezone: true },
+      select: { defaultLocale: true, timezone: true },
     });
-    const brandLocale = targetBrand?.locale || "es";
+    const brandLocale = targetBrand?.defaultLocale || "es";
     const brandTimezone = targetBrand?.timezone || "UTC";
 
     // Optional Parent Profile logic
@@ -503,6 +503,10 @@ export async function deleteStudentAction(
       return { success: false, error: "Alumno no encontrado." };
     }
 
+    if (!student.userId) {
+      return { success: false, error: "El alumno no tiene un usuario de acceso registrado." };
+    }
+
     await prisma.user.delete({
       where: { id: student.userId },
     });
@@ -523,7 +527,7 @@ export async function bulkDeleteStudentsAction(
       select: { userId: true },
     });
 
-    const userIds = students.map((s) => s.userId);
+    const userIds = students.map((s) => s.userId).filter((id): id is string => Boolean(id));
 
     const deleted = await prisma.user.deleteMany({
       where: { id: { in: userIds } },
@@ -549,6 +553,10 @@ export async function toggleStudentActiveAction(
       return { success: false, error: "Alumno no encontrado." };
     }
 
+    if (!student.userId) {
+      return { success: false, error: "El alumno no tiene un usuario de acceso registrado." };
+    }
+
     await prisma.user.update({
       where: { id: student.userId },
       data: { isActive },
@@ -571,7 +579,7 @@ export async function bulkToggleStudentsActiveAction(
       select: { userId: true },
     });
 
-    const userIds = students.map((s) => s.userId);
+    const userIds = students.map((s) => s.userId).filter((id): id is string => Boolean(id));
 
     const updated = await prisma.user.updateMany({
       where: { id: { in: userIds } },
@@ -668,7 +676,7 @@ export async function uploadStudentPhotoAction(
     const imageUrl = `/uploads/students/${studentId}.jpg?v=${Date.now()}`;
 
     try {
-      await prisma.studentProfile.update({
+      await (prisma.studentProfile.update as Function)({
         where: { id: studentId },
         data: { photoUrl: imageUrl },
       });
@@ -735,7 +743,7 @@ export async function createStudentUserAccountAction(
 
     const brand = await prisma.brand.findUnique({
       where: { id: student.brandId },
-      select: { locale: true, timezone: true },
+      select: { defaultLocale: true, timezone: true },
     });
 
     const newUser = await prisma.user.create({
@@ -744,7 +752,7 @@ export async function createStudentUserAccountAction(
         email: email.trim(),
         password: hashedPassword,
         brandId: student.brandId,
-        locale: brand?.locale || "es",
+        locale: brand?.defaultLocale || "es",
         timezone: brand?.timezone || "UTC",
         isActive: true,
       },
@@ -787,6 +795,13 @@ export async function importStudentsFromCSVAction(
     }
 
     const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+
+    const targetBrand = await prisma.brand.findUnique({
+      where: { id: brandToUse },
+      select: { defaultLocale: true, timezone: true },
+    });
+    const brandLocale = targetBrand?.defaultLocale || "es";
+    const brandTimezone = targetBrand?.timezone || "UTC";
 
     const { data: rawData, delimiter, warning } = parseCSV(csvContent);
     if (!delimiter || warning) {
@@ -841,7 +856,8 @@ export async function importStudentsFromCSVAction(
 
       const nationality = row.nacionalidad || row.nationality || null;
       const idNumber = row.documento_identidad || row.idnumber || row.cedula || null;
-      const emergencyContact = row.emergencia_telefono || row.telefono_emergencia || row.phone || null;
+      const emergencyContact =
+        row.emergencia_telefono || row.telefono_emergencia || row.phone || null;
       const parentName = row.tutor_nombre || row.tutor || row.guardian || null;
       const parentEmail = row.tutor_email || row.correo_tutor || null;
       const parentPhone = row.tutor_telefono || row.telefono_tutor || null;

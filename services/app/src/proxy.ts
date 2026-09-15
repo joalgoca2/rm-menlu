@@ -11,7 +11,7 @@ const scriptSrc = `script-src 'self' 'unsafe-inline' ${
 
 const cspHeader =
   `default-src 'self'; ${scriptSrc} style-src 'self' 'unsafe-inline'; ` +
-  `img-src 'self' blob: data:; connect-src 'self' https://cloudflareinsights.com; ` +
+  `img-src 'self' blob: data: https:; connect-src 'self' https://cloudflareinsights.com; ` +
   `font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; ` +
   `frame-ancestors 'none'; upgrade-insecure-requests;`;
 

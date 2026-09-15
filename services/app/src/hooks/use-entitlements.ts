@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import {
+import type {
   SystemFeature,
   PlanLimitKey,
   PlanCapabilities,
+} from "@/lib/config/entitlements";
+import {
   getEnvironmentFeatures,
   getPlanCapabilities,
-  isFeatureEnabled as checkFeatureEnabled,
 } from "@/lib/config/entitlements";
 
 export interface UseEntitlementsOptions {

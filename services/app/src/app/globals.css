@@ -77,10 +77,16 @@ html[data-theme-style="gold"] div[class*="bg-emerald-50"] {
 }
 
 /* Accent Icons & Text Colors in Gold Theme */
-html[data-theme-style="gold"] [class*="text-emerald-600"],
-html[data-theme-style="gold"] [class*="text-emerald-500"],
-html[data-theme-style="gold"] [class*="text-emerald-400"] {
-  color: #f59e0b !important;
+html[data-theme-style="gold"]:not(.dark) [class*="text-emerald-600"],
+html[data-theme-style="gold"]:not(.dark) [class*="text-emerald-500"],
+html[data-theme-style="gold"]:not(.dark) [class*="text-emerald-400"] {
+  color: #b45309 !important;
+}
+
+html[data-theme-style="gold"].dark [class*="text-emerald-600"],
+html[data-theme-style="gold"].dark [class*="text-emerald-500"],
+html[data-theme-style="gold"].dark [class*="text-emerald-400"] {
+  color: #fbbf24 !important;
 }
 
 /* Accent Primary Buttons in Gold Theme (Targeting only full primary solid buttons) */

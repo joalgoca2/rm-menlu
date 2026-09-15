@@ -29,6 +29,45 @@ export interface BrandCustomerPayment {
   updatedAt?: string | Date;
 }
 
+export interface BrandFaqItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface BrandTestimonialItem {
+  id: string;
+  author: string;
+  role?: string;
+  quote: string;
+  avatarUrl?: string;
+}
+
+export interface BrandLandingConfig {
+  primaryColor?: string;
+  heroBannerUrl?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
+  ctaText?: string;
+  ctaActionType?: "REGISTER" | "WHATSAPP" | "CUSTOM_URL";
+  ctaCustomUrl?: string;
+  whatsappNumber?: string;
+  whatsappMessage?: string;
+  address?: string;
+  googleMapsUrl?: string;
+  websiteUrl?: string;
+  businessHours?: string;
+  showPlans?: boolean;
+  showFaq?: boolean;
+  showTestimonials?: boolean;
+  showWhatsappWidget?: boolean;
+  showHeroPillars?: boolean;
+  announcementBannerText?: string;
+  announcementBannerUrl?: string;
+  faqs?: BrandFaqItem[];
+  testimonials?: BrandTestimonialItem[];
+}
+
 export interface BrandPortalData {
   id: string;
   name: string;
@@ -39,6 +78,7 @@ export interface BrandPortalData {
   defaultLocale: string;
   timezone: string;
   isSlugLocked: boolean;
+  landingConfig?: BrandLandingConfig | null;
   plans: BrandPlanConfig[];
   activeGateways: {
     gatewayType: string;

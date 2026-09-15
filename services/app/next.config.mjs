@@ -2,6 +2,18 @@
 const nextConfig = {
   output: "standalone",
   serverExternalPackages: ["bcryptjs", "@prisma/client"],
+  images: {
+    localPatterns: [
+      {
+        pathname: "/**",
+        search: "",
+      },
+      {
+        pathname: "/**",
+        search: "?*",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",

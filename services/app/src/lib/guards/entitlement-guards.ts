@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import type { SystemFeature, PlanLimitKey } from "@/lib/config/entitlements";
 import {
-  SystemFeature,
-  PlanLimitKey,
   isFeatureEnabled,
   getPlanCapabilities,
 } from "@/lib/config/entitlements";

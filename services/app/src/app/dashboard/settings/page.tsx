@@ -29,7 +29,6 @@ import { BrandPaymentsHistoryTable } from "@/components/brand/brand-payments-his
 import { BrandPaymentGatewaysList } from "@/components/payment/brand-payment-gateways-list";
 import { FormattedDate } from "@/components/ui/formatted-date";
 import { SUPPORTED_TIMEZONES, SUPPORTED_LANGUAGES } from "@/lib/date";
-import { FEATURES } from "@/lib/config/features";
 import { useEntitlements } from "@/hooks/use-entitlements";
 import {
   getUserById,
@@ -46,6 +45,8 @@ import {
 import { cn } from "@/lib/utils";
 import { formatConvertedPrice } from "@/lib/currency";
 import { getBrandById, updateBrandSettings } from "@/actions/brand";
+import { getPublicBrandPortalAction } from "@/actions/brand-portal";
+import { BrandLandingSettingsForm } from "@/components/brand/brand-landing-settings-form";
 import {
   getPlanConfigs,
   getBrandActiveSubscriptionAction,
@@ -57,7 +58,7 @@ import {
   createBrandCheckoutSessionAction,
 } from "@/actions/payment-engine";
 import { PaymentGatewaySelectModal } from "@/components/payment/payment-gateway-select-modal";
-import type { PaymentGatewayType, PlanConfig } from "@/types";
+import type { PaymentGatewayType, PlanConfig, BrandPortalData } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,6 +124,7 @@ function SettingsContent() {
 
   // Brand / Organization Form state
   const [brandId, setBrandId] = useState<string | null>(null);
+  const [brandPortalData, setBrandPortalData] = useState<BrandPortalData | null>(null);
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
   const [brandLocale, setBrandLocale] = useState("es");
@@ -317,9 +319,10 @@ function SettingsContent() {
         setBrandId(u.brandId ?? null);
 
         if (u.brandId) {
-          const [brandRes, subRes] = await Promise.all([
+          const [brandRes, subRes, portalRes] = await Promise.all([
             getBrandById(u.brandId),
             getBrandActiveSubscriptionAction(u.brandId),
+            getPublicBrandPortalAction(u.brandId),
           ]);
           if (brandRes.success && brandRes.data) {
             const b = brandRes.data;
@@ -332,6 +335,9 @@ function SettingsContent() {
             setCurrentPlanName(subRes.data.planName);
             setScheduledPlanName(subRes.data.scheduledPlanName ?? null);
             setSubscriptionEndDate(subRes.data.endDate ?? null);
+          }
+          if (portalRes.success && portalRes.data) {
+            setBrandPortalData(portalRes.data);
           }
         }
       }
@@ -905,6 +911,17 @@ function SettingsContent() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Brand Public Landing Customization Form */}
+            {brandId && (
+              <div className="pt-2">
+                <BrandLandingSettingsForm
+                  brandId={brandId}
+                  initialConfig={brandPortalData?.landingConfig}
+                  initialLogoUrl={brandPortalData?.logoUrl}
+                />
+              </div>
+            )}
           </TabsContent>
         )}
 

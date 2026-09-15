@@ -1,6 +1,6 @@
 "use server";
 
-import { parseBrowser, parseDevice } from "@/auth";
+import { auth, parseBrowser, parseDevice } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   createBrandSchema,
@@ -703,3 +703,59 @@ export async function getBrandPaginatedPaymentsAction(params: {
     return { success: false, error: msg };
   }
 }
+
+export async function uploadBrandLogoAction(
+  brandId: string,
+  base64Data: string
+): Promise<ApiResponse<{ logoUrl: string }>> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "No autorizado. Inicia sesión." };
+    }
+
+    const brand = await prisma.brand.findUnique({
+      where: { id: brandId },
+    });
+
+    if (!brand) {
+      return { success: false, error: "Marca no encontrada." };
+    }
+
+    const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    const buffer = matches && matches[2]
+      ? Buffer.from(matches[2], "base64")
+      : Buffer.from(base64Data, "base64");
+
+    // Max file size 5MB (5 * 1024 * 1024 bytes)
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024;
+    if (buffer.length > MAX_SIZE_BYTES) {
+      return {
+        success: false,
+        error: "El archivo del logo excede el tamaño máximo permitido de 5 MB.",
+      };
+    }
+
+    const { promises: fs } = await import("fs");
+    const path = await import("path");
+
+    const uploadsDir = path.join(process.cwd(), "public", "uploads", "brand");
+    await fs.mkdir(uploadsDir, { recursive: true });
+
+    const filePath = path.join(uploadsDir, `${brandId}.jpg`);
+    await fs.writeFile(filePath, buffer);
+
+    const logoUrl = `/uploads/brand/${brandId}.jpg?v=${Date.now()}`;
+
+    await prisma.brand.update({
+      where: { id: brandId },
+      data: { logoUrl },
+    });
+
+    return { success: true, data: { logoUrl } };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Error al subir el logo de la marca.";
+    return { success: false, error: msg };
+  }
+}
+

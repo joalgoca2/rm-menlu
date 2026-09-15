@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { useBrand } from "@/context/brand-context";
@@ -35,7 +35,7 @@ import { printStudentCredentials } from "@/lib/print-utils";
 import { getStudentPhotoUrl } from "@/lib/utils";
 import { DiplomaBuilderModal } from "@/components/students/diploma-builder-modal";
 import { CSVImportModal } from "@/components/students/csv-import-modal";
-import { Key, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import {
   getStudentsAction,
   createStudentAction,
@@ -206,7 +206,7 @@ function StudentsTableContent() {
     watch: watchCreate,
     formState: { errors: errorsCreate, isSubmitting: isSubmittingCreate },
   } = useForm<CreateStudentInput>({
-    resolver: zodResolver(createStudentSchema),
+    resolver: zodResolver(createStudentSchema) as unknown as Resolver<CreateStudentInput>,
     defaultValues: {
       brandId: selectedBrandId === "ALL" ? "seed-brand-general" : selectedBrandId,
       name: "",
@@ -895,7 +895,12 @@ function StudentsTableContent() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleToggleActive(student.id, student.user?.isActive ?? true)}
+                              onClick={() =>
+                                handleToggleActive(
+                                  student.id,
+                                  student.user?.isActive ?? true
+                                )
+                              }
                               className={`w-7 h-7 p-0 rounded-lg cursor-pointer transition-all ${
                                 student.user.isActive
                                   ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
@@ -1921,7 +1926,10 @@ function StudentsTableContent() {
 
       {/* MODAL POST-CREACIÓN PARA GENERAR CUENTA DE USUARIO */}
       {userAccountStudent && (
-        <Dialog open={!!userAccountStudent} onOpenChange={(open) => !open && setUserAccountStudent(null)}>
+        <Dialog
+          open={!!userAccountStudent}
+          onOpenChange={(open) => !open && setUserAccountStudent(null)}
+        >
           <DialogContent className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl sm:max-w-[420px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-white">

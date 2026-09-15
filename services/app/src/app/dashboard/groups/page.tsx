@@ -62,7 +62,6 @@ import {
   createStudentGroupAction,
   updateStudentGroupAction,
   deleteStudentGroupAction,
-  assignStudentsToGroupAction,
   enrollStudentToGroupAction,
   removeStudentFromGroupAction,
   toggleStudentGroupActiveAction,
@@ -74,7 +73,11 @@ import { getStudentsAction, createStudentAction, searchStudentsAction } from "@/
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { StudentGroupWithDetails, Discipline, StudentProfileWithUser } from "@/types";
 
-function getStudentDisplayName(st: StudentProfileWithUser): string {
+function getStudentDisplayName(st: {
+  firstName?: string | null;
+  lastName?: string | null;
+  user?: { name?: string | null; email?: string | null } | null;
+}): string {
   const full = `${st.firstName || ""} ${st.lastName || ""}`.trim();
   if (full) return full;
   if (st.user?.name) return st.user.name;
@@ -124,7 +127,7 @@ function GroupsPageContent() {
   const [activeCount, setActiveCount] = useState<number>(0);
   const [totalStudentsAssigned, setTotalStudentsAssigned] = useState<number>(0);
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
-  const [allStudents, setAllStudents] = useState<StudentProfileWithUser[]>([]);
+  const [_allStudents, setAllStudents] = useState<StudentProfileWithUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Selection & Bulk Action State
@@ -156,7 +159,6 @@ function GroupsPageContent() {
   const [isActionSubmitting, setIsActionSubmitting] = useState<boolean>(false);
 
   // Quick Student Registration State
-  const [isQuickAddOpen, setIsQuickAddOpen] = useState<boolean>(false);
   const [quickFirstName, setQuickFirstName] = useState<string>("");
   const [quickLastName, setQuickLastName] = useState<string>("");
   const [quickEmail, setQuickEmail] = useState<string>("");
@@ -580,12 +582,7 @@ function GroupsPageContent() {
     return displayName.includes(q) || emailToDisplay.includes(q);
   });
 
-  const filteredAllStudents = allStudents.filter((st) => {
-    const displayName = getStudentDisplayName(st).toLowerCase();
-    const emailToDisplay = (st.user?.email || st.email || "").toLowerCase();
-    const q = studentSearchFilter.toLowerCase().trim();
-    return displayName.includes(q) || emailToDisplay.includes(q);
-  });
+
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -881,9 +878,13 @@ function GroupsPageContent() {
                                     <div
                                       key={st.id}
                                       className="inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-zinc-900 bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-[10px] flex items-center justify-center border border-amber-500/30 shrink-0"
-                                      title={getStudentDisplayName(st.student as unknown as StudentProfileWithUser)}
+                                      title={getStudentDisplayName(
+                                        st.student as unknown as StudentProfileWithUser
+                                      )}
                                     >
-                                      {getStudentDisplayName(st.student as unknown as StudentProfileWithUser).slice(0, 2).toUpperCase()}
+                                      {getStudentDisplayName(
+                                        st.student as unknown as StudentProfileWithUser
+                                      ).slice(0, 2).toUpperCase()}
                                     </div>
                                   ))}
                                 </div>
@@ -1429,7 +1430,9 @@ function GroupsPageContent() {
                     const studentAge = getStudentAge(st.birthDate);
                     const minAge = targetGroupForAssign?.minAge ?? 0;
                     const maxAge = targetGroupForAssign?.maxAge ?? 99;
-                    const isAgeMatch = studentAge === null || (studentAge >= minAge && studentAge <= maxAge);
+                    const isAgeMatch =
+                      studentAge === null ||
+                      (studentAge >= minAge && studentAge <= maxAge);
 
                     return (
                       <div
@@ -1714,7 +1717,7 @@ function GroupsPageContent() {
               {t(
                 "groups.confirmDeleteDesc",
                 `Estás a punto de eliminar el grupo "${deletingGroup?.name}". Esta acción desvinculará los horarios y alumnos asignados.`,
-                { name: deletingGroup?.name }
+                { name: deletingGroup?.name || "" }
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
