@@ -94,6 +94,19 @@ export default function EvaluationTemplatesPage() {
     }
   };
 
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case "TECNICA":
+        return t("rubrics.catTechnical", "TÉCNICA");
+      case "ACTITUD":
+        return t("rubrics.catAttitude", "ACTITUD");
+      case "FISICO":
+        return t("rubrics.catPhysical", "FÍSICO");
+      default:
+        return t("rubrics.catGeneral", "GENERAL");
+    }
+  };
+
   const handleOpenCreateModal = () => {
     setEditingTemplate(null);
     setTitle("");
@@ -102,27 +115,39 @@ export default function EvaluationTemplatesPage() {
     setIsDefault(templates.length === 0);
     setCriteria([
       {
-        name: "Posturas y Formas (Tao Lu / Kata)",
+        name: t("rubrics.defaultCrit1Name", "Posturas y Formas (Tao Lu / Kata)"),
         category: "TECNICA",
-        description: "Estabilidad de postura, ritmo y fuerza.",
+        description: t(
+          "rubrics.defaultCrit1Desc",
+          "Estabilidad de postura, ritmo y fuerza."
+        ),
         orderIndex: 1,
       },
       {
-        name: "Técnicas de Golpe y Patadas",
+        name: t("rubrics.defaultCrit2Name", "Técnicas de Golpe y Patadas"),
         category: "TECNICA",
-        description: "Precisión y extensión técnica.",
+        description: t(
+          "rubrics.defaultCrit2Desc",
+          "Precisión y extensión técnica."
+        ),
         orderIndex: 2,
       },
       {
-        name: "Espíritu, Kiai y Actitud",
+        name: t("rubrics.defaultCrit3Name", "Espíritu, Kiai y Actitud"),
         category: "ACTITUD",
-        description: "Enfoque mental, respeto y marcialidad.",
+        description: t(
+          "rubrics.defaultCrit3Desc",
+          "Enfoque mental, respeto y marcialidad."
+        ),
         orderIndex: 3,
       },
       {
-        name: "Condición Física",
+        name: t("rubrics.defaultCrit4Name", "Condición Física"),
         category: "FISICO",
-        description: "Resistencia y potencia física.",
+        description: t(
+          "rubrics.defaultCrit4Desc",
+          "Resistencia y potencia física."
+        ),
         orderIndex: 4,
       },
     ]);
@@ -247,7 +272,8 @@ export default function EvaluationTemplatesPage() {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {t(
               "rubrics.subtitle",
-              "Configura rúbricas de evaluación rápida en tatami con 3 estados visuales (🟩 100% Dominado, 🟡 75% En proceso, 🔴 No Apto)."
+              "Configura rúbricas de evaluación rápida en tatami con 3 estados visuales " +
+                "(🟩 100% Dominado, 🟡 75% En proceso, 🔴 No Apto)."
             )}
           </p>
         </div>
@@ -275,8 +301,12 @@ export default function EvaluationTemplatesPage() {
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs font-bold text-emerald-400">🟩 100% - Dominado / Apto</p>
-                <p className="text-[11px] text-slate-400">Verde con palomita. Ejecución impecable.</p>
+                <p className="text-xs font-bold text-emerald-400">
+                  {t("rubrics.legendGreenTitle", "🟩 100% - Dominado / Apto")}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {t("rubrics.legendGreenDesc", "Verde con palomita. Ejecución impecable.")}
+                </p>
               </div>
             </div>
 
@@ -285,8 +315,15 @@ export default function EvaluationTemplatesPage() {
                 <ThumbsUp className="w-5 h-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-xs font-bold text-amber-400">🟡 75% - En Proceso / Aceptable</p>
-                <p className="text-[11px] text-slate-400">Amarillo con manita arriba. Requiere ajuste minor.</p>
+                <p className="text-xs font-bold text-amber-400">
+                  {t("rubrics.legendYellowTitle", "🟡 75% - En Proceso / Aceptable")}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {t(
+                    "rubrics.legendYellowDesc",
+                    "Amarillo con manita arriba. Requiere ajuste minor."
+                  )}
+                </p>
               </div>
             </div>
 
@@ -295,8 +332,15 @@ export default function EvaluationTemplatesPage() {
                 <ThumbsDown className="w-5 h-5 text-rose-400" />
               </div>
               <div>
-                <p className="text-xs font-bold text-rose-400">🔴 0% - No Apto / Práctica</p>
-                <p className="text-[11px] text-slate-400">Rojo con manita abajo. Requiere mayor práctica.</p>
+                <p className="text-xs font-bold text-rose-400">
+                  {t("rubrics.legendRedTitle", "🔴 0% - No Apto / Práctica")}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {t(
+                    "rubrics.legendRedDesc",
+                    "Rojo con manita abajo. Requiere mayor práctica."
+                  )}
+                </p>
               </div>
             </div>
           </div>
@@ -316,7 +360,10 @@ export default function EvaluationTemplatesPage() {
             {t("rubrics.emptyTitle", "No hay plantillas de evaluación")}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1 mb-4">
-            {t("rubrics.emptyDesc", "Crea tu primera rúbrica semafórica para calificar exámenes de grado.")}
+            {t(
+              "rubrics.emptyDesc",
+              "Crea tu primera rúbrica semafórica para calificar exámenes de grado."
+            )}
           </p>
           <Button onClick={handleOpenCreateModal} variant="outline" size="sm">
             <Plus className="w-4 h-4 mr-1" />
@@ -399,7 +446,7 @@ export default function EvaluationTemplatesPage() {
                               {crit.name}
                             </p>
                             <Badge variant="secondary" className="text-[9px] uppercase">
-                              {crit.category || "GENERAL"}
+                              {getCategoryLabel(crit.category || "GENERAL")}
                             </Badge>
                           </div>
                           {crit.description && (
@@ -440,7 +487,10 @@ export default function EvaluationTemplatesPage() {
               <Label htmlFor="tmpl-title">{t("rubrics.titleLabel", "Título de la Plantilla *")}</Label>
               <Input
                 id="tmpl-title"
-                placeholder="ej. Rúbrica Examen Kung Fu / Sanda"
+                placeholder={t(
+                  "rubrics.titlePlaceholder",
+                  "ej. Rúbrica Examen Kung Fu / Sanda"
+                )}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -450,7 +500,10 @@ export default function EvaluationTemplatesPage() {
               <Label htmlFor="tmpl-desc">{t("rubrics.descLabel", "Descripción")}</Label>
               <Input
                 id="tmpl-desc"
-                placeholder="ej. Evaluación técnica de formas y combate"
+                placeholder={t(
+                  "rubrics.descPlaceholder",
+                  "ej. Evaluación técnica de formas y combate"
+                )}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -513,7 +566,10 @@ export default function EvaluationTemplatesPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-amber-500">#{idx + 1}</span>
                       <Input
-                        placeholder="Nombre del criterio (ej. Posturas Ma Bu)"
+                        placeholder={t(
+                          "rubrics.criterionNamePlaceholder",
+                          "Nombre del criterio (ej. Posturas Ma Bu)"
+                        )}
                         value={crit.name}
                         onChange={(e) => {
                           const updated = [...criteria];
@@ -531,10 +587,18 @@ export default function EvaluationTemplatesPage() {
                         }}
                         className="h-8 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2 text-[11px]"
                       >
-                        <option value="TECNICA">TÉCNICA</option>
-                        <option value="ACTITUD">ACTITUD</option>
-                        <option value="FISICO">FÍSICO</option>
-                        <option value="GENERAL">GENERAL</option>
+                        <option value="TECNICA">
+                          {t("rubrics.catTechnical", "TÉCNICA")}
+                        </option>
+                        <option value="ACTITUD">
+                          {t("rubrics.catAttitude", "ACTITUD")}
+                        </option>
+                        <option value="FISICO">
+                          {t("rubrics.catPhysical", "FÍSICO")}
+                        </option>
+                        <option value="GENERAL">
+                          {t("rubrics.catGeneral", "GENERAL")}
+                        </option>
                       </select>
                       <Button
                         variant="ghost"
@@ -546,7 +610,10 @@ export default function EvaluationTemplatesPage() {
                       </Button>
                     </div>
                     <Input
-                      placeholder="Descripción u observación guía (opcional)"
+                      placeholder={t(
+                        "rubrics.criterionDescPlaceholder",
+                        "Descripción u observación guía (opcional)"
+                      )}
                       value={crit.description}
                       onChange={(e) => {
                         const updated = [...criteria];
@@ -567,7 +634,7 @@ export default function EvaluationTemplatesPage() {
               onClick={() => setIsModalOpen(false)}
               disabled={isSubmitting}
             >
-              {t("common.cancel", "Cancelar")}
+              {t("rubrics.cancelButton", "Cancelar")}
             </Button>
             <Button
               onClick={handleSaveTemplate}
@@ -575,7 +642,7 @@ export default function EvaluationTemplatesPage() {
               className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
-              {t("common.save", "Guardar Plantilla")}
+              {t("rubrics.saveTemplateButton", "Guardar Plantilla")}
             </Button>
           </DialogFooter>
         </DialogContent>

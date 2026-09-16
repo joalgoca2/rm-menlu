@@ -977,7 +977,7 @@ function ExamsContent() {
           className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl shadow-xs text-xs cursor-pointer"
         >
           <Plus className="h-4 w-4 mr-1 text-zinc-950" />
-          {t("dojo.newExamBtn", "Nueva Convocatoria")}
+          {t("dojo.createExam", "Nueva Convocatoria")}
         </Button>
       </div>
 
@@ -987,7 +987,7 @@ function ExamsContent() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                Convocatorias
+                {t("dojo.kpiExams", "Convocatorias")}
               </p>
               <h3 className="text-2xl font-black text-zinc-900 dark:text-white font-mono mt-0.5">
                 {totalExamsCount}
@@ -1003,7 +1003,7 @@ function ExamsContent() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                Alumnos Convocados
+                {t("dojo.candidatesEnrolled", "Alumnos Convocados")}
               </p>
               <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
                 {totalCandidatesCount}
@@ -1019,7 +1019,7 @@ function ExamsContent() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                Aprobados / Promovidos
+                {t("dojo.kpiPassed", "Aprobados / Promovidos")}
               </p>
               <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
                 {totalPassedCount}
@@ -1035,7 +1035,7 @@ function ExamsContent() {
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
-                Disciplinas Activas
+                {t("dojo.kpiActiveDisciplines", "Disciplinas Activas")}
               </p>
               <h3 className="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
                 {disciplines.length}
@@ -1102,10 +1102,10 @@ function ExamsContent() {
                   ? "bg-white dark:bg-zinc-900 text-amber-600 dark:text-amber-400 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
-              title={t("dojo.gridView", "Tarjetas")}
+              title={t("dojo.viewCards", "Tarjetas")}
             >
               <LayoutGrid className="w-4 h-4" />
-              <span className="hidden md:inline">{t("dojo.gridView", "Tarjetas")}</span>
+              <span className="hidden md:inline">{t("dojo.viewCards", "Tarjetas")}</span>
             </button>
             <button
               type="button"
@@ -1115,10 +1115,10 @@ function ExamsContent() {
                   ? "bg-white dark:bg-zinc-900 text-amber-600 dark:text-amber-400 shadow-xs"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
-              title={t("dojo.listView", "Tabla")}
+              title={t("dojo.viewList", "Tabla")}
             >
               <List className="w-4 h-4" />
-              <span className="hidden md:inline">{t("dojo.listView", "Tabla")}</span>
+              <span className="hidden md:inline">{t("dojo.viewList", "Tabla")}</span>
             </button>
           </div>
         </form>
@@ -1199,22 +1199,23 @@ function ExamsContent() {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {(ex.minBelt || ex.maxBelt) && (
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                        <span>Cintas:</span>
+                        <span>{t("dojo.beltsLabel", "Cintas:")}</span>
                         <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] font-extrabold">
-                          De {ex.minBelt?.name || "Inicial"} a {ex.maxBelt?.name || "Máximo"}
+                          De {ex.minBelt?.name || t("dojo.initialRank", "Inicial")} a{" "}
+                          {ex.maxBelt?.name || t("dojo.maxRank", "Máximo")}
                         </Badge>
                       </div>
                     )}
                     {(ex.minAge !== null && ex.minAge !== undefined ||
                       ex.maxAge !== null && ex.maxAge !== undefined) && (
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                        <span>Edades:</span>
+                        <span>{t("dojo.agesLabel", "Edades:")}</span>
                         <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30 text-[10px] font-extrabold">
                           {ex.minAge && ex.maxAge
-                            ? `${ex.minAge} - ${ex.maxAge} años`
+                            ? `${ex.minAge} - ${ex.maxAge} ${t("dojo.yearsOld", "años")}`
                             : ex.minAge
-                            ? `Desde ${ex.minAge} años`
-                            : `Hasta ${ex.maxAge} años`}
+                            ? `Desde ${ex.minAge} ${t("dojo.yearsOld", "años")}`
+                            : `Hasta ${ex.maxAge} ${t("dojo.yearsOld", "años")}`}
                         </Badge>
                       </div>
                     )}
@@ -1235,13 +1236,16 @@ function ExamsContent() {
 
                     <div className="flex items-center gap-2">
                       <MapPin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                      <span className="truncate">{ex.location || "Tatami Principal"}</span>
+                      <span className="truncate">
+                        {ex.location || t("dojo.defaultLocation", "Tatami Principal")}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                       <span className="font-bold text-zinc-900 dark:text-white">
-                        ${ex.feeAmount} {ex.currency} derecho a examen
+                        ${ex.feeAmount} {ex.currency}{" "}
+                        {t("dojo.examFeeSuffix", "derecho a examen")}
                       </span>
                     </div>
                   </div>
@@ -1249,9 +1253,12 @@ function ExamsContent() {
 
                 <div className="p-4 bg-zinc-50 dark:bg-zinc-800/40 border-t border-zinc-100 dark:border-zinc-800 space-y-3">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500 font-medium">Alumnos Convocados:</span>
+                    <span className="text-zinc-500 font-medium">
+                      {t("dojo.candidatesEnrolled", "Alumnos Convocados")}:
+                    </span>
                     <span className="font-bold text-zinc-900 dark:text-white font-mono">
-                      {candidateCount} candidatos ({passedCount} aprobados)
+                      {candidateCount} {t("dojo.candidatesSuffix", "candidatos")} ({passedCount}{" "}
+                      {t("dojo.passedSuffix", "aprobados")})
                     </span>
                   </div>
 
@@ -1260,17 +1267,26 @@ function ExamsContent() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleOpenCandidatesManager(ex)}
-                      className="text-xs font-bold rounded-xl border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
+                      className={
+                        "text-xs font-bold rounded-xl border-amber-500/30 " +
+                        "text-amber-600 dark:text-amber-400 " +
+                        "hover:bg-amber-500/10 cursor-pointer"
+                      }
                     >
-                      <UserCheck className="h-3.5 w-3.5 mr-1" /> Convocatoria
+                      <UserCheck className="h-3.5 w-3.5 mr-1" />{" "}
+                      {t("dojo.convocatoria", "Convocatoria")}
                     </Button>
 
                     <Button
                       size="sm"
                       onClick={() => handleOpenEvaluation(ex)}
-                      className="text-xs font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-zinc-950 cursor-pointer"
+                      className={
+                        "text-xs font-bold rounded-xl bg-amber-500 " +
+                        "hover:bg-amber-600 text-zinc-950 cursor-pointer"
+                      }
                     >
-                      <Award className="h-3.5 w-3.5 mr-1" /> Evaluar Tatami
+                      <Award className="h-3.5 w-3.5 mr-1" />{" "}
+                      {t("dojo.evaluarTatami", "Evaluar Tatami")}
                     </Button>
                   </div>
                 </div>
@@ -1284,11 +1300,21 @@ function ExamsContent() {
           <Table>
             <TableHeader className="bg-zinc-50 dark:bg-zinc-800/50">
               <TableRow>
-                <TableHead className="text-xs font-bold">Convocatoria & Rango</TableHead>
-                <TableHead className="text-xs font-bold">Disciplina</TableHead>
-                <TableHead className="text-xs font-bold">Fecha & Lugar</TableHead>
-                <TableHead className="text-xs font-bold">Convocados</TableHead>
-                <TableHead className="text-xs font-bold text-right">Acciones</TableHead>
+                <TableHead className="text-xs font-bold">
+                  {t("dojo.colTitleAndRange", "Convocatoria & Rango")}
+                </TableHead>
+                <TableHead className="text-xs font-bold">
+                  {t("dojo.colDiscipline", "Disciplina")}
+                </TableHead>
+                <TableHead className="text-xs font-bold">
+                  {t("dojo.colDateLocation", "Fecha & Lugar")}
+                </TableHead>
+                <TableHead className="text-xs font-bold">
+                  {t("dojo.colEnrolled", "Convocados")}
+                </TableHead>
+                <TableHead className="text-xs font-bold text-right">
+                  {t("dojo.colActions", "Acciones")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1299,32 +1325,35 @@ function ExamsContent() {
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                       {(ex.minBelt || ex.maxBelt) && (
                         <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block">
-                          🎯 De {ex.minBelt?.name || "Inicial"} a {ex.maxBelt?.name || "Máximo"}
+                          🎯 De {ex.minBelt?.name || t("dojo.initialRank", "Inicial")} a{" "}
+                          {ex.maxBelt?.name || t("dojo.maxRank", "Máximo")}
                         </span>
                       )}
                       {(ex.minAge !== null && ex.minAge !== undefined ||
                         ex.maxAge !== null && ex.maxAge !== undefined) && (
                         <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold block">
                           🎂 {ex.minAge && ex.maxAge
-                            ? `${ex.minAge}-${ex.maxAge} años`
+                            ? `${ex.minAge}-${ex.maxAge} ${t("dojo.yearsOld", "años")}`
                             : ex.minAge
-                            ? `≥ ${ex.minAge} años`
-                            : `≤ ${ex.maxAge} años`}
+                            ? `≥ ${ex.minAge} ${t("dojo.yearsOld", "años")}`
+                            : `≤ ${ex.maxAge} ${t("dojo.yearsOld", "años")}`}
                         </span>
                       )}
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
                     <Badge variant="outline" className="text-[10px] font-bold">
-                      {ex.discipline?.name || "General"}
+                      {ex.discipline?.name || t("dojo.generalDiscipline", "General")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-zinc-500">
                     <div>{new Date(ex.examDate).toLocaleDateString()}</div>
-                    <div className="text-[11px] text-zinc-400 truncate max-w-[150px]">{ex.location}</div>
+                    <div className="text-[11px] text-zinc-400 truncate max-w-[150px]">
+                      {ex.location}
+                    </div>
                   </TableCell>
                   <TableCell className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                    {ex.evaluations?.length || 0} alumnos
+                    {ex.evaluations?.length || 0} {t("dojo.studentsCount", "alumnos")}
                   </TableCell>
                   <TableCell className="text-right py-3">
                     <div className="flex items-center justify-end gap-1.5">
@@ -1334,14 +1363,14 @@ function ExamsContent() {
                         onClick={() => handleOpenCandidatesManager(ex)}
                         className="text-xs rounded-xl h-8 px-2.5"
                       >
-                        Convocatoria
+                        {t("dojo.convocatoria", "Convocatoria")}
                       </Button>
                       <Button
                         size="sm"
                         onClick={() => handleOpenEvaluation(ex)}
                         className="bg-amber-500 text-zinc-950 text-xs font-bold rounded-xl h-8 px-2.5"
                       >
-                        Evaluar
+                        {t("dojo.evaluarTatami", "Evaluar")}
                       </Button>
                     </div>
                   </TableCell>
@@ -1367,20 +1396,27 @@ function ExamsContent() {
         <DialogContent className="max-w-md rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <Plus className="h-5 w-5 text-amber-500" /> Nueva Convocatoria de Examen
+              <Plus className="h-5 w-5 text-amber-500" />{" "}
+              {t("dojo.createExamTitle", "Nueva Convocatoria de Examen")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500">
-              Registra una fecha, disciplina y tatami para evaluación de cinta.
+              {t(
+                "dojo.createExamSub",
+                "Registra una fecha, disciplina y tatami para evaluación de cinta."
+              )}
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateExam} className="space-y-3.5 pt-1">
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Título de la Convocatoria *
+                {t("dojo.titleLabel", "Título de la Convocatoria")} *
               </Label>
               <Input
-                placeholder="ej. Examen de Grado Otoño 2026"
+                placeholder={t(
+                  "dojo.titlePlaceholder",
+                  "ej. Examen de Grado Otoño 2026"
+                )}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
@@ -1389,7 +1425,7 @@ function ExamsContent() {
 
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Disciplina Asociada *
+                {t("dojo.disciplineLabel", "Disciplina Asociada")} *
               </Label>
               <select
                 value={disciplineId}
@@ -1412,14 +1448,16 @@ function ExamsContent() {
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  De Cinta (Mínima)
+                  {t("dojo.minBeltLabel", "De Cinta (Mínima)")}
                 </Label>
                 <select
                   value={minBeltId}
                   onChange={(e) => setMinBeltId(e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                 >
-                  <option value="">Cualquier Grado (Sin mínimo)</option>
+                  <option value="">
+                    {t("dojo.anyMinBelt", "Cualquier Grado (Sin mínimo)")}
+                  </option>
                   {disciplineBelts.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
@@ -1430,14 +1468,16 @@ function ExamsContent() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  A Cinta (Máxima)
+                  {t("dojo.maxBeltLabel", "A Cinta (Máxima)")}
                 </Label>
                 <select
                   value={maxBeltId}
                   onChange={(e) => setMaxBeltId(e.target.value)}
                   className="w-full px-3 py-2 text-xs border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                 >
-                  <option value="">Cualquier Grado (Sin máximo)</option>
+                  <option value="">
+                    {t("dojo.anyMaxBelt", "Cualquier Grado (Sin máximo)")}
+                  </option>
                   {disciplineBelts.map((b) => (
                     <option key={b.id} value={b.id}>
                       {b.name}
@@ -1451,13 +1491,13 @@ function ExamsContent() {
             <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Edad Mínima (años)
+                  {t("dojo.minAgeLabel", "Edad Mínima (años)")}
                 </Label>
                 <Input
                   type="number"
                   min={0}
                   max={120}
-                  placeholder="Sin mínimo"
+                  placeholder={t("dojo.noMinAge", "Sin mínimo")}
                   value={minAge === "" ? "" : minAge}
                   onChange={(e) =>
                     setMinAge(e.target.value === "" ? "" : Number(e.target.value))
@@ -1468,13 +1508,13 @@ function ExamsContent() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Edad Máxima (años)
+                  {t("dojo.maxAgeLabel", "Edad Máxima (años)")}
                 </Label>
                 <Input
                   type="number"
                   min={0}
                   max={120}
-                  placeholder="Sin máximo"
+                  placeholder={t("dojo.noMaxAge", "Sin máximo")}
                   value={maxAge === "" ? "" : maxAge}
                   onChange={(e) =>
                     setMaxAge(e.target.value === "" ? "" : Number(e.target.value))
@@ -1487,7 +1527,7 @@ function ExamsContent() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Fecha del Examen
+                  {t("dojo.examDateLabel", "Fecha del Examen")}
                 </Label>
                 <Input
                   type="date"
@@ -1514,10 +1554,13 @@ function ExamsContent() {
 
             <div className="space-y-1">
               <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Lugar / Tatami Principal
+                {t("dojo.locationLabel", "Lugar / Tatami Principal")}
               </Label>
               <Input
-                placeholder="ej. Dojo Central - Tatami Principal"
+                placeholder={t(
+                  "dojo.locationPlaceholder",
+                  "ej. Dojo Central - Tatami Principal"
+                )}
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
@@ -1531,7 +1574,7 @@ function ExamsContent() {
                 onClick={() => setIsCreateModalOpen(false)}
                 className="rounded-xl text-xs"
               >
-                Cancelar
+                {t("dojo.cancelBtn", "Cancelar")}
               </Button>
               <Button
                 type="submit"
@@ -1541,7 +1584,7 @@ function ExamsContent() {
                 {isCreatingExam ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Crear Convocatoria"
+                  t("dojo.createExamActionBtn", "Crear Convocatoria")
                 )}
               </Button>
             </DialogFooter>
@@ -1557,10 +1600,14 @@ function ExamsContent() {
         <DialogContent className="max-w-md rounded-3xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <Pencil className="h-5 w-5 text-amber-500" /> Editar Convocatoria
+              <Pencil className="h-5 w-5 text-amber-500" />{" "}
+              {t("dojo.editExamTitle", "Editar Convocatoria")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500">
-              Modifica los detalles generales de la convocatoria de examen.
+              {t(
+                "dojo.editExamSub",
+                "Modifica los detalles generales de la convocatoria de examen."
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -1568,7 +1615,7 @@ function ExamsContent() {
             <form onSubmit={handleUpdateExam} className="space-y-3.5 pt-1">
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Título de la Convocatoria
+                  {t("dojo.titleLabel", "Título de la Convocatoria")}
                 </Label>
                 <Input
                   value={editingExam.title}
@@ -1581,7 +1628,7 @@ function ExamsContent() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Disciplina Asociada
+                  {t("dojo.disciplineLabel", "Disciplina Asociada")}
                 </Label>
                 <select
                   disabled={Boolean(
@@ -1614,7 +1661,7 @@ function ExamsContent() {
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    De Cinta (Mínima)
+                    {t("dojo.minBeltLabel", "De Cinta (Mínima)")}
                   </Label>
                   <select
                     value={editingExam.minBeltId || ""}
@@ -1626,7 +1673,9 @@ function ExamsContent() {
                     }
                     className="w-full px-3 py-2 text-xs border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                   >
-                    <option value="">Cualquier Grado (Sin mínimo)</option>
+                    <option value="">
+                      {t("dojo.anyMinBelt", "Cualquier Grado (Sin mínimo)")}
+                    </option>
                     {disciplineBelts.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name}
@@ -1637,7 +1686,7 @@ function ExamsContent() {
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    A Cinta (Máxima)
+                    {t("dojo.maxBeltLabel", "A Cinta (Máxima)")}
                   </Label>
                   <select
                     value={editingExam.maxBeltId || ""}
@@ -1649,7 +1698,9 @@ function ExamsContent() {
                     }
                     className="w-full px-3 py-2 text-xs border border-zinc-300 dark:border-zinc-700 rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
                   >
-                    <option value="">Cualquier Grado (Sin máximo)</option>
+                    <option value="">
+                      {t("dojo.anyMaxBelt", "Cualquier Grado (Sin máximo)")}
+                    </option>
                     {disciplineBelts.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name}
@@ -1663,13 +1714,13 @@ function ExamsContent() {
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Edad Mínima (años)
+                    {t("dojo.minAgeLabel", "Edad Mínima (años)")}
                   </Label>
                   <Input
                     type="number"
                     min={0}
                     max={120}
-                    placeholder="Sin mínimo"
+                    placeholder={t("dojo.noMinAge", "Sin mínimo")}
                     value={
                       editingExam.minAge !== undefined && editingExam.minAge !== null
                         ? editingExam.minAge
@@ -1687,13 +1738,13 @@ function ExamsContent() {
 
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Edad Máxima (años)
+                    {t("dojo.maxAgeLabel", "Edad Máxima (años)")}
                   </Label>
                   <Input
                     type="number"
                     min={0}
                     max={120}
-                    placeholder="Sin máximo"
+                    placeholder={t("dojo.noMaxAge", "Sin máximo")}
                     value={
                       editingExam.maxAge !== undefined && editingExam.maxAge !== null
                         ? editingExam.maxAge
@@ -1713,7 +1764,7 @@ function ExamsContent() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    Fecha del Examen
+                    {t("dojo.examDateLabel", "Fecha del Examen")}
                   </Label>
                   <Input
                     type="date"
@@ -1754,10 +1805,13 @@ function ExamsContent() {
 
               <div className="space-y-1">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Lugar / Tatami Principal
+                  {t("dojo.locationLabel", "Lugar / Tatami Principal")}
                 </Label>
                 <Input
-                  placeholder="ej. Dojo Central - Tatami Principal"
+                  placeholder={t(
+                    "dojo.locationPlaceholder",
+                    "ej. Dojo Central - Tatami Principal"
+                  )}
                   value={editingExam.location || ""}
                   onChange={(e) =>
                     setEditingExam({ ...editingExam, location: e.target.value })
@@ -1773,7 +1827,7 @@ function ExamsContent() {
                   onClick={() => setEditingExam(null)}
                   className="rounded-xl text-xs"
                 >
-                  Cancelar
+                  {t("dojo.cancelBtn", "Cancelar")}
                 </Button>
                 <Button
                   type="submit"
@@ -1783,7 +1837,7 @@ function ExamsContent() {
                   {isUpdatingExam ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Guardar Cambios"
+                    t("dojo.saveChangesBtn", "Guardar Cambios")
                   )}
                 </Button>
               </DialogFooter>
@@ -1792,7 +1846,7 @@ function ExamsContent() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: SELECCIÓN Y GESTIÓN DE CANDIDATOS AL EXAMEN (ESTILO GRUPOS) */}
+      {/* MODAL: CONVOCATORIA DE ALUMNOS (SEMAFORO) */}
       <Dialog
         open={Boolean(managingCandidatesExam)}
         onOpenChange={(open) => !open && setManagingCandidatesExam(null)}
@@ -1801,7 +1855,7 @@ function ExamsContent() {
           <DialogHeader className="border-b border-zinc-200 dark:border-zinc-800 pb-4 space-y-2">
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
               <UserCheck className="h-5 w-5 text-amber-500 shrink-0" />
-              Convocatoria de Alumnos al Examen
+              {t("dojo.convocatoriaModalTitle", "Convocatoria de Alumnos al Examen")}
             </DialogTitle>
             <DialogDescription asChild>
               <div className="space-y-2 pt-1">
@@ -1822,24 +1876,49 @@ function ExamsContent() {
                       variant="outline"
                       className="text-xs font-semibold border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-xl"
                     >
-                      🎯 Cintas: De{" "}
-                      {managingCandidatesExam.minBelt?.name || "Grado Inicial"} a{" "}
-                      {managingCandidatesExam.maxBelt?.name || "Grado Máximo"}
+                      {t(
+                        "dojo.beltsRangeBadge",
+                        "🎯 Cintas: De {min} a {max}",
+                        {
+                          min:
+                            managingCandidatesExam.minBelt?.name ||
+                            t("dojo.initialRank", "Grado Inicial"),
+                          max:
+                            managingCandidatesExam.maxBelt?.name ||
+                            t("dojo.maxRank", "Grado Máximo"),
+                        }
+                      )}
                     </Badge>
                   )}
-                  {(managingCandidatesExam?.minAge !== null &&
-                    managingCandidatesExam?.minAge !== undefined ||
-                    managingCandidatesExam?.maxAge !== null &&
-                      managingCandidatesExam?.maxAge !== undefined) && (
+                  {((managingCandidatesExam?.minAge !== null &&
+                    managingCandidatesExam?.minAge !== undefined) ||
+                    (managingCandidatesExam?.maxAge !== null &&
+                      managingCandidatesExam?.maxAge !== undefined)) && (
                     <Badge
                       variant="outline"
                       className="text-xs font-semibold border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-xl"
                     >
-                      🎂 Edades: {managingCandidatesExam?.minAge && managingCandidatesExam?.maxAge
-                        ? `${managingCandidatesExam.minAge} - ${managingCandidatesExam.maxAge} años`
+                      {managingCandidatesExam?.minAge &&
+                      managingCandidatesExam?.maxAge
+                        ? t(
+                            "dojo.ageRangeBoth",
+                            "🎂 Edades: {min} - {max} años",
+                            {
+                              min: managingCandidatesExam.minAge,
+                              max: managingCandidatesExam.maxAge,
+                            }
+                          )
                         : managingCandidatesExam?.minAge
-                        ? `Desde ${managingCandidatesExam.minAge} años`
-                        : `Hasta ${managingCandidatesExam?.maxAge} años`}
+                        ? t(
+                            "dojo.ageRangeMin",
+                            "🎂 Edades: Desde {min} años",
+                            { min: managingCandidatesExam.minAge }
+                          )
+                        : t(
+                            "dojo.ageRangeMax",
+                            "🎂 Edades: Hasta {max} años",
+                            { max: managingCandidatesExam?.maxAge ?? "" }
+                          )}
                     </Badge>
                   )}
                 </div>
@@ -1857,20 +1936,25 @@ function ExamsContent() {
                 value="enrolled"
                 className="text-xs font-bold rounded-lg cursor-pointer"
               >
-                Alumnos Convocados (
-                {candidatesList.filter((c) => c.isEnrolled).length})
+                {t(
+                  "dojo.tabEnrolledStudents",
+                  "Alumnos Convocados ({count})",
+                  {
+                    count: candidatesList.filter((c) => c.isEnrolled).length,
+                  }
+                )}
               </TabsTrigger>
               <TabsTrigger
                 value="search"
                 className="text-xs font-bold rounded-lg cursor-pointer"
               >
-                Buscar Existente
+                {t("dojo.tabSearchExisting", "Buscar Existente")}
               </TabsTrigger>
               <TabsTrigger
                 value="quickAdd"
                 className="text-xs font-bold rounded-lg cursor-pointer"
               >
-                + Nuevo Registro
+                {t("dojo.tabQuickAdd", "+ Nuevo Registro")}
               </TabsTrigger>
             </TabsList>
 
@@ -1881,7 +1965,10 @@ function ExamsContent() {
                 <Input
                   value={enrolledSearchFilter}
                   onChange={(e) => setEnrolledSearchFilter(e.target.value)}
-                  placeholder="Filtrar convocados por nombre o correo..."
+                  placeholder={t(
+                    "dojo.filterEnrolledPlaceholder",
+                    "Filtrar convocados por nombre o correo..."
+                  )}
                   className="pl-9 text-xs rounded-xl h-9 border-zinc-200 dark:border-zinc-700"
                 />
               </div>
@@ -1890,12 +1977,17 @@ function ExamsContent() {
                 {isLoadingCandidates ? (
                   <div className="p-8 text-center text-xs text-zinc-400">
                     <Loader2 className="h-5 w-5 animate-spin mx-auto text-amber-500 mb-2" />
-                    Cargando candidatos del examen...
+                    {t(
+                      "dojo.loadingExamCandidates",
+                      "Cargando candidatos del examen..."
+                    )}
                   </div>
                 ) : candidatesList.filter((c) => c.isEnrolled).length === 0 ? (
                   <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                    No hay alumnos convocados para este examen aún. Pasa a la
-                    pestaña "Buscar Existente" para convocar candidatos.
+                    {t(
+                      "dojo.noEnrolledStudentsYet",
+                      'No hay alumnos convocados para este examen aún. Pasa a la pestaña "Buscar Existente" para convocar candidatos.'
+                    )}
                   </div>
                 ) : (
                   candidatesList
@@ -1940,13 +2032,15 @@ function ExamsContent() {
                               <span>{cand.studentName}</span>
                               {cand.age !== null && cand.age !== undefined && (
                                 <span className="text-[11px] font-normal text-zinc-500 dark:text-zinc-400">
-                                  ({cand.age} años)
+                                  ({cand.age} {t("dojo.yearsOld", "años")})
                                 </span>
                               )}
                             </p>
 
                             <div className="flex items-center gap-1.5 text-[11px]">
-                              <span className="text-zinc-500 font-medium">Cinta Actual:</span>
+                              <span className="text-zinc-500 font-medium">
+                                {t("dojo.currentRankLabelShort", "Actual:")}
+                              </span>
                               <span
                                 className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-zinc-400/40 ${getContrastTextColor(
                                   cand.currentBeltColor
@@ -1961,7 +2055,9 @@ function ExamsContent() {
                             </div>
 
                             <div className="flex items-center gap-1.5 text-[11px] pt-0.5">
-                              <span className="text-zinc-500 font-medium">🎯 Ascenso Objetivo:</span>
+                              <span className="text-zinc-500 font-medium">
+                                {t("dojo.targetRankLabelShort", "🎯 Ascenso:")}
+                              </span>
                               <span
                                 className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-zinc-400/40 ${getContrastTextColor(
                                   cand.targetBeltColor
@@ -1990,8 +2086,8 @@ function ExamsContent() {
                             }`}
                           >
                             {cand.isFeePaid
-                              ? "💳 Pago Confirmado"
-                              : "⏳ Pago Pendiente"}
+                              ? t("dojo.feeConfirmed", "💳 Pago Confirmado")
+                              : t("dojo.feeRequired", "⏳ Pago Pendiente")}
                           </button>
 
                           <Button
@@ -2003,7 +2099,7 @@ function ExamsContent() {
                             }
                             className="h-8 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl cursor-pointer"
                           >
-                            Desvincular
+                            {t("dojo.unlinkCandidateBtn", "Desvincular")}
                           </Button>
                         </div>
                       </div>
@@ -2020,7 +2116,10 @@ function ExamsContent() {
                   <Input
                     value={candidateSearchQuery}
                     onChange={(e) => setCandidateSearchQuery(e.target.value)}
-                    placeholder="Filtrar por nombre o correo de alumno..."
+                    placeholder={t(
+                      "dojo.searchStudentByQueryPlaceholder",
+                      "Filtrar por nombre o correo de alumno..."
+                    )}
                     className="pl-9 text-xs rounded-xl h-9 border-zinc-200 dark:border-zinc-700"
                   />
                 </div>
@@ -2033,7 +2132,7 @@ function ExamsContent() {
                     {isSearchingCandidates ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "Buscar en Servidor"
+                      t("dojo.searchOnServerBtn", "Buscar en Servidor")
                     )}
                   </Button>
                 )}
@@ -2043,15 +2142,20 @@ function ExamsContent() {
                 {isLoadingCandidates || isSearchingCandidates ? (
                   <div className="p-8 text-center text-xs text-zinc-400">
                     <Loader2 className="h-5 w-5 animate-spin mx-auto text-amber-500 mb-2" />
-                    Cargando alumnos de la disciplina y verificando requisitos...
+                    {t(
+                      "dojo.loadingDisciplineStudents",
+                      "Cargando alumnos de la disciplina y verificando requisitos..."
+                    )}
                   </div>
                 ) : candidateSearchResults.length > 0 ? (
                   candidateSearchResults.map((st) => {
                     const isAlreadyEnrolled = candidatesList.some(
                       (c) => c.studentId === st.id && c.isEnrolled
                     );
-                    const currentBeltName = st.currentBelt?.name || "Inicial";
-                    const currentBeltColor = st.currentBelt?.colorHex || "#e4e4e7";
+                    const currentBeltName =
+                      st.currentBelt?.name || t("dojo.initialRank", "Inicial");
+                    const currentBeltColor =
+                      st.currentBelt?.colorHex || "#e4e4e7";
 
                     return (
                       <div
@@ -2063,7 +2167,9 @@ function ExamsContent() {
                             {st.firstName} {st.lastName}
                           </p>
                           <div className="flex items-center gap-2 mt-1 text-[11px]">
-                            <span className="text-zinc-500">Cinta Actual:</span>
+                            <span className="text-zinc-500">
+                              {t("dojo.currentRankLabelShort", "Actual:")}
+                            </span>
                             <span
                               className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-zinc-400/40 ${getContrastTextColor(
                                 currentBeltColor
@@ -2077,7 +2183,7 @@ function ExamsContent() {
 
                         {isAlreadyEnrolled ? (
                           <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-                            ✓ Ya Convocado
+                            {t("dojo.alreadyEnrolledBadge", "✓ Ya Convocado")}
                           </Badge>
                         ) : (
                           <Button
@@ -2086,7 +2192,7 @@ function ExamsContent() {
                             onClick={() => handleConvokeStudent(st)}
                             className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs h-8 px-3 cursor-pointer"
                           >
-                            + Convocar al Examen
+                            {t("dojo.convokeToExamBtn", "+ Convocar al Examen")}
                           </Button>
                         )}
                       </div>
@@ -2101,8 +2207,10 @@ function ExamsContent() {
                     );
                   }).length === 0 ? (
                   <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
-                    No se encontraron alumnos en la academia que cumplan con
-                    los requisitos de cintas y edades del examen.
+                    {t(
+                      "dojo.noMatchingAcademyStudents",
+                      "No se encontraron alumnos en la academia que cumplan con los requisitos de cintas y edades del examen."
+                    )}
                   </div>
                 ) : (
                   candidatesList
@@ -2146,13 +2254,15 @@ function ExamsContent() {
                               <span>{cand.studentName}</span>
                               {cand.age !== null && cand.age !== undefined && (
                                 <span className="text-[11px] font-normal text-zinc-500 dark:text-zinc-400">
-                                  ({cand.age} años)
+                                  ({cand.age} {t("dojo.yearsOld", "años")})
                                 </span>
                               )}
                             </p>
 
                             <div className="flex items-center gap-1.5 text-[11px]">
-                              <span className="text-zinc-500 font-medium">Cinta Actual:</span>
+                              <span className="text-zinc-500 font-medium">
+                                {t("dojo.currentRankLabelShort", "Actual:")}
+                              </span>
                               <span
                                 className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-zinc-400/40 ${getContrastTextColor(
                                   cand.currentBeltColor
@@ -2167,7 +2277,9 @@ function ExamsContent() {
                             </div>
 
                             <div className="flex items-center gap-1.5 text-[11px] pt-0.5">
-                              <span className="text-zinc-500 font-medium">🎯 Ascenso Objetivo:</span>
+                              <span className="text-zinc-500 font-medium">
+                                {t("dojo.targetRankLabelShort", "🎯 Ascenso:")}
+                              </span>
                               <span
                                 className={`px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-zinc-400/40 ${getContrastTextColor(
                                   cand.targetBeltColor
@@ -2186,7 +2298,7 @@ function ExamsContent() {
                         <div className="flex items-center gap-2">
                           {cand.isEnrolled ? (
                             <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-                              ✓ Ya Convocado
+                              {t("dojo.alreadyEnrolledBadge", "✓ Ya Convocado")}
                             </Badge>
                           ) : (
                             <Button
@@ -2195,7 +2307,7 @@ function ExamsContent() {
                               onClick={() => handleToggleCandidate(cand.studentId)}
                               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs h-8 px-3 cursor-pointer"
                             >
-                              + Convocar al Examen
+                              {t("dojo.convokeToExamBtn", "+ Convocar al Examen")}
                             </Button>
                           )}
                         </div>
@@ -2212,36 +2324,44 @@ function ExamsContent() {
                 className="space-y-3 bg-zinc-50 dark:bg-zinc-800/40 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800"
               >
                 <p className="text-xs text-zinc-500 font-medium">
-                  Registra rápidamente un nuevo alumno en la academia y
-                  convócalo de inmediato a este examen.
+                  {t(
+                    "dojo.quickAddStudentDesc",
+                    "Registra rápidamente un nuevo alumno en la academia y convócalo de inmediato a este examen."
+                  )}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs font-semibold">Nombre *</Label>
+                    <Label className="text-xs font-semibold">
+                      {t("dojo.firstNameLabel", "Nombre *")}
+                    </Label>
                     <Input
                       value={quickFirstName}
                       onChange={(e) => setQuickFirstName(e.target.value)}
-                      placeholder="Nombre del alumno"
+                      placeholder={t("dojo.firstNamePlaceholder", "Nombre del alumno")}
                       className="text-xs rounded-xl h-9"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Apellido</Label>
+                    <Label className="text-xs font-semibold">
+                      {t("dojo.lastNameLabel", "Apellido")}
+                    </Label>
                     <Input
                       value={quickLastName}
                       onChange={(e) => setQuickLastName(e.target.value)}
-                      placeholder="Apellido"
+                      placeholder={t("dojo.lastNamePlaceholder", "Apellido")}
                       className="text-xs rounded-xl h-9"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs font-semibold">Correo Electrónico (Opcional)</Label>
+                  <Label className="text-xs font-semibold">
+                    {t("dojo.emailLabel", "Correo Electrónico (Opcional)")}
+                  </Label>
                   <Input
                     type="email"
                     value={quickEmail}
                     onChange={(e) => setQuickEmail(e.target.value)}
-                    placeholder="alumno@ejemplo.com"
+                    placeholder={t("dojo.emailPlaceholder", "alumno@ejemplo.com")}
                     className="text-xs rounded-xl h-9"
                   />
                 </div>
@@ -2253,7 +2373,7 @@ function ExamsContent() {
                   {isQuickAddSubmitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "+ Registrar y Convocar Alumno"
+                    t("dojo.registerAndConvokeBtn", "+ Registrar y Convocar Alumno")
                   )}
                 </Button>
               </form>
@@ -2267,7 +2387,7 @@ function ExamsContent() {
               onClick={() => setManagingCandidatesExam(null)}
               className="rounded-xl text-xs font-bold cursor-pointer"
             >
-              Cerrar
+              {t("dojo.closeBtn", "Cerrar")}
             </Button>
             <Button
               type="button"
@@ -2278,7 +2398,7 @@ function ExamsContent() {
               {isSavingCandidates ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Guardar Cambios"
+                t("dojo.saveChangesBtn", "Guardar Cambios")
               )}
             </Button>
           </DialogFooter>
@@ -2294,10 +2414,13 @@ function ExamsContent() {
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-emerald-500 shrink-0" />
-              Cobro Rápido de Examen
+              {t("dojo.quickPaymentTitle", "Cobro Rápido de Examen")}
             </DialogTitle>
             <DialogDescription className="text-xs text-zinc-500 pt-1">
-              Confirma el cobro de derecho a examen sin salir de la convocatoria.
+              {t(
+                "dojo.quickPaymentSub",
+                "Confirma el cobro de derecho a examen sin salir de la convocatoria."
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -2305,19 +2428,25 @@ function ExamsContent() {
             <form onSubmit={handleExecuteQuickPayment} className="space-y-4 pt-2">
               <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">Alumno:</span>
+                  <span className="text-zinc-500">
+                    {t("dojo.studentCol", "Alumno:")}
+                  </span>
                   <span className="font-extrabold text-zinc-900 dark:text-white">
                     {paymentModalCandidate.studentName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-500">Concepto:</span>
+                  <span className="text-zinc-500">
+                    {t("dojo.conceptLabel", "Concepto:")}
+                  </span>
                   <span className="font-semibold text-amber-600 dark:text-amber-400 truncate max-w-[200px]">
                     {managingCandidatesExam.title}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs border-t border-zinc-200 dark:border-zinc-700 pt-2 mt-1">
-                  <span className="text-zinc-600 dark:text-zinc-400 font-bold">Monto Total a Cobrar:</span>
+                  <span className="text-zinc-600 dark:text-zinc-400 font-bold">
+                    {t("dojo.totalToChargeLabel", "Monto Total a Cobrar:")}
+                  </span>
                   <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
                     ${managingCandidatesExam.feeAmount || 350} {brandCurrency}
                   </span>
@@ -2326,7 +2455,7 @@ function ExamsContent() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                  Método de Pago
+                  {t("dojo.paymentMethodLabel", "Método de Pago")}
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
                   <button
@@ -2339,7 +2468,7 @@ function ExamsContent() {
                     }`}
                   >
                     <span>💵</span>
-                    <span>Efectivo</span>
+                    <span>{t("dojo.paymentMethodCash", "Efectivo")}</span>
                   </button>
 
                   <button
@@ -2352,7 +2481,7 @@ function ExamsContent() {
                     }`}
                   >
                     <span>🏦</span>
-                    <span>Transferencia</span>
+                    <span>{t("dojo.paymentMethodTransfer", "Transferencia")}</span>
                   </button>
 
                   <button
@@ -2365,7 +2494,7 @@ function ExamsContent() {
                     }`}
                   >
                     <span>💳</span>
-                    <span>Tarjeta</span>
+                    <span>{t("dojo.paymentMethodCard", "Tarjeta")}</span>
                   </button>
                 </div>
               </div>
@@ -2375,11 +2504,11 @@ function ExamsContent() {
                   <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
                     <span>
                       {paymentMethod === "TRANSFER"
-                        ? "Clave de Rastreo / Folio SPEI"
-                        : "Número de Autorización / Voucher"}
+                        ? t("dojo.transferRefLabel", "Clave de Rastreo / Folio SPEI")
+                        : t("dojo.cardRefLabel", "Número de Autorización / Voucher")}
                     </span>
                     <span className="text-[10px] text-zinc-400 font-normal">
-                      (Opcional)
+                      {t("dojo.optionalLabel", "(Opcional)")}
                     </span>
                   </Label>
                   <Input
@@ -2388,8 +2517,8 @@ function ExamsContent() {
                     onChange={(e) => setPaymentReference(e.target.value)}
                     placeholder={
                       paymentMethod === "TRANSFER"
-                        ? "ej. SPEI-984729104"
-                        : "ej. AUT-482019"
+                        ? t("dojo.transferRefPlaceholder", "ej. SPEI-984729104")
+                        : t("dojo.cardRefPlaceholder", "ej. AUT-482019")
                     }
                     className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-xs rounded-xl text-zinc-900 dark:text-white"
                   />
@@ -2403,7 +2532,7 @@ function ExamsContent() {
                   onClick={() => setPaymentModalCandidate(null)}
                   className="rounded-xl text-xs"
                 >
-                  Cancelar
+                  {t("dojo.cancelBtn", "Cancelar")}
                 </Button>
                 <Button
                   type="submit"
@@ -2413,7 +2542,7 @@ function ExamsContent() {
                   {isProcessingPayment ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "💳 Confirmar Cobro Rápido"
+                    t("dojo.confirmQuickPaymentBtn", "💳 Confirmar Cobro Rápido")
                   )}
                 </Button>
               </DialogFooter>
@@ -2430,13 +2559,29 @@ function ExamsContent() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-rose-500 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 shrink-0" /> ¿Eliminar Convocatoria?
+              <AlertTriangle className="h-5 w-5 shrink-0" />{" "}
+              {t("dojo.deleteExamTitle", "¿Eliminar Convocatoria?")}
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1">
-              Estás a punto de eliminar la convocatoria{" "}
-              <strong className="text-zinc-900 dark:text-white">
-                "{deletingExam?.title}"
-              </strong>.
+            <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1 space-y-2">
+              <div>
+                {t("dojo.deleteExamSub", "Estás a punto de eliminar la convocatoria")}{" "}
+                <strong className="text-zinc-900 dark:text-white">
+                  "{deletingExam?.title}"
+                </strong>.
+              </div>
+
+              {deletingExam?.evaluations && deletingExam.evaluations.length > 0 && (
+                <div
+                  className={
+                    "p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 " +
+                    "text-amber-700 dark:text-amber-400 font-semibold text-xs mt-2"
+                  }
+                >
+                  ⚠️ No se puede eliminar esta convocatoria porque tiene{" "}
+                  <strong>{deletingExam.evaluations.length} alumno(s)</strong>{" "}
+                  convocado(s) o evaluado(s). Desconvoca sus evaluaciones primero.
+                </div>
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -2447,14 +2592,20 @@ function ExamsContent() {
               onClick={() => setDeletingExam(null)}
               className="rounded-xl text-xs"
             >
-              Cancelar
+              {t("dojo.cancelBtn", "Cancelar")}
             </Button>
             <Button
               type="button"
               onClick={handleDeleteExam}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs cursor-pointer"
+              disabled={Boolean(
+                deletingExam?.evaluations && deletingExam.evaluations.length > 0
+              )}
+              className={
+                "bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl " +
+                "text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              }
             >
-              Sí, Eliminar
+              {t("dojo.confirmDeleteBtn", "Sí, Eliminar")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2470,8 +2621,8 @@ function ExamsContent() {
             <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-emerald-500" />
               {evaluatingExam?.status === "COMPLETED"
-                ? "Acta Oficial de Calificaciones (Certificada)"
-                : "Rúbrica de Evaluación Tatami"}
+                ? t("dojo.certifiedTitle", "Acta Oficial de Calificaciones (Certificada)")
+                : t("dojo.tatamiRubricTitle", "Rúbrica de Evaluación Tatami")}
             </DialogTitle>
             <DialogDescription asChild>
               <div className="text-xs text-amber-500 font-semibold flex items-center justify-between gap-2">
@@ -2479,13 +2630,19 @@ function ExamsContent() {
                 <div className="flex items-center gap-1.5 shrink-0">
                   {activeTemplate && (
                     <Badge className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-[10px] font-bold">
-                      📋 Plantilla: {activeTemplate.title} (
-                      {activeTemplate.criteria?.length || 0} Criterios)
+                      {t(
+                        "dojo.templateBadge",
+                        "📋 Plantilla: {title} ({count} Criterios)",
+                        {
+                          title: activeTemplate.title,
+                          count: activeTemplate.criteria?.length || 0,
+                        }
+                      )}
                     </Badge>
                   )}
                   {evaluatingExam?.status === "COMPLETED" && (
                     <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
-                      🔒 Concluido & Certificado
+                      {t("dojo.certifiedBadgeShort", "🔒 Concluido & Certificado")}
                     </Badge>
                   )}
                 </div>
@@ -2495,14 +2652,23 @@ function ExamsContent() {
 
           {isLoadingEvaluations ? (
             <div className="p-12 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin text-amber-500" /> Cargando alumnos y evaluaciones reales...
+              <Loader2 className="h-5 w-5 animate-spin text-amber-500" />{" "}
+              {t("dojo.loadingEvaluations", "Cargando alumnos y evaluaciones reales...")}
             </div>
           ) : evaluationsList.length === 0 ? (
             <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 space-y-2">
               <Users className="h-8 w-8 mx-auto text-zinc-400" />
-              <p>No hay alumnos convocados formalmente para este examen.</p>
+              <p>
+                {t(
+                  "dojo.noCandidatesEnrolledTatami",
+                  "No hay alumnos convocados formalmente para este examen."
+                )}
+              </p>
               <p className="text-[11px] text-zinc-500">
-                Abre la opción "Convocatoria" para seleccionar e inscribir a los alumnos.
+                {t(
+                  "dojo.openCallInstructions",
+                  'Abre la opción "Convocatoria" para seleccionar e inscribir a los alumnos.'
+                )}
               </p>
             </div>
           ) : (() => {
@@ -2526,7 +2692,10 @@ function ExamsContent() {
             if (!activeEvalStudent) {
               return (
                 <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50 dark:bg-zinc-800/30 rounded-xl">
-                  No se encontraron alumnos que coincidan con la búsqueda.
+                  {t(
+                    "dojo.noMatchingStudentsFound",
+                    "No se encontraron alumnos que coincidan con la búsqueda."
+                  )}
                 </div>
               );
             }
@@ -2534,8 +2703,15 @@ function ExamsContent() {
             const isExamFinished = evaluatingExam?.status === "COMPLETED";
 
             const studentFullName = activeEvalStudent.student?.firstName
-              ? `${activeEvalStudent.student.firstName} ${activeEvalStudent.student.lastName || ""}`.trim()
-              : activeEvalStudent.student?.user?.name || `Alumno ${activeEvalStudent.studentId.slice(-4)}`;
+              ? `${activeEvalStudent.student.firstName} ${
+                  activeEvalStudent.student.lastName || ""
+                }`.trim()
+              : activeEvalStudent.student?.user?.name ||
+                t(
+                  "dojo.studentFallback",
+                  "Alumno {id}",
+                  { id: activeEvalStudent.studentId.slice(-4) }
+                );
 
             const photoUrl =
               activeEvalStudent.student?.photoUrl ||
@@ -2547,10 +2723,16 @@ function ExamsContent() {
               .map((p) => p[0].toUpperCase())
               .join("") || "AL";
 
-            const currentBeltName = activeEvalStudent.student?.currentBelt?.name || "Cinta Actual";
-            const currentBeltColor = activeEvalStudent.student?.currentBelt?.colorHex || "#71717a";
-            const targetBeltName = activeEvalStudent.targetBelt?.name || "Cinturón Objetivo";
-            const targetBeltColor = activeEvalStudent.targetBelt?.colorHex || "#f59e0b";
+            const currentBeltName =
+              activeEvalStudent.student?.currentBelt?.name ||
+              t("dojo.defaultCurrentBelt", "Cinta Actual");
+            const currentBeltColor =
+              activeEvalStudent.student?.currentBelt?.colorHex || "#71717a";
+            const targetBeltName =
+              activeEvalStudent.targetBelt?.name ||
+              t("dojo.defaultTargetBelt", "Cinturón Objetivo");
+            const targetBeltColor =
+              activeEvalStudent.targetBelt?.colorHex || "#f59e0b";
 
             const currentScore = activeEvalStudent.score ?? 8.0;
             const criteria = activeTemplate?.criteria || [];
@@ -2565,7 +2747,11 @@ function ExamsContent() {
                       <div className="relative">
                         <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-400" />
                         <Input
-                          placeholder={`Buscar entre los ${evaluationsList.length} alumnos...`}
+                          placeholder={t(
+                            "dojo.searchStudentsPlaceholder",
+                            "Buscar entre los {count} alumnos...",
+                            { count: evaluationsList.length }
+                          )}
                           value={rubricSearchQuery}
                           onChange={(e) => setRubricSearchQuery(e.target.value)}
                           className="pl-8 h-8 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700"
@@ -2577,7 +2763,12 @@ function ExamsContent() {
                       {filteredEvals.map((ev) => {
                         const tabName = ev.student?.firstName
                           ? `${ev.student.firstName} ${ev.student.lastName || ""}`.trim()
-                          : ev.student?.user?.name || `Alumno ${ev.studentId.slice(-4)}`;
+                          : ev.student?.user?.name ||
+                            t(
+                              "dojo.studentFallback",
+                              "Alumno {id}",
+                              { id: ev.studentId.slice(-4) }
+                            );
                         const tabPhoto = ev.student?.photoUrl || ev.student?.user?.image;
                         const tabInitials = tabName
                           .split(" ")
@@ -2661,17 +2852,19 @@ function ExamsContent() {
                           <span className="truncate">{studentFullName}</span>
                           {activeEvalStudent.isFeePaid ? (
                             <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold gap-1 shrink-0">
-                              💳 Pago Cubierto
+                              {t("dojo.feeCovered", "💳 Pago Cubierto")}
                             </Badge>
                           ) : (
                             <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-extrabold gap-1 shrink-0">
-                              ⏳ Derecho Pendiente
+                              {t("dojo.feeRequired", "⏳ Derecho Pendiente")}
                             </Badge>
                           )}
                         </div>
 
                         <div className="text-xs font-semibold flex items-center gap-1.5 mt-1 flex-wrap">
-                          <span className="text-zinc-400 text-[11px]">Actual:</span>
+                          <span className="text-zinc-400 text-[11px]">
+                            {t("dojo.currentRankLabelShort", "Actual:")}
+                          </span>
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border border-zinc-400/40 inline-flex items-center gap-1 ${getContrastTextColor(
                               currentBeltColor
@@ -2681,7 +2874,9 @@ function ExamsContent() {
                             {currentBeltName}
                           </span>
                           <span className="text-zinc-400 text-[11px]">➔</span>
-                          <span className="text-zinc-500 dark:text-zinc-400 text-[11px]">🎯 Ascenso:</span>
+                          <span className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                            {t("dojo.targetRankLabelShort", "🎯 Ascenso:")}
+                          </span>
                           <span
                             className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border border-zinc-400/40 inline-flex items-center gap-1 ${getContrastTextColor(
                               targetBeltColor
@@ -2696,7 +2891,7 @@ function ExamsContent() {
 
                     <div className="text-right shrink-0">
                       <label className="text-[10px] text-zinc-400 block font-medium">
-                        Calificación Final
+                        {t("dojo.finalScoreLabel", "Calificación Final")}
                       </label>
                       <input
                         type="number"
@@ -2720,7 +2915,7 @@ function ExamsContent() {
                   {criteria.length > 0 && (
                     <div className="pt-2 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-2">
                       <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
-                        Criterios de Evaluación Tatami
+                        {t("dojo.tatamiCriteriaHeader", "Criterios de Evaluación Tatami")}
                       </span>
                       <div className="grid grid-cols-1 gap-2">
                         {criteria.map((c) => {
@@ -2757,7 +2952,8 @@ function ExamsContent() {
                                         "font-extrabold text-[11px]"
                                       }
                                     >
-                                      <CheckCircle className="w-3.5 h-3.5" /> Dominado (10)
+                                      <CheckCircle className="w-3.5 h-3.5" />{" "}
+                                      {t("dojo.ratingMastered", "Dominado (10)")}
                                     </span>
                                   )}
                                   {currentRating === "GOOD" && (
@@ -2768,7 +2964,8 @@ function ExamsContent() {
                                         "font-extrabold text-[11px]"
                                       }
                                     >
-                                      <ThumbsUp className="w-3.5 h-3.5" /> En Proceso (7.5)
+                                      <ThumbsUp className="w-3.5 h-3.5" />{" "}
+                                      {t("dojo.ratingInProcess", "En Proceso (7.5)")}
                                     </span>
                                   )}
                                   {currentRating === "NEEDS_WORK" && (
@@ -2779,12 +2976,13 @@ function ExamsContent() {
                                         "font-extrabold text-[11px]"
                                       }
                                     >
-                                      <ThumbsDown className="w-3.5 h-3.5" /> Práctica (5)
+                                      <ThumbsDown className="w-3.5 h-3.5" />{" "}
+                                      {t("dojo.ratingPractice", "Práctica (5)")}
                                     </span>
                                   )}
                                   {!currentRating && (
                                     <span className="text-zinc-400 italic text-[11px]">
-                                      Sin evaluar
+                                      {t("dojo.ratingUnevaluated", "Sin evaluar")}
                                     </span>
                                   )}
                                 </div>
@@ -2804,7 +3002,7 @@ function ExamsContent() {
                                         ? "bg-emerald-500 text-slate-950 shadow-2xs"
                                         : "text-emerald-500 hover:bg-emerald-500/10"
                                     }`}
-                                    title="🟩 Dominado (10)"
+                                    title={t("dojo.titleMastered", "🟩 Dominado (10)")}
                                   >
                                     <CheckCircle className="w-3 h-3" /> 10
                                   </button>
@@ -2823,7 +3021,7 @@ function ExamsContent() {
                                         ? "bg-amber-500 text-slate-950 shadow-2xs"
                                         : "text-amber-500 hover:bg-amber-500/10"
                                     }`}
-                                    title="🟡 En Proceso (7.5)"
+                                    title={t("dojo.titleInProcess", "🟡 En Proceso (7.5)")}
                                   >
                                     <ThumbsUp className="w-3 h-3" /> 7.5
                                   </button>
@@ -2842,7 +3040,10 @@ function ExamsContent() {
                                         ? "bg-rose-500 text-white shadow-2xs"
                                         : "text-rose-500 hover:bg-rose-500/10"
                                     }`}
-                                    title="🔴 Práctica Requerida (5.0)"
+                                    title={t(
+                                      "dojo.titlePractice",
+                                      "🔴 Práctica Requerida (5.0)"
+                                    )}
                                   >
                                     <ThumbsDown className="w-3 h-3" /> 5
                                   </button>
@@ -2871,11 +3072,19 @@ function ExamsContent() {
                       }
                       className="text-xs font-bold gap-1 rounded-xl cursor-pointer"
                     >
-                      <ChevronLeft className="h-4 w-4" /> Alumno Anterior
+                      <ChevronLeft className="h-4 w-4" />{" "}
+                      {t("dojo.prevStudentBtn", "Alumno Anterior")}
                     </Button>
 
                     <span className="font-semibold text-zinc-500 text-[11px]">
-                      Alumno {currentEvalIndex + 1} de {filteredEvals.length}
+                      {t(
+                        "dojo.studentProgress",
+                        "Alumno {current} de {total}",
+                        {
+                          current: currentEvalIndex + 1,
+                          total: filteredEvals.length,
+                        }
+                      )}
                     </span>
 
                     <Button
@@ -2890,7 +3099,8 @@ function ExamsContent() {
                       }
                       className="text-xs font-bold gap-1 rounded-xl cursor-pointer"
                     >
-                      Alumno Siguiente <ChevronRight className="h-4 w-4" />
+                      {t("dojo.nextStudentBtn", "Alumno Siguiente")}{" "}
+                      <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
@@ -2905,7 +3115,8 @@ function ExamsContent() {
                 onClick={() => setIsConfirmFinalizeOpen(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl gap-1.5 cursor-pointer shadow-xs"
               >
-                <Trophy className="h-4 w-4" /> Concluir Examen y Promover
+                <Trophy className="h-4 w-4" />{" "}
+                {t("dojo.concludeExamBtn", "Concluir Examen y Promover")}
               </Button>
             ) : (
               <Button
@@ -2913,7 +3124,8 @@ function ExamsContent() {
                 onClick={() => handleOpenDiplomasForExam(evaluatingExam!)}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl gap-1 cursor-pointer"
               >
-                <Printer className="h-3.5 w-3.5" /> Imprimir Diplomas Oficiales
+                <Printer className="h-3.5 w-3.5" />{" "}
+                {t("dojo.printOfficialDiplomasBtn", "Imprimir Diplomas Oficiales")}
               </Button>
             )}
 
@@ -2924,7 +3136,7 @@ function ExamsContent() {
                 onClick={() => setEvaluatingExam(null)}
                 className="rounded-xl text-xs"
               >
-                Cerrar
+                {t("dojo.closeBtn", "Cerrar")}
               </Button>
               {evaluatingExam?.status !== "COMPLETED" && (
                 <Button
@@ -2936,7 +3148,7 @@ function ExamsContent() {
                   {isSavingEvaluations ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "Guardar Rúbrica"
+                    t("dojo.saveRubricBtn", "Guardar Rúbrica")
                   )}
                 </Button>
               )}
@@ -2953,20 +3165,22 @@ function ExamsContent() {
         <DialogContent className="max-w-md rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-              <Trophy className="h-5 w-5 shrink-0" /> ¿Concluir Examen y Promover?
+              <Trophy className="h-5 w-5 shrink-0" />{" "}
+              {t("dojo.confirmFinalizeTitle", "¿Concluir Examen y Promover?")}
             </DialogTitle>
             <DialogDescription asChild>
               <div className="text-xs text-zinc-600 dark:text-zinc-300 pt-2 space-y-2">
                 <p>
-                  Estás a punto de finalizar el examen{" "}
+                  {t("dojo.confirmFinalizeDesc1", "Estás a punto de finalizar el examen")}{" "}
                   <strong className="text-zinc-900 dark:text-white">
                     "{evaluatingExam?.title}"
                   </strong>.
                 </p>
                 <p className="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-semibold">
-                  ✨ Todos los alumnos con calificación aprobatoria (≥ 7.0)
-                  serán promovidos automáticamente de cinturón y el examen
-                  quedará certificado en modo solo lectura.
+                  {t(
+                    "dojo.confirmFinalizeDesc2",
+                    "✨ Todos los alumnos con calificación aprobatoria (≥ 7.0) serán promovidos automáticamente de cinturón y el examen quedará certificado en modo solo lectura."
+                  )}
                 </p>
               </div>
             </DialogDescription>
@@ -2980,7 +3194,7 @@ function ExamsContent() {
               onClick={() => setIsConfirmFinalizeOpen(false)}
               className="rounded-xl text-xs"
             >
-              Cancelar
+              {t("dojo.cancelBtn", "Cancelar")}
             </Button>
             <Button
               type="button"
@@ -2991,7 +3205,7 @@ function ExamsContent() {
               {isFinalizingExam ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Sí, Concluir Examen"
+                t("dojo.confirmFinalizeAction", "Sí, Concluir Examen")
               )}
             </Button>
           </DialogFooter>
@@ -3010,8 +3224,16 @@ function ExamsContent() {
 }
 
 export default function ExamsPage() {
+  const { t } = useTranslation();
+
   return (
-    <Suspense fallback={<div className="p-6 text-zinc-500">Cargando exámenes...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-6 text-zinc-500">
+          {t("dojo.loadingExamsFallback", "Cargando exámenes...")}
+        </div>
+      }
+    >
       <ExamsContent />
     </Suspense>
   );

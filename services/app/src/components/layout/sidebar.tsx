@@ -113,6 +113,13 @@ const dojoSettingsNavItems: NavItem[] = [
     adminOnly: true,
   },
   {
+    key: "nav.rubrics",
+    defaultTitle: "Plantillas de Evaluación",
+    href: "/dashboard/evaluations/templates",
+    icon: ClipboardCheck,
+    adminOnly: true,
+  },
+  {
     key: "nav.gamification",
     defaultTitle: "Retos & Gamificación",
     href: "/dashboard/gamification",
@@ -120,13 +127,6 @@ const dojoSettingsNavItems: NavItem[] = [
     adminOnly: true,
     badgeKey: "nav.soon",
     defaultBadge: "Pronto",
-  },
-  {
-    key: "nav.rubrics",
-    defaultTitle: "Plantillas de Evaluación",
-    href: "/dashboard/evaluations/templates",
-    icon: ClipboardCheck,
-    adminOnly: true,
   },
 ];
 

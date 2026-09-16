@@ -268,7 +268,10 @@ export async function deleteGradeExamAction(
 
     const existing = await prisma.gradeExam.findUnique({
       where: { id },
-      select: { brandId: true },
+      select: {
+        brandId: true,
+        evaluations: { select: { id: true } },
+      },
     });
 
     if (!existing) {
@@ -279,6 +282,15 @@ export async function deleteGradeExamAction(
       return {
         success: false,
         error: "No tienes permisos para eliminar exámenes de otra academia.",
+      };
+    }
+
+    if (existing.evaluations && existing.evaluations.length > 0) {
+      return {
+        success: false,
+        error:
+          `No se puede eliminar la convocatoria porque tiene ` +
+          `${existing.evaluations.length} alumno(s) convocado(s) o evaluado(s).`,
       };
     }
 
