@@ -33,6 +33,10 @@ export const physicalChallengeSchema = z.object({
 export const gradeExamSchema = z.object({
   brandId: z.string().min(1, "El ID de la academia es requerido."),
   disciplineId: z.string().min(1, "La disciplina es requerida."),
+  minBeltId: z.string().optional().nullable(),
+  maxBeltId: z.string().optional().nullable(),
+  minAge: z.coerce.number().min(0).max(120).optional().nullable(),
+  maxAge: z.coerce.number().min(0).max(120).optional().nullable(),
   title: z.string().trim().min(3, "El título del examen es requerido.").max(120),
   examDate: z.string().min(1, "La fecha del examen es requerida."),
   location: z.string().trim().max(150).optional().nullable(),

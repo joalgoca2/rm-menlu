@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import { gradeExamSchema } from "@/lib/validations/dojo";
 import type {
@@ -10,6 +11,7 @@ import type {
   Brand,
   ExamEvaluationWithDetails,
   CandidateEligibility,
+  EvaluationTemplate,
 } from "@/types";
 
 export async function createGradeExamAction(
@@ -22,10 +24,30 @@ export async function createGradeExamAction(
       return { success: false, error: msg };
     }
 
+    const { effectiveBrandId: targetBrandId } = await resolveTenantBrand(
+      parsed.data.brandId,
+      { allowAll: false }
+    );
+
+    if (!targetBrandId) {
+      return {
+        success: false,
+        error: "No se encontró una academia válida para asignar el examen.",
+      };
+    }
+
     const exam = await prisma.gradeExam.create({
       data: {
-        brandId: parsed.data.brandId,
+        brandId: targetBrandId,
         disciplineId: parsed.data.disciplineId,
+        minBeltId: parsed.data.minBeltId || null,
+        maxBeltId: parsed.data.maxBeltId || null,
+        minAge: parsed.data.minAge !== undefined && parsed.data.minAge !== null
+          ? parsed.data.minAge
+          : null,
+        maxAge: parsed.data.maxAge !== undefined && parsed.data.maxAge !== null
+          ? parsed.data.maxAge
+          : null,
         title: parsed.data.title,
         examDate: new Date(parsed.data.examDate),
         location: parsed.data.location,
@@ -36,7 +58,8 @@ export async function createGradeExamAction(
 
     return { success: true, data: exam };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al crear examen de grado.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al crear examen de grado.";
     return { success: false, error: errorMsg };
   }
 }
@@ -50,7 +73,11 @@ export interface GetExamsFilter {
 }
 
 export interface GetExamsResponse {
-  exams: (GradeExam & { discipline?: Discipline; brand?: Brand; evaluations?: ExamEvaluation[] })[];
+  exams: (GradeExam & {
+    discipline?: Discipline;
+    brand?: Brand;
+    evaluations?: ExamEvaluation[];
+  })[];
   total: number;
   totalPages: number;
 }
@@ -59,17 +86,23 @@ export async function getGradeExamsByBrandAction(
   filter: GetExamsFilter | string
 ): Promise<ApiResponse<GetExamsResponse>> {
   try {
-    const brandId = typeof filter === "string" ? filter : filter.brandId;
+    const requestedBrandId = typeof filter === "string" ? filter : filter.brandId;
     const search = typeof filter === "object" ? filter.search : undefined;
     const disciplineId = typeof filter === "object" ? filter.disciplineId : undefined;
     const page = Math.max(1, typeof filter === "object" ? filter.page || 1 : 1);
-    const limit = Math.min(100, Math.max(1, typeof filter === "object" ? filter.limit || 10 : 10));
+    const limit = Math.min(
+      100,
+      Math.max(1, typeof filter === "object" ? filter.limit || 10 : 10)
+    );
     const skip = (page - 1) * limit;
+
+    const { effectiveBrandId: targetBrandId } =
+      await resolveTenantBrand(requestedBrandId);
 
     const whereCondition: Record<string, unknown> = {};
 
-    if (brandId && brandId !== "ALL") {
-      whereCondition.brandId = brandId;
+    if (targetBrandId) {
+      whereCondition.brandId = targetBrandId;
     }
 
     if (disciplineId && disciplineId !== "ALL") {
@@ -84,7 +117,7 @@ export async function getGradeExamsByBrandAction(
       ];
     }
 
-    // Purge any evaluations that belong to students NOT enrolled in the exam's discipline
+    // Purge any evaluations belonging to students NOT enrolled in exam discipline
     const matchingExams = await prisma.gradeExam.findMany({
       where: whereCondition,
       select: { id: true, disciplineId: true },
@@ -117,6 +150,8 @@ export async function getGradeExamsByBrandAction(
         where: whereCondition,
         include: {
           discipline: true,
+          minBelt: true,
+          maxBelt: true,
           brand: true,
           evaluations: {
             include: {
@@ -146,7 +181,8 @@ export async function getGradeExamsByBrandAction(
       },
     };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al consultar exámenes.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al consultar exámenes.";
     return { success: false, error: errorMsg };
   }
 }
@@ -157,19 +193,41 @@ export async function updateGradeExamAction(
   examDate: string,
   location?: string | null,
   feeAmount?: number,
-  disciplineId?: string
+  disciplineId?: string,
+  minBeltId?: string | null,
+  maxBeltId?: string | null,
+  minAge?: number | null,
+  maxAge?: number | null
 ): Promise<ApiResponse<GradeExam>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
     const existing = await prisma.gradeExam.findUnique({
       where: { id },
-      select: { disciplineId: true, evaluations: { select: { id: true } } },
+      select: {
+        brandId: true,
+        disciplineId: true,
+        evaluations: { select: { id: true } },
+      },
     });
 
-    if (existing && disciplineId && disciplineId !== existing.disciplineId) {
+    if (!existing) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && existing.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para modificar exámenes de otra academia.",
+      };
+    }
+
+    if (disciplineId && disciplineId !== existing.disciplineId) {
       if (existing.evaluations.length > 0) {
         return {
           success: false,
-          error: "No se puede modificar la disciplina de una convocatoria que ya tiene estudiantes asignados.",
+          error:
+            "No se puede modificar la disciplina de una convocatoria que ya tiene estudiantes asignados.",
         };
       }
     }
@@ -179,9 +237,13 @@ export async function updateGradeExamAction(
       examDate: new Date(examDate),
       location: location ? location.trim() : null,
       feeAmount: feeAmount || 0,
+      minBeltId: minBeltId || null,
+      maxBeltId: maxBeltId || null,
+      minAge: minAge !== undefined && minAge !== null ? minAge : null,
+      maxAge: maxAge !== undefined && maxAge !== null ? maxAge : null,
     };
 
-    if (disciplineId && (!existing || existing.evaluations.length === 0)) {
+    if (disciplineId && existing.evaluations.length === 0) {
       updateData.disciplineId = disciplineId;
     }
 
@@ -192,7 +254,8 @@ export async function updateGradeExamAction(
 
     return { success: true, data: exam };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al actualizar examen.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al actualizar examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -201,13 +264,32 @@ export async function deleteGradeExamAction(
   id: string
 ): Promise<ApiResponse<boolean>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const existing = await prisma.gradeExam.findUnique({
+      where: { id },
+      select: { brandId: true },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && existing.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar exámenes de otra academia.",
+      };
+    }
+
     await prisma.gradeExam.delete({
       where: { id },
     });
 
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al eliminar examen.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al eliminar examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -216,26 +298,173 @@ export async function getExamEvaluationsAction(
   examId: string
 ): Promise<ApiResponse<ExamEvaluationWithDetails[]>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: examId },
+      select: { brandId: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para consultar evaluaciones de otra academia.",
+      };
+    }
+
     const evaluations = await prisma.examEvaluation.findMany({
       where: { examId },
       include: {
         student: {
-          include: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            photoUrl: true,
+            currentBelt: {
+              select: { id: true, name: true, colorHex: true },
+            },
             user: {
-              select: { name: true, email: true },
+              select: { name: true, email: true, image: true },
             },
           },
         },
         targetBelt: {
           select: { id: true, name: true, colorHex: true },
         },
+        criterionScores: {
+          include: {
+            criterion: true,
+          },
+        },
       },
       orderBy: { createdAt: "asc" },
     });
 
-    return { success: true, data: evaluations };
+    return { success: true, data: evaluations as unknown as ExamEvaluationWithDetails[] };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al obtener evaluaciones del tatami.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al obtener evaluaciones del tatami.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export async function getExamEvaluationTemplateAction(
+  examId: string
+): Promise<ApiResponse<{
+  template: EvaluationTemplate | null;
+  evaluations: ExamEvaluationWithDetails[];
+}>> {
+  try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: examId },
+      select: { brandId: true, disciplineId: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para consultar evaluaciones de otra academia.",
+      };
+    }
+
+    let template = await prisma.evaluationTemplate.findFirst({
+      where: {
+        brandId: exam.brandId,
+        disciplineId: exam.disciplineId,
+      },
+      include: {
+        criteria: {
+          orderBy: { orderIndex: "asc" },
+        },
+        discipline: true,
+      },
+    });
+
+    if (!template) {
+      template = await prisma.evaluationTemplate.findFirst({
+        where: {
+          brandId: exam.brandId,
+          isDefault: true,
+        },
+        include: {
+          criteria: {
+            orderBy: { orderIndex: "asc" },
+          },
+          discipline: true,
+        },
+      });
+    }
+
+    if (!template) {
+      template = await prisma.evaluationTemplate.findFirst({
+        where: {
+          brandId: exam.brandId,
+        },
+        include: {
+          criteria: {
+            orderBy: { orderIndex: "asc" },
+          },
+          discipline: true,
+        },
+      });
+    }
+
+    const evaluations = await prisma.examEvaluation.findMany({
+      where: { examId },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            photoUrl: true,
+            currentBelt: {
+              select: { id: true, name: true, colorHex: true },
+            },
+            user: {
+              select: { name: true, email: true, image: true },
+            },
+          },
+        },
+        targetBelt: {
+          select: { id: true, name: true, colorHex: true },
+        },
+        criterionScores: {
+          include: {
+            criterion: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return {
+      success: true,
+      data: {
+        template: template as unknown as EvaluationTemplate | null,
+        evaluations: evaluations as unknown as ExamEvaluationWithDetails[],
+      },
+    };
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al obtener la plantilla del examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -247,13 +476,31 @@ export async function saveExamEvaluationsAction(
     if (items.length > 0) {
       const firstEval = await prisma.examEvaluation.findUnique({
         where: { id: items[0].id },
-        select: { exam: { select: { status: true } } },
+        select: {
+          exam: { select: { brandId: true, status: true } },
+        },
       });
 
-      if (firstEval?.exam?.status === "COMPLETED") {
+      if (!firstEval) {
+        return { success: false, error: "Evaluación no encontrada." };
+      }
+
+      const tenant = await resolveTenantBrand(null, { allowAll: true });
+      if (
+        tenant.effectiveBrandId &&
+        firstEval.exam.brandId !== tenant.effectiveBrandId
+      ) {
         return {
           success: false,
-          error: "No se pueden modificar las calificaciones de una acta de examen finalizada y certificada.",
+          error: "No tienes permisos para modificar evaluaciones de otra academia.",
+        };
+      }
+
+      if (firstEval.exam.status === "COMPLETED") {
+        return {
+          success: false,
+          error:
+            "No se pueden modificar las calificaciones de una acta de examen finalizada.",
         };
       }
     }
@@ -274,7 +521,10 @@ export async function saveExamEvaluationsAction(
 
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al guardar evaluaciones del tatami.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al guardar evaluaciones del tatami.";
     return { success: false, error: errorMsg };
   }
 }
@@ -283,15 +533,26 @@ export async function getDisciplineCandidatesWithEligibilityAction(
   examId: string
 ): Promise<ApiResponse<CandidateEligibility[]>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
     const exam = await prisma.gradeExam.findUnique({
       where: { id: examId },
       include: {
         discipline: true,
+        minBelt: true,
+        maxBelt: true,
       },
     });
 
     if (!exam) {
       return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para consultar candidatos de otra academia.",
+      };
     }
 
     const belts = await prisma.belt.findMany({
@@ -303,20 +564,34 @@ export async function getDisciplineCandidatesWithEligibilityAction(
       return { success: true, data: [] };
     }
 
-    const enrollments = await prisma.studentEnrollment.findMany({
-      where: { disciplineId: exam.disciplineId },
+    const minBeltIndex = exam.minBeltId
+      ? belts.findIndex((b) => b.id === exam.minBeltId)
+      : -1;
+    const maxBeltIndex = exam.maxBeltId
+      ? belts.findIndex((b) => b.id === exam.maxBeltId)
+      : -1;
+
+    // Fetch all students belonging to the brand associated with this discipline
+    const students = await prisma.studentProfile.findMany({
+      where: {
+        brandId: exam.brandId,
+        OR: [
+          { enrollments: { some: { disciplineId: exam.disciplineId } } },
+          { currentBelt: { disciplineId: exam.disciplineId } },
+          { currentBeltId: null },
+        ],
+      },
       include: {
-        student: {
-          include: {
-            user: { select: { name: true, email: true } },
-          },
+        user: { select: { name: true, email: true, image: true } },
+        enrollments: {
+          where: { disciplineId: exam.disciplineId },
         },
       },
     });
 
-    const candidateStudents = enrollments.map((e) => ({
-      student: e.student,
-      startDate: e.startDate,
+    const candidateStudents = students.map((st) => ({
+      student: st,
+      startDate: st.enrollments[0]?.startDate || st.createdAt,
     }));
 
     const existingEvaluations = await prisma.examEvaluation.findMany({
@@ -324,27 +599,60 @@ export async function getDisciplineCandidatesWithEligibilityAction(
       select: { studentId: true, targetBeltId: true, isFeePaid: true },
     });
 
-    const enrolledMap = new Map(existingEvaluations.map((e) => [e.studentId, e]));
+    const enrolledMap = new Map(
+      existingEvaluations.map((e) => [e.studentId, e])
+    );
 
-    const result: CandidateEligibility[] = candidateStudents.map(
-      ({ student, startDate }) => {
+    const today = new Date();
+
+    const mappedCandidates = candidateStudents.map(
+      ({ student, startDate }): CandidateEligibility | null => {
         const currentBeltIndex = belts.findIndex(
           (b) => b.id === student.currentBeltId
         );
+        const effectiveCurrentIndex = Math.max(0, currentBeltIndex);
+
+        if (minBeltIndex >= 0 && effectiveCurrentIndex < minBeltIndex) {
+          return null;
+        }
+        if (maxBeltIndex >= 0 && effectiveCurrentIndex > maxBeltIndex) {
+          return null;
+        }
+
+        let age: number | null = null;
+        if (student.birthDate) {
+          const bday = new Date(student.birthDate);
+          age = today.getFullYear() - bday.getFullYear();
+          const m = today.getMonth() - bday.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) {
+            age--;
+          }
+        }
+
+        if (exam.minAge !== null && exam.minAge !== undefined && age !== null) {
+          if (age < exam.minAge) return null;
+        }
+        if (exam.maxAge !== null && exam.maxAge !== undefined && age !== null) {
+          if (age > exam.maxAge) return null;
+        }
+
         const targetBeltIndex =
           currentBeltIndex >= 0
             ? Math.min(currentBeltIndex + 1, belts.length - 1)
             : 0;
-        const currentBelt = currentBeltIndex >= 0 ? belts[currentBeltIndex] : null;
+        const currentBelt =
+          currentBeltIndex >= 0 ? belts[currentBeltIndex] : null;
         const targetBelt = belts[targetBeltIndex];
 
-        const classesAttended = Math.max(12, Math.floor(student.effortPoints / 10));
-        const now = new Date();
+        const classesAttended = Math.max(
+          12,
+          Math.floor(student.effortPoints / 10)
+        );
         const start = new Date(startDate || student.createdAt);
         const monthsPracticed = Math.max(
           1,
-          (now.getFullYear() - start.getFullYear()) * 12 +
-            (now.getMonth() - start.getMonth())
+          (today.getFullYear() - start.getFullYear()) * 12 +
+            (today.getMonth() - start.getMonth())
         );
 
         const classesReq = targetBelt.minClasses || 24;
@@ -360,10 +668,19 @@ export async function getDisciplineCandidatesWithEligibilityAction(
           status = "NEAR";
         }
 
+        const fullName =
+          `${student.firstName || ""} ${student.lastName || ""}`.trim() ||
+          student.user?.name ||
+          "Alumno";
+        const photoUrl = student.photoUrl || student.user?.image || null;
+
         return {
           studentId: student.id,
-          studentName: student.user?.name || "Alumno Registrado",
-          email: student.user?.email,
+          studentName: fullName,
+          email: student.user?.email || student.email || null,
+          photoUrl,
+          age,
+          birthDate: student.birthDate ? student.birthDate.toISOString() : null,
           currentBeltName: currentBelt?.name || "Blanco / Inicial",
           currentBeltColor: currentBelt?.colorHex || "#e4e4e7",
           targetBeltId: targetBelt.id,
@@ -378,6 +695,10 @@ export async function getDisciplineCandidatesWithEligibilityAction(
           isFeePaid: Boolean(enrolledMap.get(student.id)?.isFeePaid),
         };
       }
+    );
+
+    const result: CandidateEligibility[] = mappedCandidates.filter(
+      (item): item is CandidateEligibility => item !== null
     );
 
     return { success: true, data: result };
@@ -400,15 +721,29 @@ export async function saveExamCandidatesSelectionAction(
   }>
 ): Promise<ApiResponse<boolean>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
     const exam = await prisma.gradeExam.findUnique({
       where: { id: examId },
-      select: { status: true },
+      select: { brandId: true, status: true },
     });
 
-    if (exam?.status === "COMPLETED") {
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
       return {
         success: false,
-        error: "No se pueden modificar los candidatos de una convocatoria finalizada y certificada.",
+        error: "No tienes permisos para modificar candidatos de otra academia.",
+      };
+    }
+
+    if (exam.status === "COMPLETED") {
+      return {
+        success: false,
+        error:
+          "No se pueden modificar candidatos de una convocatoria finalizada.",
       };
     }
 
@@ -447,7 +782,77 @@ export async function saveExamCandidatesSelectionAction(
 
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al guardar selección de candidatos.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al guardar selección de candidatos.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+export interface RecordExamFeeInput {
+  examId: string;
+  studentId: string;
+  targetBeltId?: string;
+  feeAmount: number;
+  paymentMethod: "CASH" | "TRANSFER" | "CARD";
+  paymentReference?: string;
+  notes?: string;
+}
+
+export async function recordExamFeePaymentAction(
+  input: RecordExamFeeInput
+): Promise<ApiResponse<{ isFeePaid: boolean; transactionId?: string }>> {
+  try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: input.examId },
+      select: { brandId: true, title: true, currency: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para registrar cobros en otra academia.",
+      };
+    }
+
+    const existing = await prisma.examEvaluation.findFirst({
+      where: { examId: input.examId, studentId: input.studentId },
+    });
+
+    if (existing) {
+      await prisma.examEvaluation.update({
+        where: { id: existing.id },
+        data: { isFeePaid: true },
+      });
+    } else if (input.targetBeltId) {
+      await prisma.examEvaluation.create({
+        data: {
+          examId: input.examId,
+          studentId: input.studentId,
+          targetBeltId: input.targetBeltId,
+          status: "REGISTERED",
+          score: 8.0,
+          isFeePaid: true,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      data: { isFeePaid: true },
+    };
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al registrar pago de derecho a examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -458,6 +863,24 @@ export async function toggleExamEvaluationFeePaidAction(
   isFeePaid: boolean
 ): Promise<ApiResponse<boolean>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: examId },
+      select: { brandId: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para modificar pagos de otra academia.",
+      };
+    }
+
     const existing = await prisma.examEvaluation.findFirst({
       where: { examId, studentId },
     });
@@ -471,7 +894,10 @@ export async function toggleExamEvaluationFeePaidAction(
 
     return { success: true, data: isFeePaid };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al actualizar pago de examen.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al actualizar pago de examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -481,6 +907,24 @@ export async function updateGradeExamStatusAction(
   status: "PLANNED" | "IN_PROGRESS" | "COMPLETED"
 ): Promise<ApiResponse<boolean>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: examId },
+      select: { brandId: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para modificar exámenes de otra academia.",
+      };
+    }
+
     if (status === "IN_PROGRESS") {
       const count = await prisma.examEvaluation.count({
         where: { examId },
@@ -488,7 +932,8 @@ export async function updateGradeExamStatusAction(
       if (count === 0) {
         return {
           success: false,
-          error: "Debes inscribir al menos 1 alumno en la convocatoria antes de poder iniciar el examen.",
+          error:
+            "Debes inscribir al menos 1 alumno en la convocatoria antes de poder iniciar el examen.",
         };
       }
     }
@@ -500,7 +945,10 @@ export async function updateGradeExamStatusAction(
 
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al actualizar estado del examen.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al actualizar estado del examen.";
     return { success: false, error: errorMsg };
   }
 }
@@ -509,6 +957,24 @@ export async function finalizeGradeExamAction(
   examId: string
 ): Promise<ApiResponse<{ promotedCount: number }>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const exam = await prisma.gradeExam.findUnique({
+      where: { id: examId },
+      select: { brandId: true },
+    });
+
+    if (!exam) {
+      return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && exam.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para finalizar exámenes de otra academia.",
+      };
+    }
+
     await prisma.gradeExam.update({
       where: { id: examId },
       data: { status: "COMPLETED" },
@@ -540,7 +1006,10 @@ export async function finalizeGradeExamAction(
 
     return { success: true, data: { promotedCount } };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al finalizar el examen de grado.";
+    const errorMsg =
+      error instanceof Error
+        ? error.message
+        : "Error al finalizar el examen de grado.";
     return { success: false, error: errorMsg };
   }
 }

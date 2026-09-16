@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import type { DiplomaConfig } from "@/types";
 
@@ -26,11 +27,13 @@ export interface SaveDiplomaConfigInput {
 }
 
 /**
- * Get active brand ID helper (fallback to default active brand if multi-tenant)
+ * Get active brand ID helper using tenant context
  */
 async function getActiveBrandId(): Promise<string | null> {
-  const brand = await prisma.brand.findFirst();
-  return brand?.id || null;
+  const { effectiveBrandId } = await resolveTenantBrand(null, {
+    allowAll: false,
+  });
+  return effectiveBrandId;
 }
 
 /**

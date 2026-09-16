@@ -619,6 +619,8 @@ model Belt {
   students           StudentProfile[]
   physicalChallenges PhysicalChallenge[]
   examEvaluations    ExamEvaluation[]
+  gradeExamsMinBelt  GradeExam[]         @relation("ExamMinBelt")
+  gradeExamsMaxBelt  GradeExam[]         @relation("ExamMaxBelt")
 
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
@@ -780,6 +782,14 @@ model GradeExam {
   brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
   disciplineId       String              @map("discipline_id")
   discipline         Discipline          @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+
+  minBeltId          String?             @map("min_belt_id")
+  minBelt            Belt?               @relation("ExamMinBelt", fields: [minBeltId], references: [id], onDelete: SetNull)
+  maxBeltId          String?             @map("max_belt_id")
+  maxBelt            Belt?               @relation("ExamMaxBelt", fields: [maxBeltId], references: [id], onDelete: SetNull)
+
+  minAge             Int?                @map("min_age")
+  maxAge             Int?                @map("max_age")
 
   title              String
   examDate           DateTime            @map("exam_date")

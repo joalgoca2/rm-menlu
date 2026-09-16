@@ -102,6 +102,12 @@ export interface GradeExam {
   id: string;
   brandId: string;
   disciplineId: string;
+  minBeltId?: string | null;
+  maxBeltId?: string | null;
+  minBelt?: Belt | null;
+  maxBelt?: Belt | null;
+  minAge?: number | null;
+  maxAge?: number | null;
   title: string;
   examDate: Date;
   location?: string | null;
@@ -129,9 +135,19 @@ export interface ExamEvaluation {
 export interface ExamEvaluationWithDetails extends ExamEvaluation {
   student?: {
     id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    email?: string | null;
+    photoUrl?: string | null;
+    currentBelt?: {
+      id: string;
+      name: string;
+      colorHex: string;
+    } | null;
     user?: {
       name: string | null;
       email: string | null;
+      image?: string | null;
     } | null;
   } | null;
   targetBelt?: {
@@ -139,12 +155,16 @@ export interface ExamEvaluationWithDetails extends ExamEvaluation {
     name: string;
     colorHex: string;
   } | null;
+  criterionScores?: ExamCriterionScore[];
 }
 
 export interface CandidateEligibility {
   studentId: string;
   studentName: string;
   email?: string | null;
+  photoUrl?: string | null;
+  age?: number | null;
+  birthDate?: string | null;
   currentBeltName?: string | null;
   currentBeltColor?: string | null;
   targetBeltId: string;

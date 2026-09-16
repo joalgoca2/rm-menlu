@@ -77,8 +77,6 @@ const mainNavItems: NavItem[] = [
     href: "/dashboard/exams",
     icon: Award,
     adminOnly: true,
-    badgeKey: "nav.soon",
-    defaultBadge: "Pronto",
   },
   {
     key: "nav.tournaments",
@@ -129,8 +127,6 @@ const dojoSettingsNavItems: NavItem[] = [
     href: "/dashboard/evaluations/templates",
     icon: ClipboardCheck,
     adminOnly: true,
-    badgeKey: "nav.soon",
-    defaultBadge: "Pronto",
   },
 ];
 

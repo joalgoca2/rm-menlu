@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import {
   evaluationTemplateSchema,
@@ -13,26 +14,39 @@ import type {
 } from "@/types";
 
 export async function createEvaluationTemplateAction(
-  brandId: string,
+  requestedBrandId: string,
   data: unknown
 ): Promise<ApiResponse<EvaluationTemplate>> {
   try {
+    const { effectiveBrandId: targetBrandId } = await resolveTenantBrand(
+      requestedBrandId,
+      { allowAll: false }
+    );
+
+    if (!targetBrandId) {
+      return {
+        success: false,
+        error: "No se encontró una academia válida para la plantilla.",
+      };
+    }
+
     const parsed = evaluationTemplateSchema.safeParse(data);
     if (!parsed.success) {
-      const msg = parsed.error.issues[0]?.message || "Datos de plantilla inválidos.";
+      const msg =
+        parsed.error.issues[0]?.message || "Datos de plantilla inválidos.";
       return { success: false, error: msg };
     }
 
     if (parsed.data.isDefault) {
       await prisma.evaluationTemplate.updateMany({
-        where: { brandId },
+        where: { brandId: targetBrandId },
         data: { isDefault: false },
       });
     }
 
     const template = await prisma.evaluationTemplate.create({
       data: {
-        brandId,
+        brandId: targetBrandId,
         disciplineId: parsed.data.disciplineId || null,
         title: parsed.data.title,
         description: parsed.data.description,
@@ -56,7 +70,8 @@ export async function createEvaluationTemplateAction(
 
     return { success: true, data: template as unknown as EvaluationTemplate };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al crear plantilla.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al crear plantilla.";
     return { success: false, error: errorMsg };
   }
 }
@@ -66,9 +81,12 @@ export async function updateEvaluationTemplateAction(
   data: unknown
 ): Promise<ApiResponse<EvaluationTemplate>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
     const parsed = evaluationTemplateSchema.safeParse(data);
     if (!parsed.success) {
-      const msg = parsed.error.issues[0]?.message || "Datos de plantilla inválidos.";
+      const msg =
+        parsed.error.issues[0]?.message || "Datos de plantilla inválidos.";
       return { success: false, error: msg };
     }
 
@@ -79,6 +97,16 @@ export async function updateEvaluationTemplateAction(
 
     if (!currentTemplate) {
       return { success: false, error: "Plantilla no encontrada." };
+    }
+
+    if (
+      tenant.effectiveBrandId &&
+      currentTemplate.brandId !== tenant.effectiveBrandId
+    ) {
+      return {
+        success: false,
+        error: "No tienes permisos para modificar plantillas de otra academia.",
+      };
     }
 
     if (parsed.data.isDefault) {
@@ -116,9 +144,13 @@ export async function updateEvaluationTemplateAction(
       },
     });
 
-    return { success: true, data: updatedTemplate as unknown as EvaluationTemplate };
+    return {
+      success: true,
+      data: updatedTemplate as unknown as EvaluationTemplate,
+    };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al actualizar plantilla.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al actualizar plantilla.";
     return { success: false, error: errorMsg };
   }
 }
@@ -127,22 +159,52 @@ export async function deleteEvaluationTemplateAction(
   templateId: string
 ): Promise<ApiResponse<boolean>> {
   try {
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const currentTemplate = await prisma.evaluationTemplate.findUnique({
+      where: { id: templateId },
+      select: { brandId: true },
+    });
+
+    if (!currentTemplate) {
+      return { success: false, error: "Plantilla no encontrada." };
+    }
+
+    if (
+      tenant.effectiveBrandId &&
+      currentTemplate.brandId !== tenant.effectiveBrandId
+    ) {
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar plantillas de otra academia.",
+      };
+    }
+
     await prisma.evaluationTemplate.delete({
       where: { id: templateId },
     });
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al eliminar plantilla.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al eliminar plantilla.";
     return { success: false, error: errorMsg };
   }
 }
 
 export async function getEvaluationTemplatesByBrandAction(
-  brandId: string
+  requestedBrandId: string
 ): Promise<ApiResponse<EvaluationTemplate[]>> {
   try {
+    const { effectiveBrandId: targetBrandId } =
+      await resolveTenantBrand(requestedBrandId);
+
+    const whereCondition: Record<string, unknown> = {};
+    if (targetBrandId) {
+      whereCondition.brandId = targetBrandId;
+    }
+
     const templates = await prisma.evaluationTemplate.findMany({
-      where: { brandId },
+      where: whereCondition,
       include: {
         criteria: {
           orderBy: { orderIndex: "asc" },
@@ -152,9 +214,13 @@ export async function getEvaluationTemplatesByBrandAction(
       orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
 
-    return { success: true, data: templates as unknown as EvaluationTemplate[] };
+    return {
+      success: true,
+      data: templates as unknown as EvaluationTemplate[],
+    };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al obtener plantillas.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al obtener plantillas.";
     return { success: false, error: errorMsg };
   }
 }
@@ -165,11 +231,32 @@ export async function submitCriterionScoresAction(
   try {
     const parsed = criterionScoreSubmissionSchema.safeParse(data);
     if (!parsed.success) {
-      const msg = parsed.error.issues[0]?.message || "Evaluación por criterio inválida.";
+      const msg =
+        parsed.error.issues[0]?.message || "Evaluación por criterio inválida.";
       return { success: false, error: msg };
     }
 
     const { examEvaluationId, scores } = parsed.data;
+
+    const evaluation = await prisma.examEvaluation.findUnique({
+      where: { id: examEvaluationId },
+      select: { exam: { select: { brandId: true } } },
+    });
+
+    if (!evaluation) {
+      return { success: false, error: "Evaluación de examen no encontrada." };
+    }
+
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+    if (
+      tenant.effectiveBrandId &&
+      evaluation.exam.brandId !== tenant.effectiveBrandId
+    ) {
+      return {
+        success: false,
+        error: "No tienes permisos para evaluar alumnos de otra academia.",
+      };
+    }
 
     await prisma.examCriterionScore.deleteMany({
       where: { examEvaluationId },
@@ -210,7 +297,8 @@ export async function submitCriterionScoresAction(
 
     return { success: true, data: true };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al guardar criterios.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al guardar criterios.";
     return { success: false, error: errorMsg };
   }
 }
@@ -228,7 +316,8 @@ export async function getCriterionScoresForExamEvaluationAction(
 
     return { success: true, data: scores as unknown as ExamCriterionScore[] };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al consultar criterios.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al consultar criterios.";
     return { success: false, error: errorMsg };
   }
 }
