@@ -1,8 +1,9 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { disciplineSchema, beltSchema } from "@/lib/validations/dojo";
-import type { ApiResponse, Discipline, Belt } from "@/types";
+import { beltSchema, disciplineSchema } from "@/lib/validations/dojo";
+import type { ApiResponse, Belt, Discipline } from "@/types";
 
 import { getDisciplineTemplateById } from "@/config/discipline-templates";
 
@@ -17,6 +18,25 @@ export interface CreateDisciplineWithTemplateInput {
   includeRubrics?: boolean;
 }
 
+async function resolveValidBrandId(requestedBrandId: string): Promise<string | null> {
+  if (
+    requestedBrandId &&
+    requestedBrandId !== "ALL" &&
+    requestedBrandId !== "seed-brand-general"
+  ) {
+    const existing = await prisma.brand.findUnique({
+      where: { id: requestedBrandId },
+      select: { id: true },
+    });
+    if (existing) return existing.id;
+  }
+
+  const firstBrand = await prisma.brand.findFirst({
+    select: { id: true },
+  });
+  return firstBrand?.id || null;
+}
+
 export async function createDisciplineAction(
   data: unknown
 ): Promise<ApiResponse<Discipline>> {
@@ -27,9 +47,14 @@ export async function createDisciplineAction(
       return { success: false, error: msg };
     }
 
+    const targetBrandId = await resolveValidBrandId(parsed.data.brandId);
+    if (!targetBrandId) {
+      return { success: false, error: "No se encontró una academia válida para asignar la disciplina." };
+    }
+
     const discipline = await prisma.discipline.create({
       data: {
-        brandId: parsed.data.brandId,
+        brandId: targetBrandId,
         name: parsed.data.name,
         code: parsed.data.code,
         description: parsed.data.description,
@@ -38,6 +63,9 @@ export async function createDisciplineAction(
 
     return { success: true, data: discipline };
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { success: false, error: "Ya existe una disciplina con este nombre en esta academia." };
+    }
     const errorMsg = error instanceof Error ? error.message : "Error al crear disciplina.";
     return { success: false, error: errorMsg };
   }
@@ -50,8 +78,10 @@ export async function createDisciplineWithTemplateAction(
     if (!input.name || !input.name.trim()) {
       return { success: false, error: "El nombre de la disciplina es obligatorio." };
     }
-    if (!input.brandId) {
-      return { success: false, error: "El ID de la marca es obligatorio." };
+
+    const targetBrandId = await resolveValidBrandId(input.brandId);
+    if (!targetBrandId) {
+      return { success: false, error: "No se encontró una academia válida para asignar la disciplina." };
     }
 
     const template = input.templateId ? getDisciplineTemplateById(input.templateId) : null;
@@ -62,7 +92,7 @@ export async function createDisciplineWithTemplateAction(
 
     const discipline = await prisma.discipline.create({
       data: {
-        brandId: input.brandId,
+        brandId: targetBrandId,
         name: disciplineName,
         code: disciplineCode,
         description: disciplineDesc,
@@ -95,7 +125,7 @@ export async function createDisciplineWithTemplateAction(
         for (const c of template.challenges) {
           await prisma.physicalChallenge.create({
             data: {
-              brandId: input.brandId,
+              brandId: targetBrandId,
               disciplineId: discipline.id,
               title: c.title,
               description: c.description || null,

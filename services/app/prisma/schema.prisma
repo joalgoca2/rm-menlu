@@ -600,6 +600,7 @@ model Discipline {
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
 
+  @@unique([brandId, name])
   @@index([brandId])
   @@map("disciplines")
 }

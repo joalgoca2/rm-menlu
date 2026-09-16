@@ -1,0 +1,64 @@
+{
+  "id": "GENERIC_DOJO",
+  "name": "Plantilla Genérica (Grados, Rutinas & El Camino de la Constancia)",
+  "code": "GENERIC_DOJO",
+  "description": "Plantilla universal adaptable a cualquier arte marcial o disciplina deportiva. Incluye escala estándar de cinturones, retos de acondicionamiento y rúbrica de evaluación.",
+  "belts": [
+    { "name": "Cinta Blanca (Grado Inicial)", "colorHex": "#FFFFFF", "orderIndex": 1, "minClasses": 24, "minMonths": 3 },
+    { "name": "Cinta Amarilla (Grado Principiante)", "colorHex": "#F59E0B", "orderIndex": 2, "minClasses": 36, "minMonths": 3 },
+    { "name": "Cinta Naranja (Grado Intermedio Básico)", "colorHex": "#F97316", "orderIndex": 3, "minClasses": 48, "minMonths": 4 },
+    { "name": "Cinta Verde (Grado Intermedio)", "colorHex": "#10B981", "orderIndex": 4, "minClasses": 60, "minMonths": 4 },
+    { "name": "Cinta Azul (Grado Avanzado)", "colorHex": "#3B82F6", "orderIndex": 5, "minClasses": 72, "minMonths": 6 },
+    { "name": "Cinta Café / Marrón (Grado Pre-Maestría)", "colorHex": "#78350F", "orderIndex": 6, "minClasses": 96, "minMonths": 8 },
+    { "name": "Cinta Negra (Grado Maestro / Dan)", "colorHex": "#18181B", "orderIndex": 7, "minClasses": 120, "minMonths": 12 }
+  ],
+  "challenges": [
+    {
+      "title": "50 Flexiones de Pecho / Push-ups",
+      "description": "Flexiones de pecho con postura firme y codos a 45 grados.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "50 Sentadillas Profundas",
+      "description": "Sentadillas completas manteniendo la espalda recta y peso en los talones.",
+      "targetReps": 50,
+      "metricType": "REPETITIONS",
+      "xpReward": 50,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "Resistencia en Plancha Abdominal (60 segundos)",
+      "description": "Plancha estática con alineación lumbar y contracción de abdomen.",
+      "targetReps": 60,
+      "metricType": "SECONDS",
+      "xpReward": 60,
+      "minAge": 4,
+      "maxAge": 99
+    },
+    {
+      "title": "40 Abdominales Cortos",
+      "description": "Abdominales controlados enfocados en la fuerza del core.",
+      "targetReps": 40,
+      "metricType": "REPETITIONS",
+      "xpReward": 40,
+      "minAge": 4,
+      "maxAge": 99
+    }
+  ],
+  "rubrics": [
+    {
+      "title": "Evaluación Oficial de Técnica, Forma y Aplicación/Combate",
+      "description": "Rúbrica universal de evaluación dividida en Técnica Base, Forma/Esquema y Aplicación/Combate.",
+      "criteria": [
+        { "name": "Fundamentos y Técnica Base", "category": "TECNICA", "description": "Dominio de posturas, movimientos básicos y alineación corporal.", "orderIndex": 1 },
+        { "name": "Forma, Secuencia y Marcialidad", "category": "FORMA", "description": "Memoria de la secuencia, ritmo, respiración y actitud marcial.", "orderIndex": 2 },
+        { "name": "Aplicación Práctica y Combate", "category": "COMBATE", "description": "Control de distancia, timing, temple y aplicación segura de la técnica.", "orderIndex": 3 }
+      ]
+    }
+  ]
+}

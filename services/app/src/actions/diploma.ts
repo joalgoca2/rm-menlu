@@ -166,10 +166,8 @@ export async function uploadDiplomaBackgroundAction(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "diploma");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    const { getUploadsDir } = await import("@/lib/uploads");
+    const uploadsDir = await getUploadsDir("diploma");
 
     // Save as public/uploads/diploma/[brandId].jpg
     const filePath = path.join(uploadsDir, `${brandId}.jpg`);

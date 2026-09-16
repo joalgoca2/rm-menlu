@@ -738,9 +738,9 @@ export async function uploadBrandLogoAction(
 
     const { promises: fs } = await import("fs");
     const path = await import("path");
+    const { getUploadsDir } = await import("@/lib/uploads");
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "brand");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    const uploadsDir = await getUploadsDir("brand");
 
     const filePath = path.join(uploadsDir, `${brandId}.jpg`);
     await fs.writeFile(filePath, buffer);

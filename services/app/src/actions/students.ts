@@ -923,9 +923,9 @@ export async function uploadStudentPhotoAction(
     // Dynamic import to prevent client bundle issues
     const { promises: fs } = await import("fs");
     const path = await import("path");
+    const { getUploadsDir } = await import("@/lib/uploads");
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "students");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    const uploadsDir = await getUploadsDir("students");
 
     const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     const buffer = matches && matches[2]

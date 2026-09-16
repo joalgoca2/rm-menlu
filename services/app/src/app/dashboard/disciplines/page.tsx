@@ -58,7 +58,7 @@ import {
 import type { Discipline, Belt } from "@/types";
 
 export default function DisciplinesPage() {
-  const { selectedBrandId } = useBrand();
+  const { selectedBrandId, brands } = useBrand();
   const { t } = useTranslation();
 
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -71,7 +71,7 @@ export default function DisciplinesPage() {
   // Form states for Create Discipline
   const [newDisciplineName, setNewDisciplineName] = useState("");
   const [newDisciplineCode, setNewDisciplineCode] = useState("");
-  const [selectedTemplateId, setSelectedTemplateId] = useState("CUSTOM");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("GENERIC_DOJO");
   const [includeBelts, setIncludeBelts] = useState(true);
   const [includeChallenges, setIncludeChallenges] = useState(true);
   const [includeRubrics, setIncludeRubrics] = useState(true);
@@ -186,7 +186,7 @@ export default function DisciplinesPage() {
 
     setIsCreatingDiscipline(true);
     try {
-      const brandToUse = selectedBrandId === "ALL" ? "seed-brand-general" : selectedBrandId;
+      const brandToUse = selectedBrandId === "ALL" ? (brands[0]?.id || selectedBrandId) : selectedBrandId;
       const res = await createDisciplineWithTemplateAction({
         brandId: brandToUse,
         name: newDisciplineName.trim(),
@@ -201,7 +201,7 @@ export default function DisciplinesPage() {
         toast.success(`Disciplina "${res.data.name}" creada correctamente.`);
         setNewDisciplineName("");
         setNewDisciplineCode("");
-        setSelectedTemplateId("CUSTOM");
+        setSelectedTemplateId("GENERIC_DOJO");
         setSelectedDiscipline(res.data);
         setIsCreateDisciplineModalOpen(false);
         fetchDisciplines();
@@ -220,7 +220,7 @@ export default function DisciplinesPage() {
     if (!selectedDiscipline) return;
     setIsApplyingTemplate(true);
     try {
-      const brandToUse = selectedBrandId === "ALL" ? "seed-brand-general" : selectedBrandId;
+      const brandToUse = selectedBrandId === "ALL" ? (brands[0]?.id || selectedBrandId) : selectedBrandId;
       const res = await applyDisciplineTemplateAction(
         selectedDiscipline.id,
         brandToUse,
