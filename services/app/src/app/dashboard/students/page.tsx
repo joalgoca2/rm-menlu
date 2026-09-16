@@ -2344,7 +2344,17 @@ function StudentsTableContent() {
         isOpen={!!studentToPay}
         onOpenChange={(open) => !open && setStudentToPay(null)}
         student={studentToPay}
-        onSuccess={fetchStudents}
+        onSuccess={() => {
+          fetchStudents();
+          if (expedienteStudent && studentToPay && expedienteStudent.id === studentToPay.id) {
+            fetchExpedientePayments(expedienteStudent.id, 1, "");
+            getStudentExpedienteAction(expedienteStudent.id).then((res) => {
+              if (res.success && res.data) {
+                setExpedienteStudent(res.data);
+              }
+            });
+          }
+        }}
       />
     </div>
   );

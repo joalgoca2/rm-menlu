@@ -14,6 +14,7 @@ import { emailSchema, passwordSchema } from "@/lib/validations/common";
 import { auth, parseBrowser, parseDevice } from "@/auth";
 import type { ApiResponse, User } from "@/types";
 import { checkAndSyncBrandSubscriptionGracePeriod } from "@/actions/billing";
+import { resolveTenantBrand } from "@/lib/tenant";
 import { createLocalizedNotification } from "@/lib/notifications";
 
 export interface UserWithRoles extends User {
@@ -69,7 +70,7 @@ export async function getUserById(
   }
 }
 
-export async function getUsers(params?: {
+export async function getUsersAction(params?: {
   page?: number;
   limit?: number;
   search?: string;
@@ -85,9 +86,8 @@ export async function getUsers(params?: {
   }>
 > {
   try {
-    const session = await auth();
-    const callerRoles = session?.user?.roles ?? [];
-    const isCallerSuperAdmin = callerRoles.includes("SUPER_ADMIN");
+    const tenant = await resolveTenantBrand(params?.brandId);
+    const isCallerSuperAdmin = tenant.isSuperAdmin;
 
     const page = Math.max(1, params?.page ?? 1);
     const limit = Math.min(50, Math.max(1, params?.limit ?? 10));
@@ -108,17 +108,15 @@ export async function getUsers(params?: {
       });
     }
 
-    if (params?.brandId && params.brandId !== "ALL") {
-      if (isCallerSuperAdmin) {
-        andConditions.push({
-          OR: [
-            { brandId: params.brandId },
-            { roles: { some: { role: { name: "SUPER_ADMIN" } } } },
-          ],
-        });
-      } else {
-        andConditions.push({ brandId: params.brandId });
-      }
+    if (!isCallerSuperAdmin && tenant.effectiveBrandId) {
+      andConditions.push({ brandId: tenant.effectiveBrandId });
+    } else if (params?.brandId && params.brandId !== "ALL") {
+      andConditions.push({
+        OR: [
+          { brandId: params.brandId },
+          { roles: { some: { role: { name: "SUPER_ADMIN" } } } },
+        ],
+      });
     }
 
     if (params?.search) {
@@ -228,6 +226,8 @@ export async function getUsers(params?: {
     return { success: false, error: message };
   }
 }
+
+export const getUsers = getUsersAction;
 
 export async function createUser(data: {
   name: string;

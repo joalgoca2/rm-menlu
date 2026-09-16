@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { beltSchema, disciplineSchema } from "@/lib/validations/dojo";
@@ -19,22 +20,8 @@ export interface CreateDisciplineWithTemplateInput {
 }
 
 async function resolveValidBrandId(requestedBrandId: string): Promise<string | null> {
-  if (
-    requestedBrandId &&
-    requestedBrandId !== "ALL" &&
-    requestedBrandId !== "seed-brand-general"
-  ) {
-    const existing = await prisma.brand.findUnique({
-      where: { id: requestedBrandId },
-      select: { id: true },
-    });
-    if (existing) return existing.id;
-  }
-
-  const firstBrand = await prisma.brand.findFirst({
-    select: { id: true },
-  });
-  return firstBrand?.id || null;
+  const tenant = await resolveTenantBrand(requestedBrandId);
+  return tenant.effectiveBrandId;
 }
 
 export async function createDisciplineAction(
@@ -145,7 +132,7 @@ export async function createDisciplineWithTemplateAction(
         for (const r of template.rubrics) {
           const evalTemplate = await prisma.evaluationTemplate.create({
             data: {
-              brandId: input.brandId,
+              brandId: targetBrandId,
               disciplineId: discipline.id,
               title: r.title,
               description: r.description || null,
@@ -172,6 +159,15 @@ export async function createDisciplineWithTemplateAction(
 
     return { success: true, data: discipline };
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false,
+        error: "Ya existe una disciplina con este nombre en esta academia.",
+      };
+    }
     const errorMsg =
       error instanceof Error ? error.message : "Error al crear disciplina con plantilla.";
     return { success: false, error: errorMsg };
@@ -319,17 +315,21 @@ export async function applyDisciplineTemplateAction(
 
 
 export async function getDisciplinesByBrandAction(
-  brandId: string
+  requestedBrandId: string
 ): Promise<ApiResponse<Discipline[]>> {
   try {
+    const { effectiveBrandId } = await resolveTenantBrand(requestedBrandId);
+    const where = effectiveBrandId ? { brandId: effectiveBrandId } : {};
+
     const disciplines = await prisma.discipline.findMany({
-      where: { brandId },
+      where,
       orderBy: { createdAt: "asc" },
     });
 
     return { success: true, data: disciplines };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al consultar disciplinas.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al consultar disciplinas.";
     return { success: false, error: errorMsg };
   }
 }
@@ -415,6 +415,15 @@ export async function updateDisciplineAction(
 
     return { success: true, data: discipline };
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return {
+        success: false,
+        error: "Ya existe una disciplina con este nombre en esta academia.",
+      };
+    }
     const errorMsg = error instanceof Error ? error.message : "Error al actualizar disciplina.";
     return { success: false, error: errorMsg };
   }

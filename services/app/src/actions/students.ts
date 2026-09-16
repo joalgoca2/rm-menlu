@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import {
@@ -36,18 +37,27 @@ export interface GetStudentsResponse {
   totalXpPoints: number;
 }
 
+export async function resolveValidStudentBrandId(
+  requestedBrandId?: string
+): Promise<string | null> {
+  const tenant = await resolveTenantBrand(requestedBrandId, { allowAll: false });
+  return tenant.effectiveBrandId;
+}
+
 export async function getStudentsAction(
   filter: GetStudentsFilter
 ): Promise<ApiResponse<GetStudentsResponse>> {
   try {
+    const { effectiveBrandId } = await resolveTenantBrand(filter.brandId);
+
     const page = Math.max(1, filter.page || 1);
     const limit = Math.min(100, Math.max(1, filter.limit || 10));
     const skip = (page - 1) * limit;
 
     const whereCondition: Record<string, unknown> = {};
 
-    if (filter.brandId && filter.brandId !== "ALL") {
-      whereCondition.brandId = filter.brandId;
+    if (effectiveBrandId) {
+      whereCondition.brandId = effectiveBrandId;
     }
 
     if (filter.search && filter.search.trim()) {
@@ -222,7 +232,13 @@ export async function createStudentAction(
       image,
     } = parsed.data;
 
-    const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+    const brandToUse = await resolveValidStudentBrandId(brandId);
+    if (!brandToUse) {
+      return {
+        success: false,
+        error: "No se encontró una academia válida para asignar el alumno.",
+      };
+    }
     const targetBrand = await prisma.brand.findUnique({
       where: { id: brandToUse },
       select: { defaultLocale: true, timezone: true },
@@ -1056,7 +1072,13 @@ export async function importStudentsFromCSVAction(
       return { success: false, error: "ID de marca/dojo no especificado." };
     }
 
-    const brandToUse = brandId === "ALL" ? "seed-brand-general" : brandId;
+    const brandToUse = await resolveValidStudentBrandId(brandId);
+    if (!brandToUse) {
+      return {
+        success: false,
+        error: "No se encontró una academia válida para importar alumnos.",
+      };
+    }
 
     const targetBrand = await prisma.brand.findUnique({
       where: { id: brandToUse },
@@ -1249,7 +1271,7 @@ export async function importStudentsFromCSVAction(
 }
 
 export async function searchStudentsAction(
-  brandId: string,
+  requestedBrandId: string,
   query: string
 ): Promise<ApiResponse<StudentProfileWithUser[]>> {
   try {
@@ -1257,19 +1279,27 @@ export async function searchStudentsAction(
       return { success: true, data: [] };
     }
 
+    const { effectiveBrandId: targetBrandId } =
+      await resolveTenantBrand(requestedBrandId);
+
     const trimmed = query.trim();
 
+    const whereCondition: Record<string, unknown> = {
+      OR: [
+        { user: { name: { contains: trimmed, mode: "insensitive" } } },
+        { user: { email: { contains: trimmed, mode: "insensitive" } } },
+        { firstName: { contains: trimmed, mode: "insensitive" } },
+        { lastName: { contains: trimmed, mode: "insensitive" } },
+        { email: { contains: trimmed, mode: "insensitive" } },
+      ],
+    };
+
+    if (targetBrandId) {
+      whereCondition.brandId = targetBrandId;
+    }
+
     const students = await prisma.studentProfile.findMany({
-      where: {
-        brandId,
-        OR: [
-          { user: { name: { contains: trimmed, mode: "insensitive" } } },
-          { user: { email: { contains: trimmed, mode: "insensitive" } } },
-          { firstName: { contains: trimmed, mode: "insensitive" } },
-          { lastName: { contains: trimmed, mode: "insensitive" } },
-          { email: { contains: trimmed, mode: "insensitive" } },
-        ],
-      },
+      where: whereCondition,
       include: {
         user: true,
         currentBelt: true,
@@ -1282,7 +1312,8 @@ export async function searchStudentsAction(
       data: students as unknown as StudentProfileWithUser[],
     };
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : "Error al buscar alumnos.";
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al buscar alumnos.";
     return { success: false, error: errorMsg };
   }
 }

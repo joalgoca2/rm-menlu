@@ -25,6 +25,5 @@ export function getStudentPhotoUrl(student?: {
   if (!student) return null;
   if (student.photoUrl) return student.photoUrl;
   if (student.user?.image) return student.user.image;
-  if (student.id) return `/uploads/students/${student.id}.jpg`;
   return null;
 }

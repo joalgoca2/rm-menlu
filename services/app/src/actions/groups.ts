@@ -1,14 +1,24 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import { studentGroupSchema, assignStudentsToGroupSchema } from "@/lib/validations/groups";
 import type { ApiResponse, StudentGroupWithDetails } from "@/types";
 
 export async function createStudentGroupAction(
-  brandId: string,
+  requestedBrandId: string,
   data: unknown
 ): Promise<ApiResponse<StudentGroupWithDetails>> {
   try {
+    const { effectiveBrandId: targetBrandId } =
+      await resolveTenantBrand(requestedBrandId, { allowAll: false });
+    if (!targetBrandId) {
+      return {
+        success: false,
+        error: "No se encontró una academia válida para asignar el grupo.",
+      };
+    }
+
     const parsed = studentGroupSchema.safeParse(data);
     if (!parsed.success) {
       const msg = parsed.error.issues[0]?.message || "Datos del grupo inválidos.";
@@ -17,7 +27,7 @@ export async function createStudentGroupAction(
 
     const group = await prisma.studentGroup.create({
       data: {
-        brandId,
+        brandId: targetBrandId,
         name: parsed.data.name,
         code: parsed.data.code,
         description: parsed.data.description,
@@ -174,12 +184,17 @@ export async function getStudentGroupsByBrandAction(
         ? { brandId: filterOrBrandId, page: 1, limit: 100 }
         : filterOrBrandId;
 
-    const brandId = filter.brandId;
+    const { effectiveBrandId: targetBrandId } =
+      await resolveTenantBrand(filter.brandId);
+
     const page = Math.max(1, filter.page || 1);
     const limit = Math.min(100, Math.max(1, filter.limit || 10));
     const skip = (page - 1) * limit;
 
-    const whereCondition: Record<string, unknown> = { brandId };
+    const whereCondition: Record<string, unknown> = {};
+    if (targetBrandId) {
+      whereCondition.brandId = targetBrandId;
+    }
 
     if (filter.search && filter.search.trim()) {
       const query = filter.search.trim();
@@ -227,9 +242,11 @@ export async function getStudentGroupsByBrandAction(
       prisma.studentGroup.count({ where: whereCondition }),
       prisma.studentGroup.count({ where: { ...whereCondition, isActive: true } }),
       prisma.groupStudent.count({
-        where: {
-          group: { brandId },
-        },
+        where: targetBrandId
+          ? {
+              group: { brandId: targetBrandId },
+            }
+          : {},
       }),
     ]);
 

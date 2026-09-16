@@ -61,10 +61,13 @@ export default async function BrandPaymentsDashboardPage({
     );
   }
 
-  const { payments, stats } = res.data;
+  const { payments, stats, brandId } = res.data;
 
   // Also fetch Brand Portal Data for plans & brand name
-  const brandRes = await getPublicBrandPortalAction(payments.items[0]?.brandId || "brand-general");
+  const targetBrandId = brandId || payments.items[0]?.brandId;
+  const brandRes = targetBrandId
+    ? await getPublicBrandPortalAction(targetBrandId)
+    : { success: false, data: null };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">

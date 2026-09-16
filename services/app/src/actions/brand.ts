@@ -1,6 +1,7 @@
 "use server";
 
-import { auth, parseBrowser, parseDevice } from "@/auth";
+import { parseBrowser, parseDevice } from "@/auth";
+import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
 import {
   createBrandSchema,
@@ -228,6 +229,12 @@ export async function updateBrandSettings(
   }
 ): Promise<ApiResponse<Brand>> {
   try {
+    const tenant = await resolveTenantBrand(brandId);
+    if (!tenant.effectiveBrandId) {
+      return { success: false, error: "Marca no encontrada o no autorizada." };
+    }
+    const targetBrandId = tenant.effectiveBrandId;
+
     const parsed = updateBrandSchema.safeParse(data);
     if (!parsed.success) {
       const firstError = parsed.error.issues[0]?.message ?? "Invalid input.";
@@ -236,7 +243,7 @@ export async function updateBrandSettings(
 
     const validData = parsed.data;
     const brand = await prisma.brand.update({
-      where: { id: brandId },
+      where: { id: targetBrandId },
       data: {
         ...(validData.name && { name: validData.name }),
         ...(validData.description !== undefined && {
@@ -709,18 +716,11 @@ export async function uploadBrandLogoAction(
   base64Data: string
 ): Promise<ApiResponse<{ logoUrl: string }>> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return { success: false, error: "No autorizado. Inicia sesión." };
+    const tenant = await resolveTenantBrand(brandId);
+    if (!tenant.effectiveBrandId) {
+      return { success: false, error: "Marca no encontrada o no autorizada." };
     }
-
-    const brand = await prisma.brand.findUnique({
-      where: { id: brandId },
-    });
-
-    if (!brand) {
-      return { success: false, error: "Marca no encontrada." };
-    }
+    const targetBrandId = tenant.effectiveBrandId;
 
     const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     const buffer = matches && matches[2]
@@ -742,13 +742,13 @@ export async function uploadBrandLogoAction(
 
     const uploadsDir = await getUploadsDir("brand");
 
-    const filePath = path.join(uploadsDir, `${brandId}.jpg`);
+    const filePath = path.join(uploadsDir, `${targetBrandId}.jpg`);
     await fs.writeFile(filePath, buffer);
 
-    const logoUrl = `/uploads/brand/${brandId}.jpg?v=${Date.now()}`;
+    const logoUrl = `/uploads/brand/${targetBrandId}.jpg?v=${Date.now()}`;
 
     await prisma.brand.update({
-      where: { id: brandId },
+      where: { id: targetBrandId },
       data: { logoUrl },
     });
 

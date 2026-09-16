@@ -16,7 +16,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, CreditCard, User, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import {
+  Search,
+  CreditCard,
+  User,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  Trash2,
+} from "lucide-react";
+import { DeletePaymentConfirmationModal } from "./delete-payment-confirmation-modal";
 import type { PaginatedResult, BrandCustomerPayment } from "@/types";
 
 interface BrandTransactionsTableProps {
@@ -32,8 +41,10 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
   const currentSearch = searchParams.get("search") || "";
   const currentStatus = searchParams.get("status") || "ALL";
 
-  // Local state for search input to prevent reloading on every keystroke
+  // Local state for search input
   const [searchInput, setSearchInput] = useState(currentSearch);
+  const [deletingPayment, setDeletingPayment] =
+    useState<BrandCustomerPayment | null>(null);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,18 +153,36 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
         <Table>
           <TableHeader className="bg-zinc-50 dark:bg-zinc-800/50">
             <TableRow>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colCustomer", "Alumno / Cliente")}</TableHead>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colConcept", "Concepto")}</TableHead>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colAmount", "Monto")}</TableHead>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colGateway", "Pasarela")}</TableHead>
-              <TableHead className="text-xs font-bold">{t("brandAdminPayments.colStatus", "Estado")}</TableHead>
-              <TableHead className="text-xs font-bold text-right">{t("brandAdminPayments.colDate", "Fecha")}</TableHead>
+              <TableHead className="text-xs font-bold">
+                {t("brandAdminPayments.colCustomer", "Alumno / Cliente")}
+              </TableHead>
+              <TableHead className="text-xs font-bold">
+                {t("brandAdminPayments.colConcept", "Concepto")}
+              </TableHead>
+              <TableHead className="text-xs font-bold">
+                {t("brandAdminPayments.colAmount", "Monto")}
+              </TableHead>
+              <TableHead className="text-xs font-bold">
+                {t("brandAdminPayments.colGateway", "Pasarela")}
+              </TableHead>
+              <TableHead className="text-xs font-bold">
+                {t("brandAdminPayments.colStatus", "Estado")}
+              </TableHead>
+              <TableHead className="text-xs font-bold text-right">
+                {t("brandAdminPayments.colDate", "Fecha")}
+              </TableHead>
+              <TableHead className="text-xs font-bold text-right">
+                {t("common.actions", "Acciones")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.items.length > 0 ? (
               data.items.map((payment: BrandCustomerPayment) => (
-                <TableRow key={payment.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
+                <TableRow
+                  key={payment.id}
+                  className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50"
+                >
                   <TableCell className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
@@ -166,7 +195,9 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
                             : payment.customerName || "Cliente anónimo"}
                         </p>
                         <p className="text-[11px] text-zinc-500 dark:text-zinc-400 flex flex-col gap-0.5">
-                          <span>{payment.student?.email || payment.customerEmail || "Sin email"}</span>
+                          <span>
+                            {payment.student?.email || payment.customerEmail || "Sin email"}
+                          </span>
                           {payment.student && (
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 w-fit mt-0.5">
                               🎓 Alumno Registrado
@@ -192,12 +223,30 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
                   <TableCell className="text-xs text-right text-zinc-500 dark:text-zinc-400">
                     <FormattedDate date={payment.createdAt} format="datetime" />
                   </TableCell>
+                  <TableCell className="text-right py-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeletingPayment(payment)}
+                      className="h-8 w-8 p-0 rounded-xl text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
+                      title={t("brandAdminPayments.deletePaymentTooltip", "Eliminar Pago")}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-xs text-zinc-500">
-                  {t("brandAdminPayments.noTransactionsFound", "No se encontraron transacciones de cobro.")}
+                <TableCell
+                  colSpan={7}
+                  className="h-32 text-center text-xs text-zinc-500"
+                >
+                  {t(
+                    "brandAdminPayments.noTransactionsFound",
+                    "No se encontraron transacciones de cobro."
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -213,6 +262,17 @@ export function BrandTransactionsTable({ data }: BrandTransactionsTableProps) {
           />
         </div>
       </div>
+
+      {/* Premium Delete Payment Modal */}
+      <DeletePaymentConfirmationModal
+        payment={deletingPayment}
+        isOpen={!!deletingPayment}
+        onOpenChange={(open) => !open && setDeletingPayment(null)}
+        onSuccess={() => {
+          setDeletingPayment(null);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

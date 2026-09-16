@@ -58,7 +58,7 @@ import {
 import type { Discipline, Belt } from "@/types";
 
 export default function DisciplinesPage() {
-  const { selectedBrandId, brands } = useBrand();
+  const { selectedBrandId } = useBrand();
   const { t } = useTranslation();
 
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
@@ -186,7 +186,7 @@ export default function DisciplinesPage() {
 
     setIsCreatingDiscipline(true);
     try {
-      const brandToUse = selectedBrandId === "ALL" ? (brands[0]?.id || selectedBrandId) : selectedBrandId;
+      const brandToUse = selectedBrandId;
       const res = await createDisciplineWithTemplateAction({
         brandId: brandToUse,
         name: newDisciplineName.trim(),
@@ -220,7 +220,7 @@ export default function DisciplinesPage() {
     if (!selectedDiscipline) return;
     setIsApplyingTemplate(true);
     try {
-      const brandToUse = selectedBrandId === "ALL" ? (brands[0]?.id || selectedBrandId) : selectedBrandId;
+      const brandToUse = selectedBrandId;
       const res = await applyDisciplineTemplateAction(
         selectedDiscipline.id,
         brandToUse,

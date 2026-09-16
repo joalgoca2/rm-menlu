@@ -466,7 +466,7 @@ function GroupsPageContent() {
 
     setIsSearchingServer(true);
     try {
-      const res = await searchStudentsAction(effectiveBrandId, studentSearchFilter.trim());
+      const res = await searchStudentsAction(selectedBrandId, studentSearchFilter.trim());
       if (res.success && res.data) {
         setSearchResults(res.data);
       } else {
@@ -872,23 +872,6 @@ function GroupsPageContent() {
                         <TableCell className="py-4">
                           <div className="flex flex-col gap-1.5">
                             <div className="flex items-center gap-2">
-                              {group.students.length > 0 && (
-                                <div className="flex -space-x-2 overflow-hidden shrink-0">
-                                  {group.students.slice(0, 3).map((st) => (
-                                    <div
-                                      key={st.id}
-                                      className="inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-zinc-900 bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-[10px] flex items-center justify-center border border-amber-500/30 shrink-0"
-                                      title={getStudentDisplayName(
-                                        st.student as unknown as StudentProfileWithUser
-                                      )}
-                                    >
-                                      {getStudentDisplayName(
-                                        st.student as unknown as StudentProfileWithUser
-                                      ).slice(0, 2).toUpperCase()}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                               <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-bold whitespace-nowrap">
                                 {group.students.length} {group.students.length === 1 ? t("groups.studentSingle", "alumno") : t("groups.studentsCount", "alumnos")}
                               </Badge>

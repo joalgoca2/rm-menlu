@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveTenantBrand } from "@/lib/tenant";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { triggerOutboundWebhook } from "@/lib/webhook";
@@ -288,14 +289,12 @@ export async function manageBrandPlanAction(
       return { success: false, error: issue };
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { brandId: true },
-    });
-
-    if (!user?.brandId) {
+    const rawBrandId = (data as { brandId?: string })?.brandId;
+    const tenant = await resolveTenantBrand(rawBrandId);
+    if (!tenant.effectiveBrandId) {
       return { success: false, error: "No tienes una marca asociada." };
     }
+    const targetBrandId = tenant.effectiveBrandId;
 
     const { id, name, description, priceMonthly, priceYearly, currency, isActive } =
       validation.data;
@@ -316,7 +315,7 @@ export async function manageBrandPlanAction(
       });
     } else {
       const currentCount = await prisma.brandPlanConfig.count({
-        where: { brandId: user.brandId },
+        where: { brandId: targetBrandId },
       });
 
       if (currentCount >= 10) {
@@ -328,7 +327,7 @@ export async function manageBrandPlanAction(
 
       savedPlan = await prisma.brandPlanConfig.create({
         data: {
-          brandId: user.brandId,
+          brandId: targetBrandId,
           name,
           description: description || null,
           priceMonthly,
@@ -396,6 +395,7 @@ export async function deleteBrandPlanAction(
 }
 
 export async function getBrandAdminPaymentsAction(params: {
+  brandId?: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -405,24 +405,21 @@ export async function getBrandAdminPaymentsAction(params: {
   ApiResponse<{
     payments: PaginatedResult<BrandCustomerPayment>;
     stats: BrandPaymentStats;
+    brandId?: string | null;
   }>
 > {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const tenant = await resolveTenantBrand(params.brandId);
+    if (!tenant.userId) {
       return { success: false, error: "No autorizado." };
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { brand: true },
-    });
-
-    if (!user?.brandId) {
+    if (!tenant.isSuperAdmin && !tenant.effectiveBrandId) {
       return { success: false, error: "No cuentas con una marca asignada." };
     }
 
-    const brandId = user.brandId;
+    const effectiveBrandId = tenant.effectiveBrandId;
+
     const page = Math.max(1, params.page || 1);
     const limit = Math.min(50, Math.max(1, params.limit || 10));
     const skip = (page - 1) * limit;
@@ -440,17 +437,11 @@ export async function getBrandAdminPaymentsAction(params: {
       startDate = new Date(now.getFullYear(), 0, 1);
     }
 
-    const where: {
-      brandId: string;
-      status?: string;
-      createdAt?: { gte: Date };
-      OR?: Array<{
-        customerName?: { contains: string; mode: "insensitive" };
-        customerEmail?: { contains: string; mode: "insensitive" };
-        concept?: { contains: string; mode: "insensitive" };
-        student?: { firstName?: { contains: string; mode: "insensitive" }; lastName?: { contains: string; mode: "insensitive" }; email?: { contains: string; mode: "insensitive" } };
-      }>;
-    } = { brandId };
+    const where: Record<string, unknown> = {};
+
+    if (effectiveBrandId && effectiveBrandId !== "ALL") {
+      where.brandId = effectiveBrandId;
+    }
 
     if (params.status && params.status !== "ALL") {
       where.status = params.status;
@@ -469,7 +460,7 @@ export async function getBrandAdminPaymentsAction(params: {
     }
 
     const statsWhere = {
-      brandId,
+      ...(where.brandId ? { brandId: where.brandId as string } : {}),
       ...(startDate ? { createdAt: { gte: startDate } } : {}),
     };
 
@@ -492,7 +483,9 @@ export async function getBrandAdminPaymentsAction(params: {
         take: limit,
       }),
       prisma.brandPaymentConfig.count({
-        where: { brandId, isActive: true },
+        where: effectiveBrandId
+          ? { brandId: effectiveBrandId, isActive: true }
+          : { isActive: true },
       }),
       prisma.brandCustomerPayment.aggregate({
         where: { ...statsWhere, status: "SUCCESS" },
@@ -538,18 +531,29 @@ export async function getBrandAdminPaymentsAction(params: {
       totalPages,
     };
 
+    let currency = "MXN";
+    if (effectiveBrandId) {
+      const b = await prisma.brand.findUnique({
+        where: { id: effectiveBrandId },
+        select: { currency: true },
+      });
+      if (b?.currency) {
+        currency = b.currency;
+      }
+    }
+
     const stats: BrandPaymentStats = {
       totalRevenue: successAgg._sum.amount || 0,
       successfulTransactions: successAgg._count.id || 0,
       pendingTransactions: pendingCount,
       activeGatewaysCount,
-      currency: user.brand?.currency || "MXN",
+      currency,
       period,
     };
 
     return {
       success: true,
-      data: { payments, stats },
+      data: { payments, stats, brandId: effectiveBrandId },
     };
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "Error al obtener cobros.";
@@ -677,4 +681,42 @@ export async function updateBrandLandingConfigAction(
     return { success: false, error: msg };
   }
 }
+
+export async function deleteBrandCustomerPaymentAction(
+  paymentId: string
+): Promise<ApiResponse<boolean>> {
+  try {
+    if (!paymentId || typeof paymentId !== "string") {
+      return { success: false, error: "ID de pago no válido." };
+    }
+
+    const tenant = await resolveTenantBrand(null, { allowAll: true });
+
+    const payment = await prisma.brandCustomerPayment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      return { success: false, error: "Registro de pago no encontrado." };
+    }
+
+    if (tenant.effectiveBrandId && payment.brandId !== tenant.effectiveBrandId) {
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar pagos de otra academia.",
+      };
+    }
+
+    await prisma.brandCustomerPayment.delete({
+      where: { id: paymentId },
+    });
+
+    return { success: true, data: true };
+  } catch (error: unknown) {
+    const msg =
+      error instanceof Error ? error.message : "Error al eliminar pago.";
+    return { success: false, error: msg };
+  }
+}
+
 
