@@ -229,6 +229,7 @@
     "passedSuffix": "passed",
     "convocatoria": "Exam Call",
     "evaluarTatami": "Tatami Evaluation",
+    "verResultados": "View Results",
     "generalDiscipline": "General",
     "studentsCount": "students",
     "viewCards": "Cards",
@@ -239,6 +240,11 @@
     "statusOpen": "Open • Registration",
     "statusTatami": "▶ On Tatami • Evaluation",
     "statusCompleted": "✓ Completed & Certified",
+    "statusCompletedShort": "Concluded",
+    "cannotEditCompleted": "This exam call has been concluded and cannot be edited.",
+    "cannotDeleteCompleted": "This exam call has been concluded and cannot be deleted.",
+    "editExam": "Edit Exam Call",
+    "deleteExam": "Delete Exam Call",
     "defaultLocation": "Main Dojo",
     "examFeeLabel": "Exam Fee:",
     "candidatesEnrolled": "Enrolled Students",
@@ -1437,12 +1443,28 @@
     "exams": {
       "title": "Belt Exams",
       "step1": {
-        "title": "Belt Exam Events",
-        "desc": "Schedule belt test events and assign examiners responsible for grading."
+        "title": "Exam Events Scheduling",
+        "desc": "Create exam calls by specifying date, fee, examiner in charge, eligible age range (min/max), and rubric template."
       },
       "step2": {
-        "title": "Grading & Rubrics",
-        "desc": "Grade students using standardized rubrics configured for their discipline."
+        "title": "Advanced Filters & Views",
+        "desc": "Filter exams by active or past event calls, target belt ranks, or age ranges. Switch freely between Card and Table views."
+      },
+      "step3": {
+        "title": "Eligible Candidates & Roster",
+        "desc": "Instantly inspect candidate students, approve exam fees/eligibility, and verify attendance and tenure requirements."
+      },
+      "step4": {
+        "title": "Tatami Grading (3-Tier Semaphore)",
+        "desc": "Grade fast on the tatami from your phone or tablet using 3 semaphore buttons: 🟩 Mastered (100%), 🟡 In Progress (75%), 🔴 Practice Needed (0%)."
+      },
+      "step5": {
+        "title": "PDF Certificates & Diplomas",
+        "desc": "Upon completion, generate and print official digital PDF graduation diplomas complete with signatures and QR code for passing students."
+      },
+      "step6": {
+        "title": "Record Deletion Protection",
+        "desc": "The system prevents accidental deletion of exam events if dependent evaluation logs or grading records exist."
       }
     },
     "tournaments": {
@@ -1478,12 +1500,24 @@
     "rubrics": {
       "title": "Evaluation Rubrics",
       "step1": {
-        "title": "Rubrics & Templates",
-        "desc": "Design standardized rubrics to evaluate forms, technique, and physical conditioning."
+        "title": "Tatami Semaphore Rubrics",
+        "desc": "Configure fast tatami grading rubrics with 3 visual states (🟩 100% Mastered, 🟡 75% In Progress, 🔴 0% Practice Needed)."
       },
       "step2": {
-        "title": "Custom Criteria",
-        "desc": "Create evaluation criteria with custom scoring tailored for each belt rank."
+        "title": "Visual Grading Guide",
+        "desc": "Check the top panel guide for the 3 semaphore states (Green = Flawless execution, Yellow = Minor adjustment, Red = Practice needed)."
+      },
+      "step3": {
+        "title": "Martial Categories",
+        "desc": "Classify each criterion into TECHNICAL, ATTITUDE, PHYSICAL, or GENERAL for a complete martial diagnosis of the student."
+      },
+      "step4": {
+        "title": "Quick Criteria Loading",
+        "desc": "When creating a new template, the system suggests 4 key criteria (Stances/Kata, Strikes, Kiai/Attitude, and Physical Conditioning)."
+      },
+      "step5": {
+        "title": "Discipline Assignment",
+        "desc": "Link your rubrics to a specific martial discipline (Kung Fu, Sanda, Taekwondo, BJJ) or keep it general for your entire Dojo."
       }
     },
     "effortPath": {
@@ -1692,5 +1726,72 @@
     "filterDueSoon": "🟡 Due Soon",
     "filterUnpaid": "🔴 Overdue / Pending",
     "lastPaymentLabel": "Last Payment:"
+  },
+  "tournamentsPage": {
+    "title": "Internal Tournaments & Brackets",
+    "subtitle": "Manage dojo competitions, combat/forms events, elimination brackets, weigh-ins, and awards.",
+    "createButton": "New Tournament",
+    "proPlanRequired": "Pro Plan is required to enable Internal Tournaments & Brackets.",
+    "upgradePlanBtn": "Upgrade to Pro Plan",
+    "duplicateButton": "Duplicate Tournament",
+    "copySuccess": "Tournament duplicated successfully.",
+    "duplicateConfirm": "Duplicate tournament \"{title}\"?",
+    "duplicateDesc": "A draft copy with the same configured categories will be created.",
+    "tabParticipants": "Participants",
+    "tabCategories": "Categories",
+    "tabCheckIn": "Weigh-in & Check-in",
+    "tabStatus": "Tournament Status",
+    "tabBrackets": "Match Pairings / Brackets",
+    "tabDiploma": "Settings & Diplomas",
+    "enrolledTab": "Enrolled",
+    "searchDojoTab": "Search Dojo Student",
+    "quickAddExternalTab": "Quick Add External",
+    "quickPaymentTitle": "Quick Tournament Fee Payment",
+    "quickPaymentDesc": "Record entry fee payment and log transaction into brand financial balance.",
+    "printCertificatesBtn": "Print Participation Diplomas (PDF)",
+    "printWinnersBtn": "Print Winners Diplomas (1st to 3rd)",
+    "goldAward": "🥇 1st Place (Gold)",
+    "silverAward": "🥈 2nd Place (Silver)",
+    "bronzeAward": "🥉 3rd Place (Bronze)",
+    "participantAward": "🎖️ General Participation",
+    "checkInSuccess": "Weigh-in and check-in confirmed.",
+    "generateBracketsBtn": "Generate Brackets",
+    "generateBracketsSuccess": "Combat brackets generated successfully.",
+    "minCompetitorsError": "At least 2 competitors are required to generate brackets.",
+    "kpiTotalTournaments": "Registered Tournaments",
+    "kpiActiveTournaments": "Active Tournaments",
+    "kpiTotalParticipants": "Enrolled Competitors",
+    "kpiTotalCategories": "Created Categories",
+    "searchPlaceholder": "Search tournament by name or location...",
+    "viewCards": "Cards",
+    "viewList": "List",
+    "statusFinished": "Finished",
+    "statusInProgress": "In Progress",
+    "statusDraft": "Draft",
+    "executeBtn": "Execute",
+    "categoriesCount": "categories",
+    "participantsCount": "competitors",
+    "createModalTitle": "Create New Tournament",
+    "editModalTitle": "Edit Tournament",
+    "tournamentNameLabel": "Tournament Name",
+    "tournamentNamePlaceholder": "e.g. Autumn Championship 2026",
+    "locationLabel": "Location / Venue / Tatami",
+    "locationPlaceholder": "e.g. Main Dojo - Central Tatami",
+    "dateLabel": "Scheduled Date",
+    "descriptionLabel": "Description / Regulations",
+    "descriptionPlaceholder": "e.g. Official dojo championship and general competition rules.",
+    "saving": "Saving...",
+    "createModalBtn": "Create Tournament",
+    "saveChangesBtn": "Save Changes",
+    "startDateLabel": "Start Date and Time",
+    "endDateLabel": "End Date (Optional)",
+    "venueLabel": "Location / Venue",
+    "venuePlaceholder": "e.g. Chess Club / Main Dojo",
+    "cityLabel": "City",
+    "cityPlaceholder": "e.g. Madrid / New York",
+    "countryLabel": "Country",
+    "countryPlaceholder": "e.g. Spain / USA",
+    "googleMapsUrlLabel": "Google Maps Location (URL)",
+    "googleMapsUrlPlaceholder": "https://maps.google.com/..."
   }
 }

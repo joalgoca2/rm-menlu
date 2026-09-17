@@ -37,9 +37,11 @@ async function getActiveBrandId(): Promise<string | null> {
 }
 
 /**
- * Get DiplomaConfig for active Brand
+ * Get DiplomaConfig for active Brand and type ("EXAM" | "TOURNAMENT")
  */
-export async function getDiplomaConfigAction(): Promise<{
+export async function getDiplomaConfigAction(
+  type: "EXAM" | "TOURNAMENT" = "EXAM"
+): Promise<{
   success: boolean;
   data?: DiplomaConfig | null;
   error?: string;
@@ -50,8 +52,8 @@ export async function getDiplomaConfigAction(): Promise<{
       return { success: false, error: "No se encontró ninguna marca activa." };
     }
 
-    const config = await prisma.diplomaConfig.findUnique({
-      where: { brandId },
+    const config = await prisma.diplomaConfig.findFirst({
+      where: { brandId, type },
     });
 
     return { success: true, data: config as unknown as DiplomaConfig | null };
@@ -62,10 +64,11 @@ export async function getDiplomaConfigAction(): Promise<{
 }
 
 /**
- * Save / Upsert DiplomaConfig for active Brand
+ * Save / Upsert DiplomaConfig for active Brand and type ("EXAM" | "TOURNAMENT")
  */
 export async function saveDiplomaConfigAction(
-  input: SaveDiplomaConfigInput
+  input: SaveDiplomaConfigInput,
+  type: "EXAM" | "TOURNAMENT" = "EXAM"
 ): Promise<{
   success: boolean;
   data?: DiplomaConfig;
@@ -78,13 +81,20 @@ export async function saveDiplomaConfigAction(
     }
 
     const defaultReason =
-      "Por su sobresaliente constancia, disciplina y destacado avance en " +
-      "El Camino del Esfuerzo.";
+      type === "TOURNAMENT"
+        ? "Por su destacada participación y alto espíritu marcial en el Torneo de Artes Marciales."
+        : "Por su sobresaliente constancia, disciplina y destacado avance en El Camino del Esfuerzo.";
 
     const config = await prisma.diplomaConfig.upsert({
-      where: { brandId },
+      where: {
+        brandId_type: {
+          brandId,
+          type,
+        },
+      },
       create: {
         brandId,
+        type,
         template: input.template || "classic",
         layout: input.layout || "1perpage",
         isBlankMode: input.isBlankMode ?? false,
@@ -131,10 +141,12 @@ export async function saveDiplomaConfigAction(
 }
 
 /**
- * Upload Custom Background Image for Brand Diploma (public/uploads/diploma/[brandId].jpg)
+ * Upload Custom Background Image for Brand Diploma
+ * Folder: public/uploads/diploma/exam/[brandId].jpg or public/uploads/diploma/tournament/[brandId].jpg
  */
 export async function uploadDiplomaBackgroundAction(
-  formData: FormData
+  formData: FormData,
+  type: "EXAM" | "TOURNAMENT" = "EXAM"
 ): Promise<{ success: boolean; data?: { backgroundUrl: string }; error?: string }> {
   try {
     const brandId = await getActiveBrandId();
@@ -147,7 +159,6 @@ export async function uploadDiplomaBackgroundAction(
       return { success: false, error: "No se proporcionó ninguna imagen de fondo." };
     }
 
-    // Validate JPG format strictly
     const fileName = file.name.toLowerCase();
     const mimeType = file.type.toLowerCase();
     if (!fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg") && mimeType !== "image/jpeg") {
@@ -157,7 +168,6 @@ export async function uploadDiplomaBackgroundAction(
       };
     }
 
-    // Validate file size (max 10MB to guarantee optimal print resolution)
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       return {
@@ -169,18 +179,22 @@ export async function uploadDiplomaBackgroundAction(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const { getUploadsDir } = await import("@/lib/uploads");
-    const uploadsDir = await getUploadsDir("diploma");
+    const subFolder = type === "TOURNAMENT" ? "tournament" : "exam";
+    const uploadsDir = path.join(process.cwd(), "public", "uploads", "diploma", subFolder);
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
 
-    // Save as public/uploads/diploma/[brandId].jpg
     const filePath = path.join(uploadsDir, `${brandId}.jpg`);
     fs.writeFileSync(filePath, buffer);
 
-    const backgroundUrl = `/uploads/diploma/${brandId}.jpg?v=${Date.now()}`;
+    const backgroundUrl = `/uploads/diploma/${subFolder}/${brandId}.jpg?v=${Date.now()}`;
 
     await prisma.diplomaConfig.upsert({
-      where: { brandId },
-      create: { brandId, backgroundUrl },
+      where: {
+        brandId_type: { brandId, type },
+      },
+      create: { brandId, type, backgroundUrl },
       update: { backgroundUrl },
     });
 
@@ -194,7 +208,9 @@ export async function uploadDiplomaBackgroundAction(
 /**
  * Remove Custom Background Image for Brand Diploma
  */
-export async function removeDiplomaBackgroundAction(): Promise<{
+export async function removeDiplomaBackgroundAction(
+  type: "EXAM" | "TOURNAMENT" = "EXAM"
+): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -204,12 +220,19 @@ export async function removeDiplomaBackgroundAction(): Promise<{
       return { success: false, error: "No se encontró ninguna marca activa." };
     }
 
-    await prisma.diplomaConfig.update({
-      where: { brandId },
-      data: { backgroundUrl: null },
+    const config = await prisma.diplomaConfig.findFirst({
+      where: { brandId, type },
     });
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "diploma");
+    if (config) {
+      await prisma.diplomaConfig.update({
+        where: { id: config.id },
+        data: { backgroundUrl: null },
+      });
+    }
+
+    const subFolder = type === "TOURNAMENT" ? "tournament" : "exam";
+    const uploadsDir = path.join(process.cwd(), "public", "uploads", "diploma", subFolder);
     const filePath = path.join(uploadsDir, `${brandId}.jpg`);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);

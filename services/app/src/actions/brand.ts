@@ -270,7 +270,7 @@ export async function updateBrandSettings(
 }
 
 export async function getBrandsList(): Promise<
-  ApiResponse<{ id: string; name: string; currency?: string }[]>
+  ApiResponse<{ id: string; name: string; currency?: string; planName?: string }[]>
 > {
   try {
     const brands = await prisma.brand.findMany({
@@ -278,11 +278,23 @@ export async function getBrandsList(): Promise<
         id: true,
         name: true,
         currency: true,
+        subscriptions: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: { planName: true, status: true },
+        },
       },
       orderBy: { name: "asc" },
     });
 
-    return { success: true, data: brands };
+    const formatted = brands.map((b) => ({
+      id: b.id,
+      name: b.name,
+      currency: b.currency,
+      planName: b.subscriptions[0]?.planName || "Pro",
+    }));
+
+    return { success: true, data: formatted };
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch brands list.";

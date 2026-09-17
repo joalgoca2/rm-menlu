@@ -14,6 +14,46 @@ import { Button } from "@/components/ui/button";
 import { PaginationControl } from "@/components/ui/pagination-control";
 import type { Tournament } from "@/types";
 
+const formatDateStr = (dateVal?: Date | string | null): string => {
+  if (!dateVal) return "";
+  if (typeof dateVal === "string") {
+    return dateVal.split("T")[0];
+  }
+  try {
+    return new Date(dateVal).toISOString().split("T")[0];
+  } catch {
+    return String(dateVal);
+  }
+};
+
+const getTournamentDateDisplay = (
+  startDate?: Date | string,
+  endDate?: Date | string | null
+): string => {
+  const start = formatDateStr(startDate);
+  const end = formatDateStr(endDate);
+  if (end && end !== start) {
+    return `${start} — ${end}`;
+  }
+  return start;
+};
+
+const getTournamentLocationDisplay = (
+  location?: string | null,
+  city?: string | null,
+  country?: string | null
+): string => {
+  const venue = location?.trim();
+  const cityCountry = [city?.trim(), country?.trim()].filter(Boolean).join(", ");
+
+  if (venue && cityCountry) {
+    return `${venue} (${cityCountry})`;
+  }
+  if (venue) return venue;
+  if (cityCountry) return cityCountry;
+  return "Dojo Principal";
+};
+
 interface TournamentListTableProps {
   tournaments: Tournament[];
   isLoading: boolean;
@@ -94,9 +134,15 @@ export function TournamentListTable({
                 </tr>
               ) : (
                 tournaments.map((tournament) => {
-                  const dateStr = typeof (tournament.tournamentDate as unknown) === "string"
-                    ? String(tournament.tournamentDate).split("T")[0]
-                    : new Date(tournament.tournamentDate).toISOString().split("T")[0];
+                  const dateDisplay = getTournamentDateDisplay(
+                    tournament.tournamentDate,
+                    tournament.endDate
+                  );
+                  const locationDisplay = getTournamentLocationDisplay(
+                    tournament.location,
+                    tournament.city,
+                    tournament.country
+                  );
 
                   return (
                     <tr
@@ -110,13 +156,25 @@ export function TournamentListTable({
                       <td className="p-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         <span className="flex items-center gap-1.5">
                           <MapPin className="h-4 w-4 text-amber-500 shrink-0" />
-                          {tournament.location || "Dojo Principal"}
+                          {tournament.googleMapsUrl ? (
+                            <a
+                              href={tournament.googleMapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline hover:text-amber-500 transition-colors truncate max-w-xs"
+                              title={`Abrir en Google Maps: ${locationDisplay}`}
+                            >
+                              {locationDisplay}
+                            </a>
+                          ) : (
+                            <span className="truncate max-w-xs">{locationDisplay}</span>
+                          )}
                         </span>
                       </td>
-                      <td className="p-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                      <td className="p-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 font-mono">
                         <span className="flex items-center gap-1.5">
                           <Calendar className="h-4 w-4 text-indigo-400 shrink-0" />
-                          {dateStr}
+                          {dateDisplay}
                         </span>
                       </td>
                       <td className="p-4">
@@ -138,14 +196,6 @@ export function TournamentListTable({
                       </td>
                       <td className="p-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onOpenCategoriesModal(tournament)}
-                            className="rounded-xl text-xs font-bold border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
-                          >
-                            <Layers className="h-3.5 w-3.5 mr-1" /> Categorías
-                          </Button>
                           <Button
                             size="sm"
                             onClick={() => onStartExecution(tournament)}

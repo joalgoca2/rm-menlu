@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useBrand } from "@/context/brand-context";
 import type {
   SystemFeature,
   PlanLimitKey,
@@ -16,22 +17,30 @@ export interface UseEntitlementsOptions {
 }
 
 export function useEntitlements(options: UseEntitlementsOptions = {}) {
-  const { planName } = options;
+  let contextPlanName: string | undefined = undefined;
+  try {
+    const brandCtx = useBrand();
+    contextPlanName = brandCtx.activePlanName;
+  } catch {
+    // Fallback if rendered outside BrandProvider context
+  }
+
+  const effectivePlanName = options.planName ?? contextPlanName ?? "Pro";
 
   const features = useMemo(() => {
     return getEnvironmentFeatures();
   }, []);
 
   const planCapabilities: PlanCapabilities = useMemo(() => {
-    return getPlanCapabilities(planName);
-  }, [planName]);
+    return getPlanCapabilities(effectivePlanName);
+  }, [effectivePlanName]);
 
   const isFeatureEnabled = (feature: SystemFeature): boolean => {
     return Boolean(features[feature]);
   };
 
   const isPlanFeatureUnlocked = (
-    feature: "aiSensei" | "customDiplomas" | "customBranding"
+    feature: "aiSensei" | "customDiplomas" | "customBranding" | "tournaments"
   ): boolean => {
     return Boolean(planCapabilities[feature]);
   };
@@ -45,11 +54,21 @@ export function useEntitlements(options: UseEntitlementsOptions = {}) {
     return currentCount < limit;
   };
 
+  const canAccessTournaments =
+    isFeatureEnabled("tournaments") && isPlanFeatureUnlocked("tournaments");
+
+  const getUpgradeMessage = (featureName: string): string => {
+    return `${featureName} es una función avanzada exclusiva para escuelas en el Plan Pro o Enterprise.`;
+  };
+
   return {
+    effectivePlanName,
     features,
     planCapabilities,
     isFeatureEnabled,
     isPlanFeatureUnlocked,
     isWithinLimit,
+    canAccessTournaments,
+    getUpgradeMessage,
   };
 }

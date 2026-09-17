@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { LayoutDashboard, LogOut, Shield, Swords, Flame } from "lucide-react";
+import { LayoutDashboard, LogOut, Swords, Flame } from "lucide-react";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -20,7 +20,8 @@ export function Navbar() {
     pathname?.startsWith("/register") ||
     pathname?.startsWith("/forgot-password") ||
     pathname?.startsWith("/reset-password") ||
-    pathname?.startsWith("/brand");
+    pathname?.startsWith("/brand") ||
+    pathname?.startsWith("/tournaments");
 
   if (isDashboardOrAuth) {
     return null;
@@ -62,20 +63,6 @@ export function Navbar() {
                   <span>{t("nav.dashboard", "Dashboard")}</span>
                 </Link>
               </Button>
-
-              {session.user.roles?.includes("ADMIN") && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 text-xs rounded-xl border-amber-500/40 text-amber-600 dark:text-amber-400"
-                >
-                  <Link href="/dashboard/admin">
-                    <Shield className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t("nav.admin", "Admin")}</span>
-                  </Link>
-                </Button>
-              )}
 
               <Button
                 variant="ghost"

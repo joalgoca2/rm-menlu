@@ -179,6 +179,40 @@ export interface CandidateEligibility {
   isFeePaid: boolean;
 }
 
+export interface TournamentParticipant {
+  id: string;
+  tournamentId: string;
+  studentId?: string | null;
+  firstName: string;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  weightKg?: number | null;
+  actualWeightKg?: number | null;
+  dojoName?: string | null;
+  beltName?: string | null;
+  emergencyContact?: string | null;
+  isExternal: boolean;
+  isCheckedIn: boolean;
+  paymentStatus: "PENDING" | "PAID" | string;
+  feeAmount: number;
+  paymentId?: string | null;
+  categoryId?: string | null;
+  awardRank?: "GOLD" | "SILVER" | "BRONZE" | "PARTICIPANT" | string | null;
+  category?: TournamentCategory | null;
+  student?: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    photoUrl?: string | null;
+    currentBelt?: { name: string; colorHex: string } | null;
+  } | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Tournament {
   id: string;
   brandId: string;
@@ -186,8 +220,21 @@ export interface Tournament {
   title: string;
   description?: string | null;
   location?: string | null;
+  city?: string | null;
+  country?: string | null;
+  googleMapsUrl?: string | null;
   tournamentDate: Date;
+  endDate?: Date | string | null;
+  feeAmount?: number;
+  currency?: string;
   status: string;
+  categories?: TournamentCategory[];
+  participants?: TournamentParticipant[];
+  brand?: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+  } | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -201,6 +248,8 @@ export interface TournamentCategory {
   gender?: string | null;
   minWeight?: number | null;
   maxWeight?: number | null;
+  participants?: TournamentParticipant[];
+  matches?: TournamentMatch[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -216,6 +265,9 @@ export interface TournamentMatch {
   redScore: number;
   blueScore: number;
   status: string;
+  redStudent?: { firstName?: string | null; lastName?: string | null } | null;
+  blueStudent?: { firstName?: string | null; lastName?: string | null } | null;
+  winnerStudent?: { firstName?: string | null; lastName?: string | null } | null;
   createdAt: Date;
   updatedAt: Date;
 }

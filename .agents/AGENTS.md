@@ -89,4 +89,8 @@
 
 - **Centralized Entitlements Engine**: ALL feature flag checks (`NEXT_PUBLIC_ENABLE_*`), plan tier limits/capabilities, and feature gating MUST be registered in and consumed through `@/lib/config/entitlements.ts`.
 - **No Ad-Hoc Page Environment Checks**: NEVER perform direct inline environment variable parsing (`process.env.NEXT_PUBLIC_ENABLE_*`) or duplicate hardcoded plan checks inside individual page files or components. ALWAYS use the `useEntitlements()` hook in client components or `isFeatureEnabled()` / `assertFeatureEnabled()` / `assertBrandPlanLimit()` in Server Actions, proxy, and backend endpoints.
+- **Plan Tier Naming Convention & Auto-Resolution**: Standard SaaS plan tier names in `Subscription.planName` database column MUST be `"Free"`, `"Pro"`, or `"Enterprise"`. Case-insensitive matching (`.toLowerCase().includes("pro")`) MUST be used in `getPlanCapabilities()`. The `useEntitlements()` hook MUST automatically consume `activePlanName` from `useBrand()` (`@/context/brand-context`) so client pages resolve the active brand subscription tier dynamically without defaulting to `"Free"`.
 
+## Execution & Tool Usage Rules
+
+- **No Automatic Browser Execution**: NEVER launch or execute browser subagents or automated browser testing unless explicitly requested by the user.

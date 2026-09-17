@@ -204,7 +204,7 @@ model Brand {
   physicalChallenges  PhysicalChallenge[]
   gradeExams          GradeExam[]
   tournaments         Tournament[]
-  diplomaConfig       DiplomaConfig?
+  diplomaConfigs      DiplomaConfig[]
   studentGroups       StudentGroup[]
   evaluationTemplates EvaluationTemplate[]
 
@@ -248,21 +248,28 @@ model BrandCustomerPayment {
 
   customerName    String?          @map("customer_name")
   customerEmail   String?          @map("customer_email")
+  externalPayerName String?        @map("external_payer_name")
+  tournamentId    String?          @map("tournament_id")
+  tournament      Tournament?      @relation(fields: [tournamentId], references: [id], onDelete: SetNull)
+
   concept         String
   amount          Float
-  currency        String           @default("MXN")
-  status          String           @default("PENDING")
+  currency        String             @default("MXN")
+  status          BrandPaymentStatus @default(PENDING)
 
   gatewayProvider String           @map("gateway_provider")
   transactionRef  String?          @map("transaction_ref")
   checkoutUrl     String?          @map("checkout_url") @db.Text
   notes           String?          @db.Text
 
+  tournamentParticipants TournamentParticipant[]
+
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
   @@index([brandId])
   @@index([studentId])
+  @@index([tournamentId])
   @@index([status])
   @@index([createdAt])
   @@map("brand_customer_payments")
@@ -312,8 +319,8 @@ model Payment {
 
   amount             Float
   discountApplied    Float    @default(0)
-  paymentDate        DateTime @default(now())
-  status             String   @default("SUCCESS")
+  paymentDate        DateTime          @default(now())
+  status             SaaSPaymentStatus @default(SUCCESS)
 
   gatewayProvider    String?  @default("MOCK") @map("gateway_provider")
   trackingId         String?  @map("tracking_id")
@@ -531,6 +538,23 @@ model ExchangeRate {
 
 // --- PAYMENT ENGINE & BRAND GATEWAYS ---
 
+enum BrandPaymentStatus {
+  SUCCESS
+  PENDING
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum SaaSPaymentStatus {
+  COMPLETED
+  SUCCESS
+  PENDING
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
 enum PaymentGatewayType {
   CLIP
   STRIPE
@@ -567,7 +591,7 @@ model PaymentTransaction {
   checkoutUrl    String?            @map("checkout_url") @db.Text
   amount         Float
   currency       String             @default("MXN")
-  status         String             @default("PENDING")
+  status         SaaSPaymentStatus  @default(PENDING)
   metadata       String?            @db.Text
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
@@ -686,6 +710,7 @@ model StudentProfile {
   examEvaluations    ExamEvaluation[]
   groupMemberships   GroupStudent[]
   payments           BrandCustomerPayment[]
+  tournamentParticipants TournamentParticipant[]
 
   matchesAsRed       TournamentMatch[]   @relation("RedCompetitor")
   matchesAsBlue      TournamentMatch[]   @relation("BlueCompetitor")
@@ -723,28 +748,24 @@ model StudentEnrollment {
 // --- GAMIFICATION: PHYSICAL CHALLENGES ---
 
 model PhysicalChallenge {
-  id                    String                   @id @default(cuid())
-  brandId               String                   @map("brand_id")
-  brand                 Brand                    @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  disciplineId          String?                  @map("discipline_id")
-  discipline            Discipline?              @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+  id                 String              @id @default(cuid())
+  brandId            String              @map("brand_id")
+  brand              Brand               @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  disciplineId       String?             @map("discipline_id")
+  discipline         Discipline?         @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
 
-  title                 String
-  description           String?                  @db.Text
-  minAge                Int?                     @default(4) @map("min_age")
-  maxAge                Int?                     @default(99) @map("max_age")
-  targetBeltId          String?                  @map("target_belt_id")
-  targetBelt            Belt?                    @relation(fields: [targetBeltId], references: [id], onDelete: SetNull)
+  title              String
+  description        String?             @db.Text
+  xpReward           Int                 @default(50) @map("xp_reward")
+  minAge             Int?                @default(4) @map("min_age")
+  maxAge             Int?                @default(99) @map("max_age")
+  targetBeltId       String?             @map("target_belt_id")
+  targetBelt         Belt?               @relation(fields: [targetBeltId], references: [id], onDelete: SetNull)
 
-  targetReps            Int                      @default(10) @map("target_reps")
-  metricType            String                   @default("REPETITIONS") @map("metric_type")
-  xpReward              Int                      @default(40) @map("xp_reward")
-  requiresValidation    Boolean                  @default(true) @map("requires_validation")
+  progressEntries    StudentChallengeProgress[]
 
-  progress              StudentChallengeProgress[]
-
-  createdAt             DateTime                 @default(now()) @map("created_at")
-  updatedAt             DateTime                 @updatedAt @map("updated_at")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
 
   @@index([brandId])
   @@index([disciplineId])
@@ -845,10 +866,18 @@ model Tournament {
   title              String
   description        String?             @db.Text
   location           String?
+  city               String?
+  country            String?
+  googleMapsUrl      String?             @map("google_maps_url")
   tournamentDate     DateTime            @map("tournament_date")
+  endDate            DateTime?           @map("end_date")
+  feeAmount          Float               @default(0) @map("fee_amount")
+  currency           String              @default("MXN")
   status             String              @default("DRAFT")
 
   categories         TournamentCategory[]
+  participants       TournamentParticipant[]
+  customerPayments   BrandCustomerPayment[]
 
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
@@ -870,12 +899,56 @@ model TournamentCategory {
   maxWeight          Float?              @map("max_weight")
 
   matches            TournamentMatch[]
+  participants       TournamentParticipant[]
 
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
 
   @@index([tournamentId])
   @@map("tournament_categories")
+}
+
+model TournamentParticipant {
+  id                 String              @id @default(cuid())
+  tournamentId       String              @map("tournament_id")
+  tournament         Tournament          @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  studentId          String?             @map("student_id")
+  student            StudentProfile?     @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  firstName          String              @map("first_name")
+  lastName           String?             @map("last_name")
+  email              String?
+  phone              String?
+  age                Int?
+  gender             String?             @default("MIXED")
+  weightKg           Float?              @map("weight_kg")
+  actualWeightKg     Float?              @map("actual_weight_kg")
+  dojoName           String?             @map("dojo_name")
+  beltName           String?             @map("belt_name")
+  emergencyContact   String?             @map("emergency_contact")
+
+  isExternal         Boolean             @default(false) @map("is_external")
+  isCheckedIn        Boolean             @default(false) @map("is_checked_in")
+  paymentStatus      String              @default("PENDING") @map("payment_status")
+  feeAmount          Float               @default(0) @map("fee_amount")
+
+  paymentId          String?             @map("payment_id")
+  payment            BrandCustomerPayment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  categoryId         String?             @map("category_id")
+  category           TournamentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  awardRank          String?             @map("award_rank") // "GOLD" | "SILVER" | "BRONZE" | "PARTICIPANT"
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([tournamentId])
+  @@index([studentId])
+  @@index([categoryId])
+  @@index([paymentStatus])
+  @@map("tournament_participants")
 }
 
 model TournamentMatch {
@@ -913,8 +986,9 @@ model TournamentMatch {
 
 model DiplomaConfig {
   id                    String   @id @default(cuid())
-  brandId               String   @unique @map("brand_id")
+  brandId               String   @map("brand_id")
   brand                 Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  type                  String   @default("EXAM") @map("type") // "EXAM" | "TOURNAMENT"
 
   template              String   @default("classic")
   layout                String   @default("1perpage")
@@ -938,9 +1012,6 @@ model DiplomaConfig {
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
+  @@unique([brandId, type])
   @@map("diploma_configs")
 }
-
-
-
-

@@ -11,7 +11,8 @@ export type SystemFeature =
   | "offlineMode"
   | "integrations"
   | "aiSensei"
-  | "customDiplomas";
+  | "customDiplomas"
+  | "tournaments";
 
 export type PlanLimitKey =
   | "maxStudents"
@@ -26,6 +27,7 @@ export interface PlanCapabilities {
   customBranding: boolean;
   aiSensei: boolean;
   customDiplomas: boolean;
+  tournaments: boolean;
 }
 
 export interface EntitlementsConfig {
@@ -42,6 +44,7 @@ const PLAN_TIERS: Record<string, PlanCapabilities> = {
     customBranding: false,
     aiSensei: false,
     customDiplomas: false,
+    tournaments: false,
   },
   Pro: {
     maxStudents: 500,
@@ -50,6 +53,7 @@ const PLAN_TIERS: Record<string, PlanCapabilities> = {
     customBranding: true,
     aiSensei: true,
     customDiplomas: true,
+    tournaments: true,
   },
   Enterprise: {
     maxStudents: Infinity,
@@ -58,6 +62,7 @@ const PLAN_TIERS: Record<string, PlanCapabilities> = {
     customBranding: true,
     aiSensei: true,
     customDiplomas: true,
+    tournaments: true,
   },
 };
 
@@ -80,6 +85,7 @@ export function getEnvironmentFeatures(): Record<SystemFeature, boolean> {
     integrations: parseFlag(process.env.NEXT_PUBLIC_ENABLE_INTEGRATIONS),
     aiSensei: parseFlag(process.env.NEXT_PUBLIC_ENABLE_AI_SENSEI),
     customDiplomas: parseFlag(process.env.NEXT_PUBLIC_ENABLE_CUSTOM_DIPLOMAS),
+    tournaments: parseFlag(process.env.NEXT_PUBLIC_ENABLE_TOURNAMENTS),
   };
 }
 
@@ -106,7 +112,7 @@ export function isFeatureEnabled(feature: SystemFeature): boolean {
  * Checks if a specific plan feature capability is unlocked for a brand's plan
  */
 export function isPlanFeatureUnlocked(
-  feature: "aiSensei" | "customDiplomas" | "customBranding",
+  feature: "aiSensei" | "customDiplomas" | "customBranding" | "tournaments",
   planName?: string | null
 ): boolean {
   const caps = getPlanCapabilities(planName);

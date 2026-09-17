@@ -198,6 +198,25 @@ export async function getStudentsAction(
   }
 }
 
+export async function getStudentsByBrandAction(
+  brandId: string
+): Promise<ApiResponse<StudentWithDetails[]>> {
+  try {
+    const res = await getStudentsAction({ brandId, limit: 100 });
+    if (res.success && res.data) {
+      return { success: true, data: res.data.students };
+    }
+    return {
+      success: false,
+      error: res.error || "Error al obtener alumnos por academia.",
+    };
+  } catch (error) {
+    const errorMsg =
+      error instanceof Error ? error.message : "Error al obtener alumnos.";
+    return { success: false, error: errorMsg };
+  }
+}
+
 export async function createStudentAction(
   data: unknown
 ): Promise<ApiResponse<StudentWithDetails>> {

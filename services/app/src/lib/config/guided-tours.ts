@@ -133,17 +133,51 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
     steps: [
       {
         titleKey: "tour.exams.step1.title",
-        defaultTitle: "Convocatorias a Examen",
+        defaultTitle: "Programación de Convocatorias",
         descKey: "tour.exams.step1.desc",
         defaultDesc:
-          "Programa convocatorias de graduación y asigna los sinodales encargados de la evaluación.",
+          "Crea convocatorias especificando fecha, cuota/derecho a examen, sinodal encargado, " +
+          "rango de edad elegible (mín/máx) y la plantilla de rúbrica a usar.",
       },
       {
         titleKey: "tour.exams.step2.title",
-        defaultTitle: "Evaluación & Rúbricas",
+        defaultTitle: "Filtros Avanzados y Vistas",
         descKey: "tour.exams.step2.desc",
         defaultDesc:
-          "Califica a los alumnos usando las plantillas de rúbricas configuradas para su disciplina.",
+          "Filtra exámenes por convocatoria activa o histórica, cinturones objetivos o rangos " +
+          "de edad. Alterna libremente entre vista de Tarjetas y Tabla.",
+      },
+      {
+        titleKey: "tour.exams.step3.title",
+        defaultTitle: "Candidatos Elegibles y Padrón",
+        descKey: "tour.exams.step3.desc",
+        defaultDesc:
+          "Consulta al instante los practicantes convocados, aprueba su derecho a examen y " +
+          "verifica el cumplimiento de requisitos de asistencia y antigüedad.",
+      },
+      {
+        titleKey: "tour.exams.step4.title",
+        defaultTitle: "Evaluación Tatami (Semáforo)",
+        descKey: "tour.exams.step4.desc",
+        defaultDesc:
+          "Califica rápido en tatami desde tu móvil o tablet con los 3 botones del semáforo: " +
+          "🟩 Dominado (100%), 🟡 En Proceso (75%), 🔴 No Apto (0%).",
+      },
+      {
+        titleKey: "tour.exams.step5.title",
+        defaultTitle: "Certificados PDF & Diplomas",
+        descKey: "tour.exams.step5.desc",
+        defaultDesc:
+          "Al finalizar la evaluación, genera e imprime diplomas digitales oficiales de " +
+          "graduación en PDF con firmas y código QR para los aprobados.",
+      },
+      {
+        titleKey: "tour.exams.step6.title",
+        defaultTitle: "Protección de Registros",
+        descKey: "tour.exams.step6.desc",
+        defaultDesc:
+          "El sistema previene la eliminación accidental de convocatorias si ya existen " +
+          "evaluaciones o actas de grado dependientes.",
       },
     ],
   },
@@ -192,14 +226,16 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
         defaultTitle: "Plantillas Estándar",
         descKey: "tour.disciplines.step3.desc",
         defaultDesc:
-          "Usa el botón 'Cargar Plantilla' para importar en 1-clic la estructura de cinturones de artes marciales conocidas.",
+          "Usa el botón 'Cargar Plantilla' para importar en 1-clic la estructura de cinturones " +
+          "de artes marciales conocidas.",
       },
       {
         titleKey: "tour.disciplines.step4.title",
         defaultTitle: "Jerarquía y Estado",
         descKey: "tour.disciplines.step4.desc",
         defaultDesc:
-          "Usa las flechas (▲/▼) de cada cinturón para ajustar el orden jerárquico de graduación, o marca la disciplina como Inactiva.",
+          "Usa las flechas (▲/▼) de cada cinturón para ajustar el orden jerárquico de graduación, " +
+          "o marca la disciplina como Inactiva.",
       },
     ],
   },
@@ -210,17 +246,43 @@ export const DASHBOARD_TOURS: Record<string, PageTour> = {
     steps: [
       {
         titleKey: "tour.rubrics.step1.title",
-        defaultTitle: "Plantillas y Rúbricas",
+        defaultTitle: "Rúbricas Semafóricas Tatami",
         descKey: "tour.rubrics.step1.desc",
         defaultDesc:
-          "Diseña rúbricas estandarizadas para evaluar formas, técnica y acondicionamiento físico.",
+          "Configura rúbricas de evaluación rápida en tatami con 3 estados visuales " +
+          "(🟩 100% Dominado, 🟡 75% En proceso, 🔴 0% No Apto).",
       },
       {
         titleKey: "tour.rubrics.step2.title",
-        defaultTitle: "Criterios Personalizados",
+        defaultTitle: "Leyenda Visual de Evaluación",
         descKey: "tour.rubrics.step2.desc",
         defaultDesc:
-          "Crea criterios de evaluación con puntajes específicos para cada grado o cinturón.",
+          "Consulta en el panel superior la guía de los 3 estados semafóricos (Verde = Ejecución " +
+          "impecable, Amarillo = Ajuste menor, Rojo = Mayor práctica).",
+      },
+      {
+        titleKey: "tour.rubrics.step3.title",
+        defaultTitle: "Categorías Marciales",
+        descKey: "tour.rubrics.step3.desc",
+        defaultDesc:
+          "Clasifica cada criterio en TÉCNICA, ACTITUD, FÍSICO o GENERAL para obtener un " +
+          "diagnóstico marcial completo del practicante.",
+      },
+      {
+        titleKey: "tour.rubrics.step4.title",
+        defaultTitle: "Carga Rápida de Criterios",
+        descKey: "tour.rubrics.step4.desc",
+        defaultDesc:
+          "Al crear una plantilla nueva, el sistema te ofrece 4 criterios clave prediseñados " +
+          "(Posturas/Kata, Golpes, Espíritu/Kiai y Condición Física).",
+      },
+      {
+        titleKey: "tour.rubrics.step5.title",
+        defaultTitle: "Asignación por Disciplina",
+        descKey: "tour.rubrics.step5.desc",
+        defaultDesc:
+          "Asocia tus rúbricas a una disciplina marcial específica (Kung Fu, Sanda, Taekwondo, " +
+          "BJJ) o mantenla general para todo tu Dojo.",
       },
     ],
   },

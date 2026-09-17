@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trophy,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useBrand } from "@/context/brand-context";
@@ -875,6 +876,10 @@ function ExamsContent() {
   };
 
   const handleOpenEditModal = async (ex: ExtendedGradeExam) => {
+    if (ex.status === "COMPLETED") {
+      toast.error("Esta convocatoria ya fue concluida y no se puede editar.");
+      return;
+    }
     setEditingExam(ex);
     setMinBeltId(ex.minBeltId || "");
     setMaxBeltId(ex.maxBeltId || "");
@@ -1154,6 +1159,9 @@ function ExamsContent() {
                 (ev) => ev.status === "PASSED" || (ev.score && ev.score >= 7.0)
               ).length || 0;
 
+            const isCompleted = ex.status === "COMPLETED";
+            const isExecuting = ex.status === "IN_PROGRESS";
+
             return (
               <Card
                 key={ex.id}
@@ -1162,36 +1170,63 @@ function ExamsContent() {
                 <div className="p-5 space-y-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <Badge
-                        variant="outline"
-                        className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-bold mb-1.5"
-                      >
-                        {ex.discipline?.name || "Disciplina"}
-                      </Badge>
+                      <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-bold"
+                        >
+                          {ex.discipline?.name || "Disciplina"}
+                        </Badge>
+
+                        {!isCompleted && (
+                          isExecuting ? (
+                            <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] font-extrabold uppercase">
+                              ⚡ {t("dojo.statusTatami", "En Tatami • Evaluación")}
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 text-[10px] font-extrabold uppercase">
+                              📅 {t("dojo.statusOpen", "Abierta • Convocatoria")}
+                            </Badge>
+                          )
+                        )}
+                      </div>
+
                       <h3 className="font-bold text-base text-zinc-900 dark:text-white leading-snug">
                         {ex.title}
                       </h3>
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-amber-500 cursor-pointer"
-                        onClick={() => handleOpenEditModal(ex)}
-                        title="Editar Examen"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-zinc-400 hover:text-rose-500 cursor-pointer"
-                        onClick={() => setDeletingExam(ex)}
-                        title="Eliminar Examen"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {isCompleted ? (
+                        <div
+                          className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl"
+                          title={t("dojo.statusCompletedShort", "Concluido")}
+                        >
+                          <Lock className="h-3.5 w-3.5" />
+                          <span>{t("dojo.statusCompletedShort", "Concluido")}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-zinc-400 hover:text-amber-500 cursor-pointer"
+                            onClick={() => handleOpenEditModal(ex)}
+                            title={t("dojo.editExam", "Editar Examen")}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-zinc-400 hover:text-rose-500 cursor-pointer"
+                            onClick={() => setDeletingExam(ex)}
+                            title={t("dojo.deleteExam", "Eliminar Examen")}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1263,30 +1298,44 @@ function ExamsContent() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleOpenCandidatesManager(ex)}
-                      className={
-                        "text-xs font-bold rounded-xl border-amber-500/30 " +
-                        "text-amber-600 dark:text-amber-400 " +
-                        "hover:bg-amber-500/10 cursor-pointer"
-                      }
-                    >
-                      <UserCheck className="h-3.5 w-3.5 mr-1" />{" "}
-                      {t("dojo.convocatoria", "Convocatoria")}
-                    </Button>
+                    {isCompleted ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled
+                        className="text-xs font-bold rounded-xl opacity-50 cursor-not-allowed border-zinc-300 dark:border-zinc-700 text-zinc-400"
+                        title="Examen concluido. No se pueden convocar más alumnos."
+                      >
+                        <Lock className="h-3.5 w-3.5 mr-1" />
+                        {t("dojo.convocatoria", "Convocatoria")}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleOpenCandidatesManager(ex)}
+                        className={
+                          "text-xs font-bold rounded-xl border-amber-500/30 " +
+                          "text-amber-600 dark:text-amber-400 " +
+                          "hover:bg-amber-500/10 cursor-pointer"
+                        }
+                      >
+                        <UserCheck className="h-3.5 w-3.5 mr-1" />{" "}
+                        {t("dojo.convocatoria", "Convocatoria")}
+                      </Button>
+                    )}
 
                     <Button
                       size="sm"
                       onClick={() => handleOpenEvaluation(ex)}
-                      className={
-                        "text-xs font-bold rounded-xl bg-amber-500 " +
-                        "hover:bg-amber-600 text-zinc-950 cursor-pointer"
-                      }
+                      className={`text-xs font-bold rounded-xl cursor-pointer ${
+                        isCompleted
+                          ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                          : "bg-amber-500 hover:bg-amber-600 text-zinc-950"
+                      }`}
                     >
                       <Award className="h-3.5 w-3.5 mr-1" />{" "}
-                      {t("dojo.evaluarTatami", "Evaluar Tatami")}
+                      {isCompleted ? t("dojo.verResultados", "Ver Resultados") : t("dojo.evaluarTatami", "Evaluar Tatami")}
                     </Button>
                   </div>
                 </div>
@@ -1318,64 +1367,112 @@ function ExamsContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {exams.map((ex) => (
-                <TableRow key={ex.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
-                  <TableCell className="py-3 font-bold text-xs text-zinc-900 dark:text-white">
-                    <div>{ex.title}</div>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                      {(ex.minBelt || ex.maxBelt) && (
-                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block">
-                          🎯 De {ex.minBelt?.name || t("dojo.initialRank", "Inicial")} a{" "}
-                          {ex.maxBelt?.name || t("dojo.maxRank", "Máximo")}
-                        </span>
-                      )}
-                      {(ex.minAge !== null && ex.minAge !== undefined ||
-                        ex.maxAge !== null && ex.maxAge !== undefined) && (
-                        <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold block">
-                          🎂 {ex.minAge && ex.maxAge
-                            ? `${ex.minAge}-${ex.maxAge} ${t("dojo.yearsOld", "años")}`
-                            : ex.minAge
-                            ? `≥ ${ex.minAge} ${t("dojo.yearsOld", "años")}`
-                            : `≤ ${ex.maxAge} ${t("dojo.yearsOld", "años")}`}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    <Badge variant="outline" className="text-[10px] font-bold">
-                      {ex.discipline?.name || t("dojo.generalDiscipline", "General")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-zinc-500">
-                    <div>{new Date(ex.examDate).toLocaleDateString()}</div>
-                    <div className="text-[11px] text-zinc-400 truncate max-w-[150px]">
-                      {ex.location}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                    {ex.evaluations?.length || 0} {t("dojo.studentsCount", "alumnos")}
-                  </TableCell>
-                  <TableCell className="text-right py-3">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleOpenCandidatesManager(ex)}
-                        className="text-xs rounded-xl h-8 px-2.5"
-                      >
-                        {t("dojo.convocatoria", "Convocatoria")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleOpenEvaluation(ex)}
-                        className="bg-amber-500 text-zinc-950 text-xs font-bold rounded-xl h-8 px-2.5"
-                      >
-                        {t("dojo.evaluarTatami", "Evaluar")}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {exams.map((ex) => {
+                const isCompletedTable = ex.status === "COMPLETED";
+                const isExecutingTable = ex.status === "IN_PROGRESS";
+
+                return (
+                  <TableRow key={ex.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
+                    <TableCell className="py-3 font-bold text-xs text-zinc-900 dark:text-white">
+                      <div className="flex items-center gap-2">
+                        <span>{ex.title}</span>
+                        {isCompletedTable ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] font-extrabold uppercase">
+                            ✓ Concluido
+                          </Badge>
+                        ) : isExecutingTable ? (
+                          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px] font-extrabold uppercase">
+                            ⚡ En Curso
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 text-[10px] font-extrabold uppercase">
+                            Planificado
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        {(ex.minBelt || ex.maxBelt) && (
+                          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold block">
+                            🎯 De {ex.minBelt?.name || t("dojo.initialRank", "Inicial")} a{" "}
+                            {ex.maxBelt?.name || t("dojo.maxRank", "Máximo")}
+                          </span>
+                        )}
+                        {(ex.minAge !== null && ex.minAge !== undefined ||
+                          ex.maxAge !== null && ex.maxAge !== undefined) && (
+                          <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold block">
+                            🎂 {ex.minAge && ex.maxAge
+                              ? `${ex.minAge}-${ex.maxAge} ${t("dojo.yearsOld", "años")}`
+                              : ex.minAge
+                              ? `≥ ${ex.minAge} ${t("dojo.yearsOld", "años")}`
+                              : `≤ ${ex.maxAge} ${t("dojo.yearsOld", "años")}`}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <Badge variant="outline" className="text-[10px] font-bold">
+                        {ex.discipline?.name || t("dojo.generalDiscipline", "General")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-zinc-500">
+                      <div>{new Date(ex.examDate).toLocaleDateString()}</div>
+                      <div className="text-[11px] text-zinc-400 truncate max-w-[150px]">
+                        {ex.location}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                      {ex.evaluations?.length || 0} {t("dojo.studentsCount", "alumnos")}
+                    </TableCell>
+                    <TableCell className="text-right py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {isCompletedTable ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              className="text-xs rounded-xl h-8 px-2.5 opacity-50 cursor-not-allowed"
+                              title="Examen concluido. No se pueden convocar más alumnos."
+                            >
+                              <Lock className="h-3.5 w-3.5 mr-1" />
+                              {t("dojo.convocatoria", "Convocatoria")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenEvaluation(ex)}
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl h-8 px-2.5"
+                            >
+                              <Award className="h-3.5 w-3.5 mr-1" />
+                              {t("dojo.verResultados", "Ver Resultados")}
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenCandidatesManager(ex)}
+                              className="text-xs rounded-xl h-8 px-2.5"
+                            >
+                              <UserCheck className="h-3.5 w-3.5 mr-1" />
+                              {t("dojo.convocatoria", "Convocatoria")}
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenEvaluation(ex)}
+                              className="bg-amber-500 text-zinc-950 text-xs font-bold rounded-xl h-8 px-2.5"
+                            >
+                              <Award className="h-3.5 w-3.5 mr-1" />
+                              {t("dojo.evaluarTatami", "Evaluar")}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
 
@@ -2562,7 +2659,7 @@ function ExamsContent() {
               <AlertTriangle className="h-5 w-5 shrink-0" />{" "}
               {t("dojo.deleteExamTitle", "¿Eliminar Convocatoria?")}
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-600 dark:text-zinc-300 pt-1 space-y-2">
+            <DialogDescription asChild className="text-xs text-zinc-600 dark:text-zinc-300 pt-1 space-y-2">
               <div>
                 {t("dojo.deleteExamSub", "Estás a punto de eliminar la convocatoria")}{" "}
                 <strong className="text-zinc-900 dark:text-white">

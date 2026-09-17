@@ -207,12 +207,20 @@ export async function updateGradeExamAction(
       select: {
         brandId: true,
         disciplineId: true,
+        status: true,
         evaluations: { select: { id: true } },
       },
     });
 
     if (!existing) {
       return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (existing.status === "COMPLETED") {
+      return {
+        success: false,
+        error: "Esta convocatoria ya fue concluida y no puede ser modificada.",
+      };
     }
 
     if (tenant.effectiveBrandId && existing.brandId !== tenant.effectiveBrandId) {
@@ -227,7 +235,8 @@ export async function updateGradeExamAction(
         return {
           success: false,
           error:
-            "No se puede modificar la disciplina de una convocatoria que ya tiene estudiantes asignados.",
+            "No se puede modificar la disciplina de una convocatoria " +
+            "que ya tiene estudiantes asignados.",
         };
       }
     }
@@ -270,12 +279,20 @@ export async function deleteGradeExamAction(
       where: { id },
       select: {
         brandId: true,
+        status: true,
         evaluations: { select: { id: true } },
       },
     });
 
     if (!existing) {
       return { success: false, error: "Examen no encontrado." };
+    }
+
+    if (existing.status === "COMPLETED") {
+      return {
+        success: false,
+        error: "Esta convocatoria ya fue concluida y no puede ser eliminada.",
+      };
     }
 
     if (tenant.effectiveBrandId && existing.brandId !== tenant.effectiveBrandId) {

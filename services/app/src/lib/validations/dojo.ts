@@ -50,7 +50,29 @@ export const tournamentSchema = z.object({
   title: z.string().trim().min(3, "El nombre del torneo es requerido.").max(120),
   description: z.string().trim().max(500).optional().nullable(),
   location: z.string().trim().max(150).optional().nullable(),
+  city: z.string().trim().max(100).optional().nullable(),
+  country: z.string().trim().max(100).optional().nullable(),
+  googleMapsUrl: z.string().trim().max(500).optional().nullable(),
   tournamentDate: z.string().min(1, "La fecha del torneo es requerida."),
+  endDate: z.string().optional().nullable(),
+  feeAmount: z.coerce.number().min(0).default(0),
+  currency: z.string().trim().length(3).default("MXN"),
+});
+
+export const externalCompetitorSchema = z.object({
+  firstName: z.string().trim().min(2, "El nombre es requerido.").max(60),
+  lastName: z.string().trim().max(60).optional().nullable(),
+  email: z.string().trim().email("Email inválido.").optional().or(z.literal("")),
+  phone: z.string().trim().max(30).optional().nullable(),
+  age: z.number().min(3).max(99).optional().nullable(),
+  gender: z.enum(["MALE", "FEMALE", "MIXED"]).default("MIXED"),
+  weightKg: z.number().min(1).max(300).optional().nullable(),
+  dojoName: z.string().trim().max(100).optional().nullable(),
+  beltName: z.string().trim().max(60).optional().nullable(),
+  emergencyContact: z.string().trim().max(120).optional().nullable(),
+  feeAmount: z.number().min(0).default(0),
+  paymentStatus: z.enum(["PENDING", "PAID"]).default("PENDING"),
+  categoryId: z.string().optional().nullable(),
 });
 
 export type CreateDisciplineInput = z.infer<typeof disciplineSchema>;
@@ -58,3 +80,4 @@ export type CreateBeltInput = z.infer<typeof beltSchema>;
 export type CreatePhysicalChallengeInput = z.infer<typeof physicalChallengeSchema>;
 export type CreateGradeExamInput = z.infer<typeof gradeExamSchema>;
 export type CreateTournamentInput = z.infer<typeof tournamentSchema>;
+export type CreateExternalCompetitorInput = z.infer<typeof externalCompetitorSchema>;

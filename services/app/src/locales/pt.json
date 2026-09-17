@@ -228,6 +228,7 @@
     "passedSuffix": "aprovados",
     "convocatoria": "Convocatória",
     "evaluarTatami": "Avaliar Tatame",
+    "verResultados": "Ver Resultados",
     "generalDiscipline": "Geral",
     "studentsCount": "alunos",
     "viewCards": "Cartões",
@@ -238,6 +239,11 @@
     "statusOpen": "Aberto • Inscrições",
     "statusTatami": "▶ No Tatame • Avaliação",
     "statusCompleted": "✓ Concluído & Certificado",
+    "statusCompletedShort": "Concluído",
+    "cannotEditCompleted": "Esta convocatória já foi concluída e não pode ser editada.",
+    "cannotDeleteCompleted": "Esta convocatória já foi concluída e não pode ser eliminada.",
+    "editExam": "Editar Exame",
+    "deleteExam": "Excluir Exame",
     "defaultLocation": "Dojo Principal",
     "examFeeLabel": "Taxa de Exame:",
     "candidatesEnrolled": "Alumnos Convocados",
@@ -1415,12 +1421,28 @@
     "exams": {
       "title": "Exames de Graduação",
       "step1": {
-        "title": "Convocatórias de Exame",
-        "desc": "Agende convocatórias de graduação e atribua os examinadores responsáveis pela avaliação."
+        "title": "Agendamento de Convocatórias",
+        "desc": "Crie convocatórias especificando data, taxa de exame, examinador responsável, faixa etária elegível (mín/máx) e modelo de rubrica."
       },
       "step2": {
-        "title": "Avaliação e Rubricas",
-        "desc": "Avalie os alunos usando os modelos de rubricas configurados para sua disciplina."
+        "title": "Filtros Avançados e Visualizações",
+        "desc": "Filtre exames por convocatórias ativas ou históricas, faixas alvo ou faixas etárias. Alterne livremente entre visualização em Cartões e Tabela."
+      },
+      "step3": {
+        "title": "Candidatos Elegíveis e Lista",
+        "desc": "Consulte instantaneamente os alunos convocados, aprove a taxa de exame e verifique o cumprimento dos requisitos de presença e carência."
+      },
+      "step4": {
+        "title": "Avaliação Tatame (Semáforo)",
+        "desc": "Avalie rapidamente no tatame pelo seu celular ou tablet com os 3 botões do semáforo: 🟩 Dominado (100%), 🟡 Em Processo (75%), 🔴 Não Apto (0%)."
+      },
+      "step5": {
+        "title": "Certificados PDF e Diplomas",
+        "desc": "Ao finalizar a avaliação, gere e imprima diplomas digitais oficiais de graduação em PDF com assinaturas e QR code para os aprovados."
+      },
+      "step6": {
+        "title": "Proteção de Registros",
+        "desc": "O sistema previne a exclusão acidental de convocatórias se já existirem avaliações ou registros de graduação vinculados."
       }
     },
     "tournaments": {
@@ -1456,12 +1478,24 @@
     "rubrics": {
       "title": "Modelos e Rubricas",
       "step1": {
-        "title": "Modelos e Rubricas",
-        "desc": "Desenhe rubricas padronizadas para avaliar formas, técnica e condicionamento físico."
+        "title": "Rubricas Semafóricas Tatame",
+        "desc": "Configure rubricas de avaliação rápida no tatame com 3 estados visuais (🟩 100% Dominado, 🟡 75% Em processo, 🔴 0% Não Apto)."
       },
       "step2": {
-        "title": "Critérios Personalizados",
-        "desc": "Crie critérios de avaliação com pontuações específicas para cada faixa."
+        "title": "Guia Visual de Avaliação",
+        "desc": "Consulte no painel superior o guia dos 3 estados semafóricos (Verde = Execução impecable, Amarelo = Ajuste menor, Vermelho = Mais prática)."
+      },
+      "step3": {
+        "title": "Categorias Marciais",
+        "desc": "Classifique cada critério em TÉCNICA, ATITUDE, FÍSICO ou GERAL para obter um diagnóstico marcial completo do praticante."
+      },
+      "step4": {
+        "title": "Carregamento Rápido de Critérios",
+        "desc": "Ao criar um novo modelo, o sistema sugere 4 critérios chave pré-configurados (Posturas/Kata, Golpes, Espírito/Kiai e Condição Física)."
+      },
+      "step5": {
+        "title": "Atribuição por Disciplina",
+        "desc": "Vincule seus modelos a uma disciplina marcial específica (Kung Fu, Sanda, Taekwondo, BJJ) ou mantenha geral para todo o seu Dojo."
       }
     },
     "effortPath": {
@@ -1670,5 +1704,72 @@
     "filterDueSoon": "🟡 A Vencer",
     "filterUnpaid": "🔴 Pendentes / Atrasados",
     "lastPaymentLabel": "Último Pagamento:"
+  },
+  "tournamentsPage": {
+    "title": "Torneios Internos & Brackets",
+    "subtitle": "Gerencie competições do dojo, convocatórias de combate/formas, chaves de eliminação, pesagem e premiações.",
+    "createButton": "Novo Torneio",
+    "proPlanRequired": "O Plano Profissional é necessário para habilitar o módulo de Torneios Internos e Brackets.",
+    "upgradePlanBtn": "Atualizar para Plano Pro",
+    "duplicateButton": "Duplicar Torneio",
+    "copySuccess": "Torneio duplicado com sucesso.",
+    "duplicateConfirm": "Duplicar torneio \"{title}\"?",
+    "duplicateDesc": "Uma cópia em rascunho com as mesmas categorias configuradas será criada.",
+    "tabParticipants": "Participantes",
+    "tabCategories": "Categorias",
+    "tabCheckIn": "Registro Presencial / Pesagem",
+    "tabStatus": "Status do Torneio",
+    "tabBrackets": "Chaves de Combate / Brackets",
+    "tabDiploma": "Configurações & Diplomas",
+    "enrolledTab": "Inscritos",
+    "searchDojoTab": "Buscar Aluno Dojo",
+    "quickAddExternalTab": "Cadastro Rápido Externo",
+    "quickPaymentTitle": "Pagamento Rápido da Taxa do Torneio",
+    "quickPaymentDesc": "Registre o pagamento da inscrição e insira a transação no saldo financeiro da marca.",
+    "printCertificatesBtn": "Imprimir Diplomas de Participação (PDF)",
+    "printWinnersBtn": "Imprimir Diplomas dos Vencedores (1º ao 3º)",
+    "goldAward": "🥇 1º Lugar (Ouro)",
+    "silverAward": "🥈 2º Lugar (Prata)",
+    "bronzeAward": "🥉 3º Lugar (Bronze)",
+    "participantAward": "🎖️ Participação Geral",
+    "checkInSuccess": "Pesagem e presença confirmadas.",
+    "generateBracketsBtn": "Gerar Chaves de Combate",
+    "generateBracketsSuccess": "Chaves de combate geradas com sucesso.",
+    "minCompetitorsError": "São necessários pelo menos 2 competidores para gerar as chaves.",
+    "kpiTotalTournaments": "Torneios Registrados",
+    "kpiActiveTournaments": "Torneios Ativos",
+    "kpiTotalParticipants": "Competidores Inscritos",
+    "kpiTotalCategories": "Categorias Criadas",
+    "searchPlaceholder": "Buscar torneio por nome ou local...",
+    "viewCards": "Cartões",
+    "viewList": "Tabela",
+    "statusFinished": "Finalizado",
+    "statusInProgress": "Em Execução",
+    "statusDraft": "Rascunho",
+    "executeBtn": "Executar",
+    "categoriesCount": "categorias",
+    "participantsCount": "competidores",
+    "createModalTitle": "Criar Novo Torneio",
+    "editModalTitle": "Editar Torneio",
+    "tournamentNameLabel": "Nome do Torneio",
+    "tournamentNamePlaceholder": "ex. Campeonato de Outono 2026",
+    "locationLabel": "Local / Tatame",
+    "locationPlaceholder": "ex. Dojo Central - Tatame Principal",
+    "dateLabel": "Data Programada",
+    "descriptionLabel": "Descrição / Regulamento",
+    "descriptionPlaceholder": "ex. Campeonato oficial do dojo e regulamento geral.",
+    "saving": "Salvando...",
+    "createModalBtn": "Criar Torneio",
+    "saveChangesBtn": "Salvar Alterações",
+    "startDateLabel": "Data e Hora de Início",
+    "endDateLabel": "Data de Término (Opcional)",
+    "venueLabel": "Local / Sede",
+    "venuePlaceholder": "ex. Clube de Xadrez / Dojo Central",
+    "cityLabel": "Cidade",
+    "cityPlaceholder": "ex. Madri / São Paulo",
+    "countryLabel": "País",
+    "countryPlaceholder": "ex. Espanha / Brasil",
+    "googleMapsUrlLabel": "Localização no Google Maps (URL)",
+    "googleMapsUrlPlaceholder": "https://maps.google.com/..."
   }
 }

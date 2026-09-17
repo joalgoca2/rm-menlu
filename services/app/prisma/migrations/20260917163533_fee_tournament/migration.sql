@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "tournaments" ADD COLUMN     "currency" TEXT NOT NULL DEFAULT 'MXN',
+ADD COLUMN     "fee_amount" DOUBLE PRECISION NOT NULL DEFAULT 0;

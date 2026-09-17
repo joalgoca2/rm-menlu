@@ -14,6 +14,14 @@ export interface BrandPaymentConfig {
   updatedAt: Date | string;
 }
 
+export type SaaSPaymentStatus =
+  | "COMPLETED"
+  | "SUCCESS"
+  | "PENDING"
+  | "FAILED"
+  | "REFUNDED"
+  | "CANCELED";
+
 export interface PaymentTransaction {
   id: string;
   ownerType: PaymentOwnerType;
@@ -24,7 +32,7 @@ export interface PaymentTransaction {
   checkoutUrl?: string | null;
   amount: number;
   currency: string;
-  status: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED" | string;
+  status: SaaSPaymentStatus;
   metadata?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;

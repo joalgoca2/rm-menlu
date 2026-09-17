@@ -27,7 +27,7 @@ function applySecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set("Content-Security-Policy", cspHeader);
   res.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=()"
+    "camera=(self), microphone=(), geolocation=(), payment=()"
   );
   res.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   res.headers.set("Cross-Origin-Resource-Policy", "same-origin");

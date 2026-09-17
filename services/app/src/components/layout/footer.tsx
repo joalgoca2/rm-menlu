@@ -15,7 +15,8 @@ export function Footer() {
     pathname?.startsWith("/register") ||
     pathname?.startsWith("/forgot-password") ||
     pathname?.startsWith("/reset-password") ||
-    pathname?.startsWith("/brand");
+    pathname?.startsWith("/brand") ||
+    pathname?.startsWith("/tournaments");
 
   if (isDashboardOrAuth) {
     return null;

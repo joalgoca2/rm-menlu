@@ -17,6 +17,7 @@ export interface Brand {
 export interface DiplomaConfig {
   id: string;
   brandId: string;
+  type?: "EXAM" | "TOURNAMENT" | string;
   template: string;
   layout: string;
   isBlankMode: boolean;

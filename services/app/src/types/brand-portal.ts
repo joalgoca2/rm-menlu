@@ -11,6 +11,13 @@ export interface BrandPlanConfig {
   updatedAt?: string | Date;
 }
 
+export type BrandPaymentStatus =
+  | "SUCCESS"
+  | "PENDING"
+  | "FAILED"
+  | "REFUNDED"
+  | "CANCELLED";
+
 export interface BrandCustomerPayment {
   id: string;
   brandId: string;
@@ -21,7 +28,7 @@ export interface BrandCustomerPayment {
   concept: string;
   amount: number;
   currency: string;
-  status: "PENDING" | "SUCCESS" | "FAILED" | string;
+  status: BrandPaymentStatus;
   gatewayProvider: string;
   transactionRef?: string | null;
   checkoutUrl?: string | null;

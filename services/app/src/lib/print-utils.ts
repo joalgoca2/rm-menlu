@@ -542,3 +542,280 @@ export function printStudentCredentials(students: StudentWithDetails[]) {
   printWindow.document.write(htmlDoc);
   printWindow.document.close();
 }
+
+export interface PrintTournamentDiplomasOptions {
+  tournamentTitle: string;
+  tournamentDateStr?: string;
+  participants: Array<{
+    id: string;
+    firstName: string;
+    lastName?: string | null;
+    dojoName?: string | null;
+    categoryName?: string | null;
+    awardRank?: string | null;
+  }>;
+  diplomaConfig?: {
+    institutionName?: string | null;
+    reasonText?: string | null;
+    dateText?: string | null;
+    schoolLogoSubtext?: string | null;
+    sig1Name?: string | null;
+    sig1Role?: string | null;
+    sig2Name?: string | null;
+    sig2Role?: string | null;
+    backgroundUrl?: string | null;
+  } | null;
+  mode: "PARTICIPATION" | "WINNERS";
+}
+
+export function printTournamentDiplomas({
+  tournamentTitle,
+  tournamentDateStr,
+  participants,
+  diplomaConfig,
+  mode,
+}: PrintTournamentDiplomasOptions) {
+  if (!participants || participants.length === 0) return;
+
+  const targetParticipants =
+    mode === "WINNERS"
+      ? participants.filter((p) =>
+          ["GOLD", "SILVER", "BRONZE"].includes(p.awardRank || "")
+        )
+      : participants;
+
+  if (targetParticipants.length === 0) {
+    alert("No hay competidores que califiquen para este tipo de diploma.");
+    return;
+  }
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    alert("Por favor, permite las ventanas emergentes en tu navegador.");
+    return;
+  }
+
+  const instName =
+    diplomaConfig?.institutionName || "Menlu 门路 • Torneo de Artes Marciales";
+  const subtext =
+    diplomaConfig?.schoolLogoSubtext || "Comité Organizador del Torneo";
+  const defaultReason =
+    mode === "WINNERS"
+      ? "Por haber obtenido un lugar de honor en el Podio de Ganadores del Torneo."
+      : "Por su destacada participación y alto espíritu marcial en el Torneo.";
+  const reasonText = diplomaConfig?.reasonText || defaultReason;
+  const dateStr =
+    diplomaConfig?.dateText || tournamentDateStr || new Date().toLocaleDateString("es-ES");
+  const bgUrl = diplomaConfig?.backgroundUrl || null;
+  const sig1N = diplomaConfig?.sig1Name || "Director del Torneo";
+  const sig1R = diplomaConfig?.sig1Role || "Juez Principal";
+  const sig2N = diplomaConfig?.sig2Name || "Presidente de Asociación";
+  const sig2R = diplomaConfig?.sig2Role || "Certificación Oficial";
+
+  const pagesHtml = targetParticipants
+    .map((p) => {
+      const name = `${p.firstName} ${p.lastName || ""}`.trim();
+      const placeText =
+        p.awardRank === "GOLD"
+          ? "🏆 PRIMER LUGAR (MEDALLA DE ORO)"
+          : p.awardRank === "SILVER"
+          ? "🥈 SEGUNDO LUGAR (MEDALLA DE PLATA)"
+          : p.awardRank === "BRONZE"
+          ? "🥉 TERCER LUGAR (MEDALLA DE BRONCE)"
+          : "RECONOCIMIENTO DE PARTICIPACIÓN";
+
+      return `
+        <div class="diploma-page">
+          ${
+            bgUrl
+              ? `<img src="${bgUrl}" class="bg-img" />`
+              : `<div class="border-frame"></div>`
+          }
+          <div class="content">
+            <div class="subtext">${subtext}</div>
+            <div class="title">${instName}</div>
+            <div class="divider"></div>
+            <div class="award-label">OTORGA EL PRESENTE DIPLOMA A</div>
+            <div class="competitor-name">${name}</div>
+            <div class="reason">"${reasonText}"</div>
+            <div class="tournament-info">
+              <strong>${tournamentTitle}</strong> • ${p.categoryName || "Categoría General"}
+            </div>
+            <div class="place-badge">${placeText}</div>
+            <div class="date-text">${dateStr}</div>
+
+            <div class="signatures">
+              <div class="sig-box">
+                <div class="sig-name">${sig1N}</div>
+                <div class="sig-role">${sig1R}</div>
+              </div>
+              <div class="sig-box">
+                <div class="sig-name">${sig2N}</div>
+                <div class="sig-role">${sig2R}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  const htmlDoc = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Diplomas de Torneo - ${tournamentTitle}</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Times New Roman', Georgia, serif;
+      background: #ffffff;
+      color: #000000;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .diploma-page {
+      width: 297mm;
+      height: 210mm;
+      position: relative;
+      page-break-after: always;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .diploma-page:last-child {
+      page-break-after: avoid;
+    }
+    .bg-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+    .border-frame {
+      position: absolute;
+      inset: 12mm;
+      border: 4px double #d97706;
+      z-index: 1;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      width: 80%;
+      margin: 0 auto;
+    }
+    .subtext {
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: #d97706;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      color: #111827;
+      margin-bottom: 12px;
+    }
+    .divider {
+      width: 120px;
+      height: 2px;
+      background: #d97706;
+      margin: 0 auto 16px auto;
+    }
+    .award-label {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #4b5563;
+      margin-bottom: 12px;
+    }
+    .competitor-name {
+      font-size: 36px;
+      font-weight: bold;
+      color: #b45309;
+      margin-bottom: 16px;
+    }
+    .reason {
+      font-size: 14px;
+      font-style: italic;
+      color: #374151;
+      max-width: 600px;
+      margin: 0 auto 16px auto;
+      line-height: 1.5;
+    }
+    .tournament-info {
+      font-size: 14px;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    .place-badge {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: bold;
+      color: #d97706;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    .date-text {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 40px;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-around;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .sig-box {
+      border-top: 1px solid #9ca3af;
+      padding-top: 4px;
+      min-width: 180px;
+    }
+    .sig-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: #111827;
+    }
+    .sig-role {
+      font-size: 11px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  ${pagesHtml}
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 400);
+    };
+    window.onafterprint = function() {
+      window.close();
+    };
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(htmlDoc);
+  printWindow.document.close();
+}
+

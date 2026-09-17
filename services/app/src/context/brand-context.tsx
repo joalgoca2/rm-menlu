@@ -3,16 +3,19 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getBrandsList } from "@/actions/brand";
 
-interface BrandItem {
+export interface BrandItem {
   id: string;
   name: string;
   currency?: string;
+  planName?: string;
 }
 
 interface BrandContextType {
   selectedBrandId: string;
   setSelectedBrandId: (id: string) => void;
   brands: BrandItem[];
+  activeBrand?: BrandItem;
+  activePlanName: string;
   isGlobalMode: boolean;
   isLoading: boolean;
 }
@@ -53,12 +56,20 @@ export function BrandProvider({ children }: { children: React.ReactNode }) {
 
   const isGlobalMode = selectedBrandId === "ALL";
 
+  const activeBrand = isGlobalMode
+    ? brands[0]
+    : brands.find((b) => b.id === selectedBrandId) || brands[0];
+
+  const activePlanName = activeBrand?.planName || "Pro";
+
   return (
     <BrandContext.Provider
       value={{
         selectedBrandId,
         setSelectedBrandId,
         brands,
+        activeBrand,
+        activePlanName,
         isGlobalMode,
         isLoading,
       }}
