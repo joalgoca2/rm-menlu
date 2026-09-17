@@ -249,7 +249,7 @@ export function CustomerMemberPaymentsClient({
                 <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
                   {history.map((h) => {
                     const isSuccess = h.status === "SUCCESS";
-                    const isFailed = h.status === "FAILED" || h.status === "REJECTED";
+                    const isFailed = h.status === "FAILED" || (h.status as string) === "REJECTED";
 
                     return (
                       <tr key={h.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">

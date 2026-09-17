@@ -11,9 +11,7 @@ import {
   MapPin,
   Globe,
   FileText,
-  Activity,
   Loader2,
-  CheckCircle2,
   DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -97,10 +95,15 @@ export function TournamentSettingsTab({
         );
         onRefresh();
       } else {
-        toast.error(res.error || "Error al actualizar torneo.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.updateError", "Error al actualizar torneo.")
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +119,10 @@ export function TournamentSettingsTab({
               {t("tournamentsPage.editGeneralTitle", "Configuración General y Ubicación")}
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Actualiza el nombre, fechas del evento, sede, ciudad y mapa del torneo.
+              {t(
+                "tournamentsPage.editGeneralDesc",
+                "Actualiza el nombre, fechas del evento, sede, ciudad y mapa del torneo."
+              )}
             </p>
           </div>
         </div>
@@ -125,13 +131,16 @@ export function TournamentSettingsTab({
           {/* Row 1: Title */}
           <div>
             <label className="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5">
-              {t("tournamentsPage.titleLabel", "Nombre del Torneo")} *
+              {t("tournamentsPage.tournamentNameLabel", "Nombre del Torneo")} *
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej. Campeonato Anual de Artes Marciales 2026"
+              placeholder={t(
+                "tournamentsPage.tournamentNamePlaceholder",
+                "ej. Campeonato Anual de Artes Marciales 2026"
+              )}
               className={
                 "w-full h-10 px-3.5 text-xs border border-zinc-200 dark:border-zinc-700 " +
                 "rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white " +
@@ -236,7 +245,7 @@ export function TournamentSettingsTab({
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ej. Gimnasio Nuevo León"
+                placeholder={t("tournamentsPage.locationPlaceholder", "ej. Dojo Central - Tatami Principal")}
                 className={
                   "w-full h-10 px-3.5 text-xs border border-zinc-200 dark:border-zinc-700 " +
                   "rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white " +
@@ -253,7 +262,7 @@ export function TournamentSettingsTab({
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Ej. Monterrey"
+                placeholder={t("tournamentsPage.cityPlaceholder", "ej. Monterrey")}
                 className={
                   "w-full h-10 px-3.5 text-xs border border-zinc-200 dark:border-zinc-700 " +
                   "rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white " +
@@ -270,7 +279,7 @@ export function TournamentSettingsTab({
                 type="text"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                placeholder="Ej. México"
+                placeholder={t("tournamentsPage.countryPlaceholder", "ej. México")}
                 className={
                   "w-full h-10 px-3.5 text-xs border border-zinc-200 dark:border-zinc-700 " +
                   "rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white " +
@@ -309,7 +318,10 @@ export function TournamentSettingsTab({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="Escribe detalles adicionales sobre la competencia..."
+              placeholder={t(
+                "tournamentsPage.descriptionPlaceholder",
+                "Escribe detalles adicionales sobre la competencia..."
+              )}
               className={
                 "w-full p-3 text-xs border border-zinc-200 dark:border-zinc-700 " +
                 "rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white " +
@@ -331,12 +343,12 @@ export function TournamentSettingsTab({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Guardando...
+                  {t("tournamentsPage.saving", "Guardando...")}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-1.5" />
-                  Guardar Cambios
+                  {t("tournamentsPage.saveChangesBtn", "Guardar Cambios")}
                 </>
               )}
             </Button>

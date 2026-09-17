@@ -3,6 +3,7 @@
 import { toUtcDate } from "@/lib/date";
 import { getPaymentProvider } from "@/lib/payment";
 import { prisma } from "@/lib/prisma";
+import type { SaaSPaymentStatus } from "@prisma/client";
 import { createLocalizedNotification } from "@/lib/notifications";
 import { triggerOutboundWebhook } from "@/lib/webhook";
 import {
@@ -763,7 +764,7 @@ export async function createPayment(
         amount,
         discountApplied,
         paymentDate: utcPaymentDate,
-        status,
+        status: status as SaaSPaymentStatus,
         billingPeriodStart: utcPeriodStart,
         billingPeriodEnd: utcPeriodEnd,
         notes: notes ?? null,

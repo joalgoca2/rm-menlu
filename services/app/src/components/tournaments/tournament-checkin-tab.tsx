@@ -12,16 +12,12 @@ import {
   User,
   ShieldAlert,
   Save,
-  QrCode,
   Camera,
-  VideoOff,
-  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { TournamentQRScanner } from "./tournament-qr-scanner";
 import { TournamentCheckinExpressModal } from "./tournament-checkin-express-modal";
 
 interface TournamentCheckinTabProps {
@@ -172,7 +168,7 @@ export function TournamentCheckinTab({
             className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs"
           >
             <Camera className="w-4 h-4 mr-1.5" />
-            Abrir Estación de Báscula QR
+            {t("tournamentsPage.openScaleStationBtn", "Abrir Estación de Báscula QR")}
           </Button>
         </div>
 

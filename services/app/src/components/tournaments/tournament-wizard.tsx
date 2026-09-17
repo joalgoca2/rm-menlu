@@ -6,13 +6,10 @@ import {
   ClipboardList,
   Settings,
   Users,
-  Play,
   Flag,
   RefreshCw,
-  Calculator,
   Scale,
   Swords,
-  Loader2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -28,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { updateTournamentStatusAction } from "@/actions/tournaments";
 import { TournamentPreflightModal } from "./tournament-preflight-modal";
+import { useTranslation } from "@/components/providers/i18n-provider";
 import type { Tournament, TournamentCategory, TournamentParticipant } from "@/types";
 
 interface Step {
@@ -60,27 +58,33 @@ export function TournamentWizard({
   onTabChange,
   onRefresh,
 }: TournamentWizardProps) {
+  const { t } = useTranslation();
   const currentStatus = tournament.status || "DRAFT";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingNextStatus, setPendingNextStatus] = useState<string | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [recalculateDialogOpen, setRecalculateDialogOpen] = useState(false);
   const [preflightDialogOpen, setPreflightDialogOpen] = useState(false);
 
   const steps: Step[] = [
     {
       id: "REGISTRATION",
       tabKey: "participants",
-      title: "Registro",
-      description: "Inscribe a los participantes",
+      title: t("tournamentsPage.stepRegistration", "Registro"),
+      description: t(
+        "tournamentsPage.stepRegistrationDesc",
+        "Inscribe a los participantes"
+      ),
       icon: Users,
       status: participantsCount > 0 ? "completed" : "current",
     },
     {
       id: "CONFIGURATION",
       tabKey: "categories",
-      title: "Configuración",
-      description: "Define categorías y reglas",
+      title: t("tournamentsPage.stepConfiguration", "Configuración"),
+      description: t(
+        "tournamentsPage.stepConfigurationDesc",
+        "Define categorías y reglas"
+      ),
       icon: Settings,
       status:
         categoriesCount > 0
@@ -92,8 +96,11 @@ export function TournamentWizard({
     {
       id: "VALIDATION",
       tabKey: "status",
-      title: "Validación",
-      description: "Confirma el set-up final",
+      title: t("tournamentsPage.stepValidation", "Validación"),
+      description: t(
+        "tournamentsPage.stepValidationDesc",
+        "Confirma el set-up final"
+      ),
       icon: ClipboardList,
       status:
         currentStatus !== "DRAFT"
@@ -105,8 +112,11 @@ export function TournamentWizard({
     {
       id: "ATTENDANCE",
       tabKey: "checkin",
-      title: "Asistencia",
-      description: "Registro presencial y pesaje",
+      title: t("tournamentsPage.stepAttendance", "Asistencia"),
+      description: t(
+        "tournamentsPage.stepAttendanceDesc",
+        "Registro presencial y pesaje"
+      ),
       icon: Scale,
       status:
         currentStatus === "IN_PROGRESS" || currentStatus === "FINISHED"
@@ -118,8 +128,11 @@ export function TournamentWizard({
     {
       id: "EXECUTION",
       tabKey: "brackets",
-      title: "Ejecución",
-      description: "Inicia pareos y combates",
+      title: t("tournamentsPage.stepExecution", "Ejecución"),
+      description: t(
+        "tournamentsPage.stepExecutionDesc",
+        "Inicia pareos y combates"
+      ),
       icon: Swords,
       status:
         currentStatus === "FINISHED"
@@ -135,7 +148,10 @@ export function TournamentWizard({
       setPreflightDialogOpen(true);
       return;
     }
-    if (nextStatus === "FINISHED" || (nextStatus === "IN_PROGRESS" && currentStatus === "FINISHED")) {
+    if (
+      nextStatus === "FINISHED" ||
+      (nextStatus === "IN_PROGRESS" && currentStatus === "FINISHED")
+    ) {
       setPendingNextStatus(nextStatus);
       setConfirmDialogOpen(true);
       return;
@@ -147,25 +163,38 @@ export function TournamentWizard({
     setConfirmDialogOpen(false);
     setIsSubmitting(true);
     try {
-      const res = await updateTournamentStatusAction(tournament.id, nextStatus);
+      const res = await updateTournamentStatusAction(
+        tournament.id,
+        nextStatus
+      );
       if (res.success) {
-        toast.success("Estatus del torneo actualizado exitosamente.");
+        toast.success(
+          t(
+            "tournamentsPage.statusUpdateSuccess",
+            "Estatus del torneo actualizado exitosamente."
+          )
+        );
         onRefresh();
       } else {
-        toast.error(res.error || "Error al actualizar estado del torneo.");
+        toast.error(
+          res.error ||
+            t(
+              "tournamentsPage.statusUpdateError",
+              "Error al actualizar estado del torneo."
+            )
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t(
+          "tournamentsPage.unexpectedServerError",
+          "Error inesperado en servidor."
+        )
+      );
     } finally {
       setIsSubmitting(false);
       setPendingNextStatus(null);
     }
-  };
-
-  const handleRecalculate = () => {
-    setRecalculateDialogOpen(false);
-    toast.success("Posiciones y llaves sincronizadas correctamente.");
-    onRefresh();
   };
 
   return (
@@ -179,7 +208,7 @@ export function TournamentWizard({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-base md:text-lg font-bold text-zinc-900 dark:text-white flex flex-wrap items-center gap-2">
-            Flujo de Orquestación
+            {t("tournamentsPage.wizardTitle", "Flujo de Orquestación")}
             <span
               className={
                 "text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 " +
@@ -187,11 +216,14 @@ export function TournamentWizard({
                 "font-extrabold tracking-wider"
               }
             >
-              Guía del Organizador
+              {t("tournamentsPage.wizardBadge", "Guía del Organizador")}
             </span>
           </h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Sigue los pasos o haz clic en cualquiera para navegar.
+            {t(
+              "tournamentsPage.wizardDesc",
+              "Sigue los pasos o haz clic en cualquiera para navegar."
+            )}
           </p>
         </div>
 
@@ -202,7 +234,8 @@ export function TournamentWizard({
               disabled={isSubmitting}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl h-10 px-4 text-xs cursor-pointer shadow-xs w-full sm:w-auto"
             >
-              <Users className="mr-1.5 h-4 w-4 shrink-0" /> Iniciar Convocatoria
+              <Users className="mr-1.5 h-4 w-4 shrink-0" />{" "}
+              {t("tournamentsPage.startCallBtn", "Iniciar Convocatoria")}
             </Button>
           )}
 
@@ -212,7 +245,11 @@ export function TournamentWizard({
               disabled={isSubmitting}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl h-10 px-4 text-xs cursor-pointer shadow-xs w-full sm:w-auto"
             >
-              <Scale className="mr-1.5 h-4 w-4 shrink-0" /> Iniciar Pesaje / Asistencia
+              <Scale className="mr-1.5 h-4 w-4 shrink-0" />{" "}
+              {t(
+                "tournamentsPage.startWeighInBtn",
+                "Iniciar Pesaje / Asistencia"
+              )}
             </Button>
           )}
 
@@ -222,7 +259,8 @@ export function TournamentWizard({
               disabled={isSubmitting}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl h-10 px-4 text-xs cursor-pointer shadow-xs w-full sm:w-auto"
             >
-              <Swords className="mr-1.5 h-4 w-4 shrink-0" /> Iniciar Combates
+              <Swords className="mr-1.5 h-4 w-4 shrink-0" />{" "}
+              {t("tournamentsPage.startBoutsBtn", "Iniciar Combates")}
             </Button>
           )}
 
@@ -233,7 +271,8 @@ export function TournamentWizard({
               variant="outline"
               className="border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-bold rounded-xl h-10 px-4 text-xs cursor-pointer w-full sm:w-auto"
             >
-              <Flag className="mr-1.5 h-4 w-4 shrink-0" /> Finalizar Torneo
+              <Flag className="mr-1.5 h-4 w-4 shrink-0" />{" "}
+              {t("tournamentsPage.finishTournamentBtn", "Finalizar Torneo")}
             </Button>
           )}
 
@@ -243,24 +282,10 @@ export function TournamentWizard({
               disabled={isSubmitting}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl h-10 px-4 text-xs cursor-pointer shadow-xs w-full sm:w-auto"
             >
-              <RefreshCw className="mr-1.5 h-4 w-4 shrink-0" /> Reanudar Torneo
+              <RefreshCw className="mr-1.5 h-4 w-4 shrink-0" />{" "}
+              {t("tournamentsPage.resumeTournamentBtn", "Reanudar Torneo")}
             </Button>
           )}
-
-          <Button
-            onClick={() => setRecalculateDialogOpen(true)}
-            disabled={isSubmitting}
-            variant="outline"
-            className={
-              "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 " +
-              "hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl h-10 px-3.5 " +
-              "text-xs font-bold cursor-pointer shrink-0 w-full sm:w-auto"
-            }
-            title="Recalcular puntos y posiciones"
-          >
-            <Calculator className="mr-1.5 h-4 w-4 text-amber-500 shrink-0" />
-            Recalcular Posiciones
-          </Button>
         </div>
       </div>
 
@@ -302,7 +327,13 @@ export function TournamentWizard({
                   {step.status === "completed" ? (
                     <Check className="h-4 w-4 stroke-[3] text-white" />
                   ) : (
-                    <step.icon className={`h-4 w-4 ${step.status === "current" ? "text-zinc-950 stroke-[2.5]" : ""}`} />
+                    <step.icon
+                      className={`h-4 w-4 ${
+                        step.status === "current"
+                          ? "text-zinc-950 stroke-[2.5]"
+                          : ""
+                      }`}
+                    />
                   )}
                 </div>
 
@@ -338,18 +369,24 @@ export function TournamentWizard({
             <AlertDialogTitle className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-white">
               <Flag className="h-5 w-5 text-amber-500" />
               {pendingNextStatus === "FINISHED"
-                ? "¿Finalizar Torneo?"
-                : "¿Reanudar Torneo?"}
+                ? t("tournamentsPage.confirmFinishTitle", "¿Finalizar Torneo?")
+                : t("tournamentsPage.confirmResumeTitle", "¿Reanudar Torneo?")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm">
               {pendingNextStatus === "FINISHED"
-                ? "¿Estás seguro de que deseas finalizar este torneo? Esto consolidará los resultados finales y reconocimientos."
-                : "¿Estás seguro de que deseas reanudar este torneo? Volverá al estado 'En Ejecución' para registrar resultados adicionales."}
+                ? t(
+                    "tournamentsPage.confirmFinishDesc",
+                    "¿Estás seguro de que deseas finalizar este torneo? Esto consolidará los resultados finales y reconocimientos."
+                  )
+                : t(
+                    "tournamentsPage.confirmResumeDesc",
+                    "¿Estás seguro de que deseas reanudar este torneo? Volverá al estado 'En Ejecución' para registrar resultados adicionales."
+                  )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
             <AlertDialogCancel className="rounded-xl text-xs font-bold cursor-pointer">
-              Cancelar
+              {t("common.cancel", "Cancelar")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -359,35 +396,15 @@ export function TournamentWizard({
               }}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-5 cursor-pointer"
             >
-              {pendingNextStatus === "FINISHED" ? "Finalizar Torneo" : "Reanudar Torneo"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Recalculate Modal */}
-      <AlertDialog open={recalculateDialogOpen} onOpenChange={setRecalculateDialogOpen}>
-        <AlertDialogContent className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold flex items-center gap-2 text-zinc-900 dark:text-white">
-              <Calculator className="h-5 w-5 text-amber-500" />
-              ¿Recalcular Posiciones del Torneo?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-600 dark:text-zinc-400 text-xs sm:text-sm space-y-2">
-              <span className="block">
-                Esta acción reconstruirá y verificará la tabla de posiciones y llaves de combate de todas las categorías basándose en los enfrentamientos registrados.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4">
-            <AlertDialogCancel className="rounded-xl text-xs font-bold cursor-pointer">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRecalculate}
-              className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-5 cursor-pointer"
-            >
-              Ejecutar Recálculo
+              {pendingNextStatus === "FINISHED"
+                ? t(
+                    "tournamentsPage.finishTournamentBtn",
+                    "Finalizar Torneo"
+                  )
+                : t(
+                    "tournamentsPage.resumeTournamentBtn",
+                    "Reanudar Torneo"
+                  )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

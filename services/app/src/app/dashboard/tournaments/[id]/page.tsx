@@ -1,18 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useTranslation } from "@/components/providers/i18n-provider";
 import { useEntitlements } from "@/hooks/use-entitlements";
 import {
   getTournamentByIdAction,
   getTournamentParticipantsAction,
-  awardParticipantAction,
   deleteParticipantAction,
-  updateTournamentAction,
   updateTournamentStatusAction,
   updateParticipantCategoryAction,
-  cleanDesertCategoriesAction,
 } from "@/actions/tournaments";
 import { getDiplomaConfigAction } from "@/actions/diploma";
 import type {
@@ -42,11 +39,9 @@ import {
   Activity,
   Swords,
   Settings,
-  Printer,
   Plus,
   Trash2,
   DollarSign,
-  Trophy,
   Loader2,
   Search,
   CheckCircle2,
@@ -127,7 +122,6 @@ type TabType =
 
 export default function TournamentDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
   const { t } = useTranslation();
   const { canAccessTournaments, getUpgradeMessage } = useEntitlements();
@@ -208,32 +202,15 @@ export default function TournamentDetailPage() {
           t("tournamentsPage.statusUpdated", "Estatus del torneo actualizado.")
         );
       } else {
-        toast.error(res.error || "Error al cambiar estatus.");
-      }
-    } catch {
-      toast.error("Error inesperado en servidor.");
-    }
-  };
-
-  const handleAwardChange = async (
-    participantId: string,
-    awardRank: "GOLD" | "SILVER" | "BRONZE" | "PARTICIPANT" | null
-  ) => {
-    setActionLoadingId(participantId);
-    try {
-      const res = await awardParticipantAction(participantId, awardRank);
-      if (res.success) {
-        toast.success(
-          t("tournamentsPage.awardSaved", "Premio asignado con éxito.")
+        toast.error(
+          res.error ||
+            t("tournamentsPage.statusChangeError", "Error al cambiar estatus.")
         );
-        fetchTournamentData();
-      } else {
-        toast.error(res.error || "Error al asignar premio.");
       }
     } catch {
-      toast.error("Error en servidor.");
-    } finally {
-      setActionLoadingId(null);
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     }
   };
 
@@ -258,10 +235,15 @@ export default function TournamentDetailPage() {
         );
         fetchTournamentData();
       } else {
-        toast.error(res.error || "Error al desvincular.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.deleteError", "Error al desvincular.")
+        );
       }
     } catch {
-      toast.error("Error en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     } finally {
       setActionLoadingId(null);
     }
@@ -288,8 +270,9 @@ export default function TournamentDetailPage() {
     }
   };
 
-  const handlePrintDiplomas = (mode: "PARTICIPATION" | "WINNERS") => {
+  const handlePrintDiplomas = (mode: "PARTICIPATION" | "WINNERS" | "PODIUM") => {
     if (!tournament) return;
+    const printMode: "PARTICIPATION" | "WINNERS" = mode === "PODIUM" ? "WINNERS" : mode;
     const items = participants.map((p) => ({
       id: p.id,
       firstName: p.firstName,
@@ -306,7 +289,7 @@ export default function TournamentDetailPage() {
       ).toLocaleDateString("es-ES"),
       participants: items,
       diplomaConfig,
-      mode,
+      mode: printMode,
     });
   };
 
@@ -410,7 +393,7 @@ export default function TournamentDetailPage() {
                   }
                 >
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Finalizado
+                  {t("tournamentsPage.statusFinished", "Finalizado")}
                 </Badge>
               ) : tournament.status === "IN_PROGRESS" ? (
                 <Badge
@@ -419,7 +402,7 @@ export default function TournamentDetailPage() {
                     "border-amber-500/30 text-[10px] font-extrabold uppercase"
                   }
                 >
-                  ⚡ En Ejecución
+                  {t("tournamentsPage.statusInProgress", "⚡ En Ejecución")}
                 </Badge>
               ) : (
                 <Badge
@@ -428,7 +411,7 @@ export default function TournamentDetailPage() {
                     "border-indigo-500/30 text-[10px] font-extrabold uppercase"
                   }
                 >
-                  📅 Borrador
+                  {t("tournamentsPage.statusDraft", "📅 Borrador")}
                 </Badge>
               )}
             </div>
@@ -444,10 +427,22 @@ export default function TournamentDetailPage() {
                   rel="noopener noreferrer"
                   className="hover:underline hover:text-amber-500 transition-colors flex items-center gap-1"
                 >
-                  📍 {getTournamentLocationDisplay(tournament.location, tournament.city, tournament.country)}
+                  📍{" "}
+                  {getTournamentLocationDisplay(
+                    tournament.location,
+                    tournament.city,
+                    tournament.country
+                  )}
                 </a>
               ) : (
-                <span>📍 {getTournamentLocationDisplay(tournament.location, tournament.city, tournament.country)}</span>
+                <span>
+                  📍{" "}
+                  {getTournamentLocationDisplay(
+                    tournament.location,
+                    tournament.city,
+                    tournament.country
+                  )}
+                </span>
               )}
             </p>
           </div>
@@ -518,7 +513,7 @@ export default function TournamentDetailPage() {
         >
           <Scale className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">
-            {t("tournamentsPage.tabCheckin", "Pesaje / Asistencia")}
+            {t("tournamentsPage.tabCheckIn", "Pesaje / Asistencia")}
           </span>
         </button>
 
@@ -595,7 +590,9 @@ export default function TournamentDetailPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-bold border-b border-zinc-200 dark:border-zinc-800 uppercase text-[10px] tracking-wider">
                   <tr>
-                    <th className="p-4 w-12 text-center">PAGO</th>
+                    <th className="p-4 w-12 text-center">
+                      {t("tournamentsPage.paymentHeader", "PAGO")}
+                    </th>
                     <th className="p-4">{t("tournamentsPage.competitor", "Competidor")}</th>
                     <th className="p-4">{t("tournamentsPage.type", "Tipo")}</th>
                     <th className="p-4">{t("tournamentsPage.dojo", "Escuela / Dojo")}</th>
@@ -624,12 +621,12 @@ export default function TournamentDetailPage() {
                           {p.paymentStatus === "PAID" ? (
                             <span
                               className="w-3.5 h-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/30 shadow-xs inline-block cursor-help align-middle"
-                              title="Pagado"
+                              title={t("tournamentsPage.paid", "Pagado")}
                             />
                           ) : (
                             <span
                               className="w-3.5 h-3.5 rounded-full bg-amber-400 ring-4 ring-amber-400/30 shadow-xs inline-block cursor-help align-middle"
-                              title="Pendiente de pago"
+                              title={t("tournamentsPage.paymentPending", "Pendiente de pago")}
                             />
                           )}
                         </td>
@@ -640,7 +637,7 @@ export default function TournamentDetailPage() {
                             <span>{p.firstName} {p.lastName || ""}</span>
                             {p.age !== undefined && p.age !== null && (
                               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                                ({p.age} {p.age === 1 ? "año" : "años"})
+                                ({p.age} {p.age === 1 ? t("tournamentsPage.year", "año") : t("tournamentsPage.years", "años")})
                               </span>
                             )}
                           </div>
@@ -668,7 +665,7 @@ export default function TournamentDetailPage() {
 
                         {/* 4. Escuela / Dojo */}
                         <td className="p-4 text-zinc-700 dark:text-zinc-300 font-semibold">
-                          {p.dojoName || "Dojo Principal"}
+                          {p.dojoName || t("tournamentsPage.mainDojo", "Dojo Principal")}
                         </td>
 
                         {/* 5. Categoría (Píldora interactiva con edición en el mismo renglón) */}
@@ -681,7 +678,9 @@ export default function TournamentDetailPage() {
                                 disabled={savingCategoryId === p.id}
                                 className="text-xs font-semibold px-2 py-1 rounded-lg border border-amber-500 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 max-w-[170px]"
                               >
-                                <option value="">-- Sin Categoría --</option>
+                                <option value="">
+                                  -- {t("tournamentsPage.noCategoryOption", "Sin Categoría")} --
+                                </option>
                                 {categories.map((cat) => (
                                   <option key={cat.id} value={cat.id}>
                                     {cat.name}
@@ -724,9 +723,15 @@ export default function TournamentDetailPage() {
                                   ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 hover:bg-amber-500/20"
                                   : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
                               }`}
-                              title="Haz clic para seleccionar o cambiar categoría"
+                              title={t(
+                                "tournamentsPage.clickToChangeCategory",
+                                "Haz clic para seleccionar o cambiar categoría"
+                              )}
                             >
-                              <span>{p.category?.name || "Sin Categoría"}</span>
+                              <span>
+                                {p.category?.name ||
+                                  t("tournamentsPage.noCategory", "Sin Categoría")}
+                              </span>
                               <Edit2 className="w-3 h-3 text-zinc-400 group-hover:text-amber-500 transition-colors" />
                             </button>
                           )}
@@ -801,10 +806,13 @@ export default function TournamentDetailPage() {
               <div>
                 <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                   <Activity className="w-5 h-5 text-amber-500" />
-                  Auditoría Pre-Asistencia y Quórum
+                  {t("tournamentsPage.auditTitle", "Auditoría Pre-Asistencia y Quórum")}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  Valida la distribución de participantes antes de abrir la estación de báscula.
+                  {t(
+                    "tournamentsPage.auditDesc",
+                    "Valida la distribución de participantes antes de abrir la estación de báscula."
+                  )}
                 </p>
               </div>
 
@@ -813,7 +821,7 @@ export default function TournamentDetailPage() {
                 className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs cursor-pointer shadow-xs shrink-0"
               >
                 <Scale className="w-4 h-4 mr-1.5" />
-                Auditar e Iniciar Pesaje
+                {t("tournamentsPage.auditAndWeighIn", "Auditar e Iniciar Pesaje")}
               </Button>
             </div>
 
@@ -836,21 +844,21 @@ export default function TournamentDetailPage() {
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
                       <div className="text-xl font-black text-rose-500">{emptyCount}</div>
                       <div className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mt-0.5">
-                        Categorías Desiertas (0)
+                        {t("tournamentsPage.desertCategories", "Categorías Desiertas (0)")}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
                       <div className="text-xl font-black text-amber-500">{singleCount}</div>
                       <div className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mt-0.5">
-                        Sin Quórum (1 Atleta)
+                        {t("tournamentsPage.noQuorum", "Sin Quórum (1 Atleta)")}
                       </div>
                     </div>
 
                     <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
                       <div className="text-xl font-black text-emerald-500">{validCount}</div>
                       <div className="text-[11px] font-bold text-zinc-600 dark:text-zinc-400 mt-0.5">
-                        Con Quórum (2+ Atletas)
+                        {t("tournamentsPage.withQuorum", "Con Quórum (2+ Atletas)")}
                       </div>
                     </div>
                   </>
@@ -865,16 +873,19 @@ export default function TournamentDetailPage() {
               <div>
                 <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-amber-500" />
-                  Ciclo de Vida del Torneo
+                  {t("tournamentsPage.lifecycleTitle", "Ciclo de Vida del Torneo")}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                  Flujo secuencial controlado para proteger la integridad de las categorías y combates.
+                  {t(
+                    "tournamentsPage.lifecycleDesc",
+                    "Flujo secuencial controlado para proteger la integridad de las categorías y combates."
+                  )}
                 </p>
               </div>
 
               <div className="text-right">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                  Fase Actual: {tournament.status || "DRAFT"}
+                  {t("tournamentsPage.currentPhase", "Fase Actual")}: {tournament.status || "DRAFT"}
                 </span>
               </div>
             </div>
@@ -883,37 +894,37 @@ export default function TournamentDetailPage() {
               const STEPS = [
                 {
                   key: "DRAFT",
-                  label: "Borrador",
-                  title: "1. Diseño e Inserción Inicial",
-                  desc: "Definición general del torneo, sede y categorías iniciales.",
+                  label: t("tournamentsPage.phaseDraftLabel", "Borrador"),
+                  title: t("tournamentsPage.phase1Title", "1. Diseño e Inserción Inicial"),
+                  desc: t("tournamentsPage.phase1Desc", "Definición general del torneo, sede y categorías iniciales."),
                   icon: Settings,
                 },
                 {
                   key: "REGISTRATION",
-                  label: "Registro",
-                  title: "2. Convocatoria y Registro",
-                  desc: "Inscripción activa de participantes de escuelas e invitados.",
+                  label: t("tournamentsPage.phaseRegLabel", "Registro"),
+                  title: t("tournamentsPage.phase2Title", "2. Convocatoria y Registro"),
+                  desc: t("tournamentsPage.phase2Desc", "Inscripción activa de participantes de escuelas e invitados."),
                   icon: Users,
                 },
                 {
                   key: "WEIGH_IN",
-                  label: "Pesaje / Asistencia",
-                  title: "3. Pesaje y Asistencia Presencial",
-                  desc: "Estación de báscula presencial, confirmación de peso y pagos.",
+                  label: t("tournamentsPage.phaseWeighInLabel", "Pesaje / Asistencia"),
+                  title: t("tournamentsPage.phase3Title", "3. Pesaje y Asistencia Presencial"),
+                  desc: t("tournamentsPage.phase3Desc", "Estación de báscula presencial, confirmación de peso y pagos."),
                   icon: Scale,
                 },
                 {
                   key: "IN_PROGRESS",
-                  label: "En Proceso",
-                  title: "4. Combates y Llaves",
-                  desc: "Ejecución de enfrentamientos, combates en tiempo real y puntajes.",
+                  label: t("tournamentsPage.phaseInProgressLabel", "En Proceso"),
+                  title: t("tournamentsPage.phase4Title", "4. Combates y Llaves"),
+                  desc: t("tournamentsPage.phase4Desc", "Ejecución de enfrentamientos, combates en tiempo real y puntajes."),
                   icon: Swords,
                 },
                 {
                   key: "FINISHED",
-                  label: "Finalizado",
-                  title: "5. Cierre y Premiación",
-                  desc: "Torneo concluido, podios consolidados e impresión de diplomas.",
+                  label: t("tournamentsPage.phaseFinishedLabel", "Finalizado"),
+                  title: t("tournamentsPage.phase5Title", "5. Cierre y Premiación"),
+                  desc: t("tournamentsPage.phase5Desc", "Torneo concluido, podios consolidados e impresión de diplomas."),
                   icon: Flag,
                 },
               ];
@@ -979,17 +990,17 @@ export default function TournamentDetailPage() {
                               </h4>
                               {isActive && (
                                 <Badge className="bg-amber-500 text-zinc-950 border-amber-500 font-extrabold text-[10px] uppercase">
-                                  Fase Activa
+                                  {t("tournamentsPage.activePhase", "Fase Activa")}
                                 </Badge>
                               )}
                               {isCompleted && (
                                 <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                                  Completado ✓
+                                  {t("tournamentsPage.completed", "Completado ✓")}
                                 </span>
                               )}
                               {isLocked && (
                                 <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                                  Bloqueado 🔒
+                                  {t("tournamentsPage.locked", "Bloqueado 🔒")}
                                 </span>
                               )}
                             </div>
@@ -1011,7 +1022,7 @@ export default function TournamentDetailPage() {
                         className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer rounded-xl"
                       >
                         <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                        Regresar a la fase anterior ({prevStep.label})
+                        {t("tournamentsPage.rollbackToPhase", "Regresar a la fase anterior")} ({prevStep.label})
                       </Button>
                     ) : (
                       <div />
@@ -1028,13 +1039,16 @@ export default function TournamentDetailPage() {
                         }}
                         className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-6 h-11 cursor-pointer shadow-xs w-full sm:w-auto"
                       >
-                        Avanzar a {nextStep.title}
+                        {t("tournamentsPage.advanceToPhase", "Avanzar a")} {nextStep.title}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     ) : (
                       <div className="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4" />
-                        El torneo ha alcanzado su etapa final.
+                        {t(
+                          "tournamentsPage.finalPhaseReached",
+                          "El torneo ha alcanzado su etapa final."
+                        )}
                       </div>
                     )}
                   </div>
@@ -1141,17 +1155,20 @@ export default function TournamentDetailPage() {
             <AlertDialogHeader className="space-y-2">
               <AlertDialogTitle className="text-base font-bold flex items-center gap-2 text-rose-500">
                 <AlertTriangle className="h-5 w-5" />
-                ¿Regresar a la Fase Anterior?
+                {t("tournamentsPage.rollbackModalTitle", "¿Regresar a la Fase Anterior?")}
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs text-zinc-600 dark:text-zinc-400 space-y-2 pt-2">
                 <span>
-                  Al retroceder la fase del torneo, se reabrirán las modificaciones de la etapa seleccionada. Asegúrate de verificar las inscripciones antes de volver a avanzar.
+                  {t(
+                    "tournamentsPage.rollbackModalDesc",
+                    "Al retroceder la fase del torneo, se reabrirán las modificaciones de la etapa seleccionada. Asegúrate de verificar las inscripciones antes de volver a avanzar."
+                  )}
                 </span>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-4">
               <AlertDialogCancel className="rounded-xl text-xs font-bold cursor-pointer">
-                Cancelar
+                {t("common.cancel", "Cancelar")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={async () => {
@@ -1171,15 +1188,20 @@ export default function TournamentDetailPage() {
                     const res = await updateTournamentStatusAction(tournament.id, prevKey);
                     if (res.success) {
                       setTournament((prev) => (prev ? { ...prev, status: prevKey } : null));
-                      toast.success(`Estado retrocedido a ${prevKey}.`);
+                      toast.success(
+                        t("tournamentsPage.statusRolledBack", "Estado retrocedido correctamente.")
+                      );
                     } else {
-                      toast.error(res.error || "Error al retroceder estatus.");
+                      toast.error(
+                        res.error ||
+                          t("tournamentsPage.rollbackError", "Error al retroceder estatus.")
+                      );
                     }
                   }
                 }}
                 className="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs px-5 cursor-pointer"
               >
-                Confirmar Retroceso
+                {t("tournamentsPage.confirmRollback", "Confirmar Retroceso")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -79,14 +79,20 @@ export function TournamentPreflightModal({
       if (emptyCategories.length > 0) {
         const res = await cleanDesertCategoriesAction(tournamentId);
         if (!res.success) {
-          toast.error(res.error || "Error al limpiar categorías desiertas.");
+          toast.error(
+            res.error ||
+              t(
+                "tournamentsPage.cleanError",
+                "Error al limpiar categorías desiertas."
+              )
+          );
           setCleaning(false);
           return;
         }
         toast.success(
           t(
             "tournamentsPage.desertCategoriesCleaned",
-            `Se eliminaron ${res.data?.deletedCount} categorías desiertas.`
+            "Se eliminaron las categorías desiertas seleccionadas."
           )
         );
         onSuccessClean();
@@ -95,7 +101,12 @@ export function TournamentPreflightModal({
       await onConfirmProceed();
       onOpenChange(false);
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t(
+          "tournamentsPage.unexpectedServerError",
+          "Error inesperado en servidor."
+        )
+      );
     } finally {
       setCleaning(false);
     }
@@ -107,7 +118,12 @@ export function TournamentPreflightModal({
       await onConfirmProceed();
       onOpenChange(false);
     } catch {
-      toast.error("Error inesperado al cambiar estatus.");
+      toast.error(
+        t(
+          "tournamentsPage.unexpectedStatusError",
+          "Error inesperado al cambiar estatus."
+        )
+      );
     } finally {
       setProceeding(false);
     }
@@ -123,10 +139,16 @@ export function TournamentPreflightModal({
             </div>
             <div>
               <DialogTitle className="text-xl font-black text-zinc-900 dark:text-white">
-                Auditoría Pre-Pesaje y Asistencia
+                {t(
+                  "tournamentsPage.preflightModalTitle",
+                  "Auditoría Pre-Pesaje y Asistencia"
+                )}
               </DialogTitle>
               <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-                Verifica la distribución de categorías y el quórum de competidores antes de iniciar.
+                {t(
+                  "tournamentsPage.preflightModalDesc",
+                  "Verifica la distribución de categorías y el quórum de competidores antes de iniciar."
+                )}
               </DialogDescription>
             </div>
           </div>
@@ -139,7 +161,7 @@ export function TournamentPreflightModal({
               <div className="text-2xl font-black">{emptyCategories.length}</div>
               <div className="text-[11px] font-bold mt-0.5 flex items-center gap-1">
                 <Tag className="w-3 h-3 shrink-0" />
-                Desiertas (0)
+                {t("tournamentsPage.desertBadge", "Desiertas (0)")}
               </div>
             </div>
 
@@ -147,7 +169,7 @@ export function TournamentPreflightModal({
               <div className="text-2xl font-black">{singleCompetitorCategories.length}</div>
               <div className="text-[11px] font-bold mt-0.5 flex items-center gap-1">
                 <Users className="w-3 h-3 shrink-0" />
-                Sin Quórum (1)
+                {t("tournamentsPage.noQuorumBadge", "Sin Quórum (1)")}
               </div>
             </div>
 
@@ -155,7 +177,7 @@ export function TournamentPreflightModal({
               <div className="text-2xl font-black">{validCategories.length}</div>
               <div className="text-[11px] font-bold mt-0.5 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 shrink-0" />
-                Con Quórum (2+)
+                {t("tournamentsPage.quorumBadge", "Con Quórum (2+)")}
               </div>
             </div>
           </div>
@@ -166,7 +188,11 @@ export function TournamentPreflightModal({
               <div className="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/15 space-y-2">
                 <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  Categorías Desiertas sin Inscritos ({emptyCategories.length})
+                  {t(
+                    "tournamentsPage.desertCategoriesHeader",
+                    "Categorías Desiertas sin Inscritos"
+                  )}{" "}
+                  ({emptyCategories.length})
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
                   {emptyCategories.map((c) => (
@@ -185,7 +211,11 @@ export function TournamentPreflightModal({
               <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15 space-y-2">
                 <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  Categorías con 1 solo competidor ({singleCompetitorCategories.length})
+                  {t(
+                    "tournamentsPage.singleCompetitorHeader",
+                    "Categorías con 1 solo competidor"
+                  )}{" "}
+                  ({singleCompetitorCategories.length})
                 </h4>
                 <div className="space-y-1.5">
                   {singleCompetitorCategories.map((c) => {
@@ -197,7 +227,9 @@ export function TournamentPreflightModal({
                       >
                         <span className="font-bold">{c.name}</span>
                         <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
-                          {comp ? `${comp.firstName} ${comp.lastName || ""}` : "1 competidor"}
+                          {comp
+                            ? `${comp.firstName} ${comp.lastName || ""}`
+                            : t("tournamentsPage.singleCompetitorLabel", "1 competidor")}
                         </span>
                       </div>
                     );
@@ -209,7 +241,10 @@ export function TournamentPreflightModal({
             {!hasIssues && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                Todas las categorías activas cuentan con quórum suficiente para iniciar el pesaje.
+                {t(
+                  "tournamentsPage.allQuorumSuccess",
+                  "Todas las categorías activas cuentan con quórum suficiente para iniciar el pesaje."
+                )}
               </div>
             )}
           </div>
@@ -222,7 +257,7 @@ export function TournamentPreflightModal({
             onClick={onGoToCategories}
             className="w-full sm:w-auto rounded-xl text-xs font-bold border-zinc-200 dark:border-zinc-700 cursor-pointer"
           >
-            Revisar Categorías
+            {t("tournamentsPage.reviewCategoriesBtn", "Revisar Categorías")}
           </Button>
 
           {emptyCategories.length > 0 && (
@@ -236,7 +271,10 @@ export function TournamentPreflightModal({
               ) : (
                 <Trash2 className="w-4 h-4 mr-1.5" />
               )}
-              Limpiar Desiertas y Avanzar
+              {t(
+                "tournamentsPage.cleanAndProceedBtn",
+                "Limpiar Desiertas y Avanzar"
+              )}
             </Button>
           )}
 
@@ -250,7 +288,7 @@ export function TournamentPreflightModal({
             ) : (
               <ArrowRight className="w-4 h-4 mr-1.5" />
             )}
-            Avanzar a Pesaje
+            {t("tournamentsPage.proceedToWeighInBtn", "Avanzar a Pesaje")}
           </Button>
         </div>
       </DialogContent>

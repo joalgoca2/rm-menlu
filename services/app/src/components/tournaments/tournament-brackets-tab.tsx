@@ -14,7 +14,6 @@ import type {
 import { Swords, RefreshCw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface TournamentBracketsTabProps {
@@ -104,10 +103,15 @@ export function TournamentBracketsTab({
         );
         onRefresh();
       } else {
-        toast.error(res.error || "Error al generar brackets.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.generateBracketsError", "Error al generar brackets.")
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -142,8 +146,12 @@ export function TournamentBracketsTab({
         blueScore: match.blueScore || 0,
       };
 
-      const redId = match.redStudentId || (match as unknown as { competitor1Id?: string }).competitor1Id;
-      const blueId = match.blueStudentId || (match as unknown as { competitor2Id?: string }).competitor2Id;
+      const redId =
+        match.redStudentId ||
+        (match as unknown as { competitor1Id?: string }).competitor1Id;
+      const blueId =
+        match.blueStudentId ||
+        (match as unknown as { competitor2Id?: string }).competitor2Id;
 
       const finalWinnerId =
         winnerId !== undefined
@@ -168,10 +176,15 @@ export function TournamentBracketsTab({
         );
         onRefresh();
       } else {
-        toast.error(res.error || "Error al guardar combate.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.saveScoreError", "Error al guardar combate.")
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     } finally {
       setSavingMatchId(null);
     }
@@ -180,7 +193,7 @@ export function TournamentBracketsTab({
   const getCompetitorName = (id?: string | null) => {
     if (!id) return t("tournamentsPage.byeOrTbd", "BYE / Por Definir");
     const p = participants.find((part) => part.studentId === id || part.id === id);
-    if (!p) return "Competidor";
+    if (!p) return t("tournamentsPage.competitor", "Competidor");
     return `${p.firstName} ${p.lastName || ""}`.trim();
   };
 
@@ -262,15 +275,21 @@ export function TournamentBracketsTab({
 
                   <div className="space-y-4">
                     {matchesInRound.map((m) => {
-                      const isSaving = savingMatchId === m.id;
-                      const redId = m.redStudentId || (m as unknown as { competitor1Id?: string }).competitor1Id;
-                      const blueId = m.blueStudentId || (m as unknown as { competitor2Id?: string }).competitor2Id;
-                      const winnerId = m.winnerStudentId || (m as unknown as { winnerId?: string }).winnerId;
+                      const redId =
+                        m.redStudentId ||
+                        (m as unknown as { competitor1Id?: string }).competitor1Id;
+                      const blueId =
+                        m.blueStudentId ||
+                        (m as unknown as { competitor2Id?: string }).competitor2Id;
+                      const winnerId =
+                        m.winnerStudentId ||
+                        (m as unknown as { winnerId?: string }).winnerId;
 
                       const scores = editingScores[m.id] || {
                         redScore: m.redScore || 0,
                         blueScore: m.blueScore || 0,
                       };
+                      const isSaving = savingMatchId === m.id;
 
                       return (
                         <Card

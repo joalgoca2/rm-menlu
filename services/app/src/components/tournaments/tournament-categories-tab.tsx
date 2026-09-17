@@ -94,7 +94,10 @@ export function TournamentCategoriesTab({
           setShowAddModal(false);
           onRefresh();
         } else {
-          toast.error(res.error || "Error al actualizar categoría.");
+          toast.error(
+            res.error ||
+              t("tournamentsPage.categoryUpdateError", "Error al actualizar categoría.")
+          );
         }
       } else {
         const res = await createTournamentCategoryAction(
@@ -118,11 +121,16 @@ export function TournamentCategoriesTab({
           setShowAddModal(false);
           onRefresh();
         } else {
-          toast.error(res.error || "Error al crear categoría.");
+          toast.error(
+            res.error ||
+              t("tournamentsPage.categoryCreateError", "Error al crear categoría.")
+          );
         }
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -155,10 +163,15 @@ export function TournamentCategoriesTab({
         );
         onRefresh();
       } else {
-        toast.error(res.error || "Error al eliminar.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.deleteCategoryError", "Error al eliminar.")
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t("tournamentsPage.unexpectedServerError", "Error inesperado en servidor.")
+      );
     }
   };
 

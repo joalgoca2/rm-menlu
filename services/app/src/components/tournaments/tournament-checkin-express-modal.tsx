@@ -13,12 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Scale,
   CheckCircle2,
-  XCircle,
-  AlertTriangle,
   Loader2,
-  User,
   DollarSign,
-  ArrowRight,
   QrCode,
   RefreshCw,
 } from "lucide-react";
@@ -87,11 +83,18 @@ export function TournamentCheckinExpressModal({
 
     if (found) {
       toast.success(
-        `Competidor detectado: ${found.firstName} ${found.lastName || ""}`
+        `${t("tournamentsPage.competitorDetected", "Competidor detectado")}: ${
+          found.firstName
+        } ${found.lastName || ""}`
       );
       setSelectedParticipant(found);
     } else {
-      toast.error("Competidor no encontrado con el código QR escaneado.");
+      toast.error(
+        t(
+          "tournamentsPage.competitorNotFoundQR",
+          "Competidor no encontrado con el código QR escaneado."
+        )
+      );
     }
   };
 
@@ -122,10 +125,18 @@ export function TournamentCheckinExpressModal({
         setSelectedParticipant(null);
         setRecordedWeight("");
       } else {
-        toast.error(res.error || "Error al registrar asistencia.");
+        toast.error(
+          res.error ||
+            t("tournamentsPage.checkinError", "Error al registrar asistencia.")
+        );
       }
     } catch {
-      toast.error("Error inesperado en servidor.");
+      toast.error(
+        t(
+          "tournamentsPage.unexpectedServerError",
+          "Error inesperado en servidor."
+        )
+      );
     } finally {
       setSubmitting(false);
     }
@@ -153,20 +164,33 @@ export function TournamentCheckinExpressModal({
               </div>
               <DialogTitle className="text-lg font-black text-zinc-900 dark:text-white">
                 {selectedParticipant
-                  ? "Verificación en Báscula"
-                  : "Estación de Báscula y Escáner QR"}
+                  ? t(
+                      "tournamentsPage.scaleVerificationTitle",
+                      "Verificación en Báscula"
+                    )
+                  : t(
+                      "tournamentsPage.scaleStationTitle",
+                      "Estación de Báscula y Escáner QR"
+                    )}
               </DialogTitle>
             </div>
             {selectedParticipant?.isCheckedIn && (
               <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] uppercase font-extrabold">
-                <CheckCircle2 className="w-3 h-3 mr-1" /> Ya Verificado
+                <CheckCircle2 className="w-3 h-3 mr-1" />{" "}
+                {t("tournamentsPage.alreadyVerified", "Ya Verificado")}
               </Badge>
             )}
           </div>
           <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400">
             {selectedParticipant
-              ? "Confirma el peso oficial del atleta y marca su asistencia presencial."
-              : "Escanea el código QR del gafete o ingresa la clave del competidor en la mesa de báscula."}
+              ? t(
+                  "tournamentsPage.scaleVerificationDesc",
+                  "Confirma el peso oficial del atleta y marca su asistencia presencial."
+                )
+              : t(
+                  "tournamentsPage.scaleStationDesc",
+                  "Escanea el código QR del gafete o ingresa la clave del competidor en la mesa de báscula."
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,40 +218,59 @@ export function TournamentCheckinExpressModal({
                     {selectedParticipant.age !== undefined &&
                       selectedParticipant.age !== null && (
                         <span className="text-xs text-zinc-500 dark:text-zinc-400 font-normal ml-2">
-                          ({selectedParticipant.age} años)
+                          ({selectedParticipant.age}{" "}
+                          {t("common.years", "años")})
                         </span>
                       )}
                   </h4>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                    🏫 {selectedParticipant.dojoName || "Competidor Independiente"}
+                    🏫{" "}
+                    {selectedParticipant.dojoName ||
+                      t(
+                        "tournamentsPage.independentCompetitor",
+                        "Competidor Independiente"
+                      )}
                   </p>
                 </div>
 
-                {selectedParticipant.beltColor && (
+                {(selectedParticipant.beltName ||
+                  (selectedParticipant as unknown as { beltColor?: string })
+                    .beltColor) && (
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold border bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 uppercase">
-                    🥋 {selectedParticipant.beltColor}
+                    🥋{" "}
+                    {selectedParticipant.beltName ||
+                      (
+                        selectedParticipant as unknown as {
+                          beltColor?: string;
+                        }
+                      ).beltColor}
                   </span>
                 )}
               </div>
 
               <div className="flex items-center justify-between text-xs pt-2 border-t border-zinc-200 dark:border-zinc-700/60">
-                <span className="text-zinc-500 dark:text-zinc-400">Categoría:</span>
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  {t("tournamentsPage.categoryLabel", "Categoría:")}
+                </span>
                 <span className="font-bold text-amber-600 dark:text-amber-400">
-                  {selectedParticipant.category?.name || "General"}
+                  {selectedParticipant.category?.name ||
+                    t("tournamentsPage.generalCategory", "General")}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-500 dark:text-zinc-400">
-                  Estado de Pago:
+                  {t("tournamentsPage.paymentStatusLabel", "Estado de Pago:")}
                 </span>
                 {isPaid ? (
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Pagado (Completo)
+                    <CheckCircle2 className="w-3.5 h-3.5" />{" "}
+                    {t("tournamentsPage.paidFull", "Pagado (Completo)")}
                   </span>
                 ) : (
                   <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5" /> Pago Pendiente
+                    <DollarSign className="w-3.5 h-3.5" />{" "}
+                    {t("tournamentsPage.paymentPending", "Pago Pendiente")}
                   </span>
                 )}
               </div>
@@ -236,10 +279,16 @@ export function TournamentCheckinExpressModal({
             {/* Weigh-In Entry Field */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
-                <span>Peso Oficial registrado en Báscula (kg):</span>
+                <span>
+                  {t(
+                    "tournamentsPage.officialScaleWeightLabel",
+                    "Peso Oficial registrado en Báscula (kg):"
+                  )}
+                </span>
                 {selectedParticipant.weightKg && (
                   <span className="text-[11px] font-normal text-zinc-500">
-                    Inscrito con: {selectedParticipant.weightKg} kg
+                    {t("tournamentsPage.enrolledWithWeight", "Inscrito con")}:{" "}
+                    {selectedParticipant.weightKg} kg
                   </span>
                 )}
               </label>
@@ -261,7 +310,11 @@ export function TournamentCheckinExpressModal({
               {!isNaN(numericWeight) && numericWeight > 0 && (
                 <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
-                  Peso listo para confirmación: {numericWeight} kg
+                  {t(
+                    "tournamentsPage.weightReadyConfirmation",
+                    "Peso listo para confirmación"
+                  )}
+                  : {numericWeight} kg
                 </div>
               )}
             </div>
@@ -281,7 +334,7 @@ export function TournamentCheckinExpressModal({
                 className="w-full sm:w-auto rounded-xl text-xs font-bold border-zinc-200 dark:border-zinc-700 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                Escanear Otro
+                {t("tournamentsPage.scanAnotherBtn", "Escanear Otro")}
               </Button>
 
               <Button
@@ -294,7 +347,10 @@ export function TournamentCheckinExpressModal({
                 ) : (
                   <CheckCircle2 className="w-4 h-4 mr-1.5" />
                 )}
-                Confirmar y Escanear Siguiente
+                {t(
+                  "tournamentsPage.confirmAndScanNextBtn",
+                  "Confirmar y Escanear Siguiente"
+                )}
               </Button>
             </>
           ) : (
@@ -303,7 +359,7 @@ export function TournamentCheckinExpressModal({
               onClick={() => onOpenChange(false)}
               className="w-full sm:w-auto rounded-xl text-xs font-bold border-zinc-200 dark:border-zinc-700 cursor-pointer"
             >
-              Cerrar Estación
+              {t("tournamentsPage.closeStationBtn", "Cerrar Estación")}
             </Button>
           )}
         </div>

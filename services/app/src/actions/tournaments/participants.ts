@@ -478,12 +478,18 @@ export async function updateParticipantDetailsAction(
         email: data.email ? data.email.trim() : null,
         phone: data.phone ? data.phone.trim() : null,
         age: data.age !== undefined && data.age !== null ? Number(data.age) : null,
-        weightKg: data.weightKg !== undefined && data.weightKg !== null ? Number(data.weightKg) : null,
+        weightKg:
+          data.weightKg !== undefined && data.weightKg !== null
+            ? Number(data.weightKg)
+            : null,
         dojoName: data.dojoName ? data.dojoName.trim() : null,
         beltName: data.beltName ? data.beltName.trim() : null,
         emergencyContact: data.emergencyContact ? data.emergencyContact.trim() : null,
         categoryId: data.categoryId || null,
-        feeAmount: data.feeAmount !== undefined && data.feeAmount !== null ? Number(data.feeAmount) : undefined,
+        feeAmount:
+          data.feeAmount !== undefined && data.feeAmount !== null
+            ? Number(data.feeAmount)
+            : undefined,
       },
       include: {
         student: {

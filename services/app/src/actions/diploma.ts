@@ -142,7 +142,8 @@ export async function saveDiplomaConfigAction(
 
 /**
  * Upload Custom Background Image for Brand Diploma
- * Folder: public/uploads/diploma/exam/[brandId].jpg or public/uploads/diploma/tournament/[brandId].jpg
+ * Folder: public/uploads/diploma/exam/[brandId].jpg or
+ * public/uploads/diploma/tournament/[brandId].jpg
  */
 export async function uploadDiplomaBackgroundAction(
   formData: FormData,

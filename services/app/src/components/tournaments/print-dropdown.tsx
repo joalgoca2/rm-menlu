@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Printer, Award, ChevronDown, Users, FileText } from "lucide-react";
+import { Printer, Award, ChevronDown, FileText } from "lucide-react";
 import { printCredentialsView } from "./print-credentials-button";
 import type { TournamentParticipant } from "@/types";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTranslation } from "@/components/providers/i18n-provider";
 
 interface PrintDropdownProps {
   tournamentId: string;
@@ -18,7 +19,7 @@ interface PrintDropdownProps {
 }
 
 export function PrintDropdown({
-  tournamentId,
+  tournamentId: _tournamentId,
   tournamentTitle,
   tournamentDate,
   tournamentLocation,
@@ -26,6 +27,7 @@ export function PrintDropdown({
   participants,
   onPrintDiplomas,
 }: PrintDropdownProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +46,12 @@ export function PrintDropdown({
   const handlePrintAllCredentials = () => {
     setIsOpen(false);
     if (participants.length === 0) {
-      toast.error("No hay participantes registrados para imprimir credenciales.");
+      toast.error(
+        t(
+          "tournamentsPage.noParticipantsPrint",
+          "No hay participantes registrados para imprimir credenciales."
+        )
+      );
       return;
     }
     printCredentialsView({
@@ -59,7 +66,9 @@ export function PrintDropdown({
   const handlePrintParticipantList = () => {
     setIsOpen(false);
     if (participants.length === 0) {
-      toast.error("No hay participantes registrados.");
+      toast.error(
+        t("tournamentsPage.noParticipantsFound", "No hay participantes registrados.")
+      );
       return;
     }
 
@@ -141,7 +150,7 @@ export function PrintDropdown({
         type="button"
       >
         <Printer className="h-4 w-4 text-amber-500 shrink-0" />
-        <span>Imprimir</span>
+        <span>{t("tournamentsPage.printDropdownTitle", "Imprimir")}</span>
         <ChevronDown
           className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
@@ -163,7 +172,12 @@ export function PrintDropdown({
               className="w-full text-left px-3.5 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
             >
               <Printer className="h-4 w-4 text-amber-500 shrink-0" />
-              <span>Imprimir Credenciales (6 x Pág)</span>
+              <span>
+                {t(
+                  "tournamentsPage.printCredentialsOption",
+                  "Imprimir Credenciales (6 x Pág)"
+                )}
+              </span>
             </button>
 
             {/* Option 2: Print Diplomas */}
@@ -176,7 +190,12 @@ export function PrintDropdown({
                 className="w-full text-left px-3.5 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
               >
                 <Award className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>Imprimir Diplomas</span>
+                <span>
+                  {t(
+                    "tournamentsPage.printDiplomasOption",
+                    "Imprimir Diplomas"
+                  )}
+                </span>
               </button>
             )}
 
@@ -186,7 +205,12 @@ export function PrintDropdown({
               className="w-full text-left px-3.5 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors flex items-center gap-2.5 cursor-pointer"
             >
               <FileText className="h-4 w-4 text-indigo-500 shrink-0" />
-              <span>Imprimir Lista de Participantes</span>
+              <span>
+                {t(
+                  "tournamentsPage.printParticipantListOption",
+                  "Imprimir Lista de Participantes"
+                )}
+              </span>
             </button>
           </div>
         </div>

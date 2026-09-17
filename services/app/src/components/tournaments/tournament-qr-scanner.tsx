@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
-import { Loader2, VideoOff, Camera, RefreshCw } from "lucide-react";
+import { Loader2, VideoOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/components/providers/i18n-provider";
 
 interface TournamentQRScannerProps {
   tournamentId: string;
@@ -13,13 +14,14 @@ interface TournamentQRScannerProps {
 }
 
 export function TournamentQRScanner({
-  tournamentId,
+  tournamentId: _tournamentId,
   onScanSuccess,
   paused = false,
 }: TournamentQRScannerProps) {
+  const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [_hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   const qrCodeInstanceRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
@@ -89,14 +91,19 @@ export function TournamentQRScanner({
       console.error("Error starting camera:", err);
       setHasPermission(false);
       setIsScanning(false);
-      toast.error("No se pudo iniciar la cámara. Verifica los permisos de tu navegador.");
+      toast.error(
+        t(
+          "tournamentsPage.cameraErrorToast",
+          "No se pudo iniciar la cámara. Verifica los permisos de tu navegador."
+        )
+      );
     } finally {
       setIsProcessing(false);
       isStartingRef.current = false;
     }
-  }, [handleScanDecoded]);
+  }, [handleScanDecoded, t]);
 
-  const stopScanner = useCallback(async () => {
+  const _stopScanner = useCallback(async () => {
     try {
       setIsProcessing(true);
       if (qrCodeInstanceRef.current && qrCodeInstanceRef.current.isScanning) {
@@ -181,7 +188,10 @@ export function TournamentQRScanner({
             <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
             {paused && (
               <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                Procesando Competidor...
+                {t(
+                  "tournamentsPage.processingCompetitor",
+                  "Procesando Competidor..."
+                )}
               </span>
             )}
           </div>
@@ -194,16 +204,28 @@ export function TournamentQRScanner({
               <VideoOff className="h-7 w-7" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-white">Permiso de Cámara Denegado</h4>
+              <h4 className="text-sm font-bold text-white">
+                {t(
+                  "tournamentsPage.cameraPermissionDenied",
+                  "Permiso de Cámara Denegado"
+                )}
+              </h4>
               <p className="text-[11px] text-zinc-400 leading-relaxed max-w-xs">
-                Haz clic en el icono de candado 🔒 en la barra de direcciones de tu navegador y selecciona <strong>Permitir Cámara</strong>.
+                {t(
+                  "tournamentsPage.cameraPermissionDesc",
+                  "Haz clic en el icono de candado 🔒 en la barra de direcciones de tu navegador y selecciona Permitir Cámara."
+                )}
               </p>
             </div>
             <Button
               onClick={startScanner}
               className="bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-xs px-4 h-9 cursor-pointer"
             >
-              <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Reintentar Permiso de Cámara
+              <RefreshCw className="mr-1.5 h-3.5 w-3.5" />{" "}
+              {t(
+                "tournamentsPage.retryCameraPermission",
+                "Reintentar Permiso de Cámara"
+              )}
             </Button>
           </div>
         )}
@@ -212,12 +234,20 @@ export function TournamentQRScanner({
       {/* Manual Input / Hardware USB Barcode Reader Fallback */}
       <div className="max-w-[360px] mx-auto p-3.5 bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/80 rounded-2xl space-y-2">
         <label className="text-[11px] font-bold text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
-          <span>⌨️ Lector USB / Bluetooth o Entrada Manual:</span>
+          <span>
+            {t(
+              "tournamentsPage.manualReaderLabel",
+              "⌨️ Lector USB / Bluetooth o Entrada Manual:"
+            )}
+          </span>
         </label>
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Pegar o escanear código QR..."
+            placeholder={t(
+              "tournamentsPage.manualReaderPlaceholder",
+              "Pegar o escanear código QR..."
+            )}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 const target = e.target as HTMLInputElement;

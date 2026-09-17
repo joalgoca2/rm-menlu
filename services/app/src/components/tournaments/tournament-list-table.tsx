@@ -7,11 +7,11 @@ import {
   Pencil,
   Trash2,
   Play,
-  Layers,
   Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PaginationControl } from "@/components/ui/pagination-control";
+import { useTranslation } from "@/components/providers/i18n-provider";
 import type { Tournament } from "@/types";
 
 const formatDateStr = (dateVal?: Date | string | null): string => {
@@ -80,9 +80,11 @@ export function TournamentListTable({
   onOpenCreateModal,
   onOpenEditModal,
   onOpenDeleteModal,
-  onOpenCategoriesModal,
+  onOpenCategoriesModal: _onOpenCategoriesModal,
   onStartExecution,
 }: TournamentListTableProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       {/* Search & Filter Bar */}
@@ -91,7 +93,10 @@ export function TournamentListTable({
           <Search className="h-4 w-4 text-zinc-400 shrink-0" />
           <input
             type="text"
-            placeholder="Buscar por nombre de torneo o lugar..."
+            placeholder={t(
+              "tournamentsPage.searchListPlaceholder",
+              "Buscar por nombre de torneo o lugar..."
+            )}
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-transparent text-xs text-zinc-900 dark:text-white focus:outline-none placeholder:text-zinc-400 font-medium"
@@ -105,30 +110,57 @@ export function TournamentListTable({
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-600 dark:text-zinc-400 font-medium border-b border-zinc-200 dark:border-zinc-800">
               <tr>
-                <th className="p-4 font-semibold text-xs">Nombre del Torneo</th>
-                <th className="p-4 font-semibold text-xs">Lugar / Ubicación</th>
-                <th className="p-4 font-semibold text-xs">Fecha Programada</th>
-                <th className="p-4 font-semibold text-xs">Estado</th>
-                <th className="p-4 font-semibold text-xs text-right">Acciones</th>
+                <th className="p-4 font-semibold text-xs">
+                  {t("tournamentsPage.colName", "Nombre del Torneo")}
+                </th>
+                <th className="p-4 font-semibold text-xs">
+                  {t("tournamentsPage.colVenue", "Lugar / Ubicación")}
+                </th>
+                <th className="p-4 font-semibold text-xs">
+                  {t("tournamentsPage.colDate", "Fecha Programada")}
+                </th>
+                <th className="p-4 font-semibold text-xs">
+                  {t("tournamentsPage.colStatus", "Estado")}
+                </th>
+                <th className="p-4 font-semibold text-xs text-right">
+                  {t("common.actions", "Acciones")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-zinc-500 text-xs font-medium">
-                    Cargando torneos...
+                  <td
+                    colSpan={5}
+                    className="p-8 text-center text-zinc-500 text-xs font-medium"
+                  >
+                    {t(
+                      "tournamentsPage.loadingTournaments",
+                      "Cargando torneos..."
+                    )}
                   </td>
                 </tr>
               ) : tournaments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-zinc-500 text-xs font-medium space-y-2">
-                    <p>No hay torneos registrados en el alcance actual.</p>
+                  <td
+                    colSpan={5}
+                    className="p-10 text-center text-zinc-500 text-xs font-medium space-y-2"
+                  >
+                    <p>
+                      {t(
+                        "tournamentsPage.noTournamentsFound",
+                        "No hay torneos registrados en el alcance actual."
+                      )}
+                    </p>
                     <Button
                       size="sm"
                       onClick={onOpenCreateModal}
                       className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold"
                     >
-                      Crear Primer Torneo
+                      {t(
+                        "tournamentsPage.createFirstTournament",
+                        "Crear Primer Torneo"
+                      )}
                     </Button>
                   </td>
                 </tr>
@@ -150,8 +182,16 @@ export function TournamentListTable({
                       className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition-colors"
                     >
                       <td className="p-4">
-                        <div className="font-bold text-zinc-900 dark:text-white text-sm">{tournament.title}</div>
-                        <div className="text-xs text-zinc-500 truncate max-w-xs">{tournament.description || "Sin descripción"}</div>
+                        <div className="font-bold text-zinc-900 dark:text-white text-sm">
+                          {tournament.title}
+                        </div>
+                        <div className="text-xs text-zinc-500 truncate max-w-xs">
+                          {tournament.description ||
+                            t(
+                              "tournamentsPage.noDescription",
+                              "Sin descripción"
+                            )}
+                        </div>
                       </td>
                       <td className="p-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         <span className="flex items-center gap-1.5">
@@ -167,7 +207,9 @@ export function TournamentListTable({
                               {locationDisplay}
                             </a>
                           ) : (
-                            <span className="truncate max-w-xs">{locationDisplay}</span>
+                            <span className="truncate max-w-xs">
+                              {locationDisplay}
+                            </span>
                           )}
                         </span>
                       </td>
@@ -188,10 +230,13 @@ export function TournamentListTable({
                           }`}
                         >
                           {tournament.status === "FINISHED"
-                            ? "FINALIZADO"
+                            ? t("tournamentsPage.statusFinished", "FINALIZADO")
                             : tournament.status === "IN_PROGRESS"
-                            ? "EN EJECUCIÓN"
-                            : "BORRADOR"}
+                            ? t(
+                                "tournamentsPage.statusInProgress",
+                                "EN EJECUCIÓN"
+                              )
+                            : t("tournamentsPage.statusDraft", "BORRADOR")}
                         </span>
                       </td>
                       <td className="p-4 text-right">
@@ -201,19 +246,26 @@ export function TournamentListTable({
                             onClick={() => onStartExecution(tournament)}
                             className="bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs"
                           >
-                            <Play className="h-3.5 w-3.5 mr-1 fill-white" /> Ejecutar
+                            <Play className="h-3.5 w-3.5 mr-1 fill-white" />{" "}
+                            {t("tournamentsPage.executeBtn", "Ejecutar")}
                           </Button>
                           <button
                             onClick={() => onOpenEditModal(tournament)}
                             className="p-1.5 text-zinc-400 hover:text-amber-500 rounded-lg transition-colors"
-                            title="Editar torneo"
+                            title={t(
+                              "tournamentsPage.editTournamentTooltip",
+                              "Editar torneo"
+                            )}
                           >
                             <Pencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => onOpenDeleteModal(tournament)}
                             className="p-1.5 text-zinc-400 hover:text-rose-500 rounded-lg transition-colors"
-                            title="Eliminar torneo"
+                            title={t(
+                              "tournamentsPage.deleteTournamentTooltip",
+                              "Eliminar torneo"
+                            )}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

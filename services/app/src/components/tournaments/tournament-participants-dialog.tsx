@@ -429,7 +429,7 @@ export function TournamentParticipantsDialog({
                           {s.firstName} {s.lastName || ""}
                         </p>
                         <p className="text-[11px] text-zinc-500 font-medium">
-                          {s.currentBelt?.name || "Sin cinturón"}{" "}
+                          {(s as unknown as { currentBelt?: { name?: string } }).currentBelt?.name || "Sin cinturón"}{" "}
                           {s.email ? `• ${s.email}` : ""}
                         </p>
                       </div>

@@ -756,7 +756,10 @@ model PhysicalChallenge {
 
   title              String
   description        String?             @db.Text
+  targetReps         Int                 @default(10) @map("target_reps")
+  metricType         String              @default("REPETITIONS") @map("metric_type")
   xpReward           Int                 @default(50) @map("xp_reward")
+  requiresValidation Boolean             @default(false) @map("requires_validation")
   minAge             Int?                @default(4) @map("min_age")
   maxAge             Int?                @default(99) @map("max_age")
   targetBeltId       String?             @map("target_belt_id")

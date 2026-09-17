@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { TournamentParticipant } from "@/types";
 
-interface PrintCredentialsProps {
+export interface PrintCredentialsProps {
   tournamentId: string;
   tournamentTitle: string;
   tournamentDate?: Date | string;

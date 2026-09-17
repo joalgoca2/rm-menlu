@@ -3,6 +3,7 @@
 import { parseBrowser, parseDevice } from "@/auth";
 import { resolveTenantBrand } from "@/lib/tenant";
 import { prisma } from "@/lib/prisma";
+import type { SaaSPaymentStatus } from "@prisma/client";
 import {
   createBrandSchema,
   updateBrandSchema,
@@ -627,7 +628,7 @@ export async function addManualBrandPaymentAction(params: {
         amount: params.amount,
         discountApplied: params.discountApplied ?? 0,
         paymentDate,
-        status: params.status || "SUCCESS",
+        status: (params.status as SaaSPaymentStatus) || "SUCCESS",
         gatewayProvider: params.gatewayProvider || "EFECTIVO",
         billingPeriodStart: periodStart,
         billingPeriodEnd: periodEnd,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { SaaSPaymentStatus } from "@prisma/client";
 import { PaymentGatewayFactory } from "@/lib/payment/factory";
 import type { PaymentGatewayType } from "@/types";
 
@@ -55,7 +56,7 @@ export async function POST(
       await prisma.paymentTransaction.updateMany({
         where: { externalId: event.externalId },
         data: {
-          status: event.status,
+          status: event.status as SaaSPaymentStatus,
           updatedAt: new Date(),
         },
       });

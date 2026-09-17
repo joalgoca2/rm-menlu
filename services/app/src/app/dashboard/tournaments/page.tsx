@@ -49,7 +49,7 @@ import type { Tournament, TournamentCategory } from "@/types";
 import Link from "next/link";
 import { toast } from "sonner";
 
-interface TournamentWithDetails extends Tournament {
+interface TournamentWithDetails extends Omit<Tournament, "participants"> {
   categories?: TournamentCategory[];
   participants?: { id: string }[];
 }
@@ -297,7 +297,7 @@ function TournamentsContent() {
     }
   };
 
-  const handleOpenCategoriesModal = (tournament: TournamentWithDetails) => {
+  const _handleOpenCategoriesModal = (tournament: TournamentWithDetails) => {
     setManagingCategoriesTournament(tournament);
     fetchCategories(tournament.id);
   };
@@ -702,7 +702,7 @@ function TournamentsContent() {
                           size="icon"
                           className="h-8 w-8 text-zinc-400 hover:text-amber-500 cursor-pointer"
                           onClick={() => {
-                            setEditingTournament(tItem);
+                            setEditingTournament(tItem as unknown as Tournament);
                             setIsCreateModalOpen(true);
                           }}
                           title="Editar Torneo"
@@ -713,7 +713,7 @@ function TournamentsContent() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-zinc-400 hover:text-rose-500 cursor-pointer"
-                          onClick={() => setDeletingTournament(tItem)}
+                          onClick={() => setDeletingTournament(tItem as unknown as Tournament)}
                           title="Eliminar Torneo"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -785,7 +785,7 @@ function TournamentsContent() {
                     <div>
                       <Button
                         size="sm"
-                        onClick={() => handleNavigateToDetail(tItem)}
+                        onClick={() => handleNavigateToDetail(tItem as unknown as Tournament)}
                         className={
                           "w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 " +
                           "font-bold rounded-xl text-xs cursor-pointer shadow-xs"
@@ -917,7 +917,7 @@ function TournamentsContent() {
                       <div className="flex items-center justify-end gap-1.5">
                         <Button
                           size="sm"
-                          onClick={() => handleNavigateToDetail(tItem)}
+                          onClick={() => handleNavigateToDetail(tItem as unknown as Tournament)}
                           className={
                             "bg-amber-500 hover:bg-amber-600 text-zinc-950 " +
                             "font-bold rounded-xl text-xs cursor-pointer shadow-xs"
@@ -930,7 +930,7 @@ function TournamentsContent() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-zinc-400 hover:text-indigo-500 cursor-pointer"
-                          onClick={() => setDuplicatingTournament(tItem)}
+                          onClick={() => setDuplicatingTournament(tItem as unknown as Tournament)}
                           title={t("tournamentsPage.duplicateButton", "Duplicar Torneo")}
                         >
                           <Copy className="h-4 w-4" />
@@ -940,7 +940,7 @@ function TournamentsContent() {
                           size="icon"
                           className="h-8 w-8 text-zinc-400 hover:text-amber-500 cursor-pointer"
                           onClick={() => {
-                            setEditingTournament(tItem);
+                            setEditingTournament(tItem as unknown as Tournament);
                             setIsCreateModalOpen(true);
                           }}
                           title="Editar"
@@ -951,7 +951,7 @@ function TournamentsContent() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-zinc-400 hover:text-rose-500 cursor-pointer"
-                          onClick={() => setDeletingTournament(tItem)}
+                          onClick={() => setDeletingTournament(tItem as unknown as Tournament)}
                           title="Eliminar"
                         >
                           <Trash2 className="h-4 w-4" />
